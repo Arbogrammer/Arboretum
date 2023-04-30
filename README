@@ -1,0 +1,8 @@
+Kompilieren kann man das Programm in Linux mit
+
+cd /Pfad/in/der/alle/Dateien/des/Quellcodes/liegen
+gcc -o Programmname baumg.c `pkg-config --cflags --libs gtk+-3.0` -lm
+
+Dazu muss natürlich gcc installiert sein, aber auch die GTK-3-Bibliotheken. Diese kann man zum Beispiel so installieren (unter Ubuntu):
+
+sudo apt-get install libgtk-3-dev
