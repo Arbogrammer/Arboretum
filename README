@@ -6,3 +6,18 @@ gcc -o Programmname baumg.c `pkg-config --cflags --libs gtk+-3.0` -lm
 Dazu muss natürlich gcc installiert sein, aber auch die GTK-3-Bibliotheken. Diese kann man zum Beispiel so installieren (unter Ubuntu):
 
 sudo apt-get install libgtk-3-dev
+
+
+In Windows muss man zum Beispiel msys installieren.
+msys öffnen und folgendes installieren:
+
+pacman -S mingw-w64-x86_64-gtk3
+pacman -S mingw-w64-i686-gcc
+
+Danach kompilieren mit
+
+gcc `pkg-config --cflags gtk+-3.0` -o "C:\PfadZurExeDatei\Arboretum32.exe" "C:\PfadzumQuelltext\baumg.c" `pkg-config --libs gtk+-3.0`
+
+Die ganzen dlls für GTK werden zum Starten des Programms benötigt. Die findet man im Internet.
+Hier kann man sich ein funktionierendes Programm herutnerladen und nur die exe-Datei ersetzen:
+https://baumdiagramme.wordpress.com/downloads/
