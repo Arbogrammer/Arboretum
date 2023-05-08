@@ -16,7 +16,7 @@ void exportbmp (char *dateiname);
 void exportjpg (char *dateiname);
 void exportpdf (char *dateiname);
 void rueckgaengig(GtkWidget *widget, gpointer data);
-void loeschen();
+void loeschen(gpointer data);
 gboolean pos1(GtkWidget *widget, gpointer data);
 gboolean runter(GtkWidget *widget, gpointer data);
 gboolean rechts(GtkWidget *widget, gpointer data);
@@ -77,7 +77,7 @@ static void schriftfarbeaendern ();
 void knotenwskwechseln();
 char *ftstr(double zahl);
 void ueberstreichen();
-
+void alleknotenneupositionieren(gpointer data);
 
 #include <math.h>
 #include "buchstabeneingabe.c"
@@ -158,3 +158,4 @@ void ueberstreichen();
 #include "knotenwskwechseln.c"
 #include "ftstr.c"
 #include "ueberstreichen.c"
+#include "alleknotenneupositionieren.c"

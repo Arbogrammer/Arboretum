@@ -10,10 +10,10 @@ void buchstabeneingabe(GtkEditable *editable, gpointer data)
 
   for(i=0;i<=maxzaehler;i++)
   {
-    guint laenge = g_utf8_strlen(gtk_entry_get_text(GTK_ENTRY(textfeld[i])),-1);
+    int laenge = g_utf8_strlen(gtk_entry_get_text(GTK_ENTRY(textfeld[i])),-1);
     const gchar *text = gtk_entry_get_text(GTK_ENTRY(textfeld[i]));
     gunichar unicode_char = 0x0305; // Unicode-Wert für den kombinierenden Überstrich
-    guint count = 0;
+    int count = 0;
     
     gchar *pos = (gchar*) text;
     while (*pos != '\0')

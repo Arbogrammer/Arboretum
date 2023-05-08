@@ -6,7 +6,5 @@ void ueberstreichen()
     gint position = gtk_editable_get_position(GTK_EDITABLE(entry));
 
     gtk_entry_buffer_insert_text(entry_buffer, position, "̅", -1);
-//    guint num_inserted_chars = gtk_entry_buffer_insert_text(entry_buffer, position, "̅", -1);
-//    g_print("Inserted %d characters\n", num_inserted_chars);
 
 }

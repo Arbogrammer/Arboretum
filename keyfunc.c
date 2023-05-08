@@ -7,7 +7,15 @@ static gboolean keyfunc (GtkWidget *widget, GdkEventKey *event, gpointer data)
     case GDK_KEY_Up: hoch(widget, data); break;
     case GDK_KEY_Left: links(widget, data); break;
     case GDK_KEY_Home: pos1(widget, data); break;
-    case GDK_KEY_Delete: reset(data); break;
+    case GDK_KEY_Delete:
+      if ((event->state & gtk_accelerator_get_default_mod_mask()) == GDK_CONTROL_MASK)
+      {
+        reset(data); break;
+      }
+      else
+      {
+        loeschen(data); break;
+      }
     case GDK_KEY_Insert: oeffnen(NULL,data); break;
     case GDK_KEY_F1: hilfe(NULL,NULL); break;
     case GDK_KEY_Tab: knotenwskwechseln(); break;
