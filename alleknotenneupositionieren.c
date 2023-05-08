@@ -61,7 +61,6 @@ void alleknotenneupositionieren(gpointer data)
 
   for (int i = 0; i <= maxzaehler; i++)
   {
-    printf("%s: y[%i]=%i\n",gtk_widget_get_name(textfeld[i]),i,y[i]);
     if(*vorgaenger[i] != NULL && zeichenzaehlen(gtk_widget_get_name(textfeld[i]),'-') > 1)
     {
       positionsanpassung(*vorgaenger[i],data);
