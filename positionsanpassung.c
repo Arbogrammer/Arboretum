@@ -20,6 +20,7 @@ gboolean positionsanpassung(GtkWidget *widget, gpointer data)
   }
   int tempstufe=zeichenzaehlen(gtk_widget_get_name(widget),'-')-1;
   y[tempzaehler] = (ytempo + ytempu) / 2;
+  printf("Neuer y-Wert: %i\n",y[tempzaehler]);
   gtk_layout_move(GTK_LAYOUT(data),widget,FensterRandLinks+RandLinks+StufenBreite+(StufenBreite+KnotenBreite)*tempstufe,FensterRandOben+RandOben+y[tempzaehler]);
   return TRUE;
 //      printf("ErgebnisBreite = %i\nHALLOPOS: DABREITE = %i\n",ErgebnisBreite,RandLinks+RandRechts+(maxStufe+1)*StufenBreite+(maxStufe+1)*KnotenBreite+((ergebnisseanzeigen>0)?(ErgebnisAbstand+ErgebnisBreite):0));

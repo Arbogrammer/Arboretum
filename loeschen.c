@@ -26,7 +26,6 @@ void loeschen(gpointer data)
     nameEnde[strlen(name)-strlen(nameBeginn)-k-2] = name[strlen(name)-k-1];
     k++;
   }
-  
 
 //  gtk_widget_destroy(textfeld[tempzaehler]);
   
@@ -83,6 +82,15 @@ void loeschen(gpointer data)
   {
     gchar altername[10000] = "";
     strcpy(altername,gtk_widget_get_name(textfeldErgebnis[i]));
+    if(nameEnde[0] == '0' && strncmp(nameBeginn,altername,strlen(nameBeginn)) == 0 && anzahlnachfolger(knotenexistiert(gtk_widget_get_name(*vorgaenger[knotenexistiert(name)]))) == 1) // Die letzte Bedingung bedeutet, dass die Anzahl der Nachfolger des Vorgängers gleich 1 ist, dass also der Knoten keine Knoten mehr unter sich hat.
+    {
+      printf("altername: %s, nameBeginn: %s, nameEnde: %s, maxzaehlererg: %i\n",altername,nameBeginn,nameEnde,maxzaehlererg);
+      gchar neuername[10000] = "";
+      strcat(neuername,nameBeginn);
+      strcat(neuername,"-E");
+      printf("neuername: %s\n",neuername);
+      fprintf(datei,"%i%c%i%c%s%c%s%c\n",i-j,31,yerg[i],31,neuername,31,gtk_entry_get_text(GTK_ENTRY(textfeldErgebnis[i])),31);
+    }
     if(strncmp(name,altername,strlen(name)) != 0)
     {
       if(strncmp(nameBeginn,altername,strlen(nameBeginn)) != 0)
@@ -170,6 +178,13 @@ void loeschen(gpointer data)
   {
     gchar altername[10000] = "";
     strcpy(altername,gtk_widget_get_name(textfeldErgebnisWahrscheinlichkeit[i]));
+    if(nameEnde[0] == '0' && strncmp(nameBeginn,altername,strlen(nameBeginn)) == 0 && anzahlnachfolger(knotenexistiert(gtk_widget_get_name(*vorgaenger[knotenexistiert(name)]))) == 1)
+    {
+      gchar neuername[10000] = "";
+      strcat(neuername,nameBeginn);
+      strcat(neuername,"-E");
+      fprintf(datei,"%i%c%s%c%s%c\n",i-j,31,neuername,31,gtk_entry_get_text(GTK_ENTRY(textfeldErgebnisWahrscheinlichkeit[i])),31);
+    }
     if(strncmp(name,altername,strlen(name)) != 0)
     {
       if(strncmp(nameBeginn,altername,strlen(nameBeginn)) != 0)
@@ -211,5 +226,9 @@ void loeschen(gpointer data)
   fclose(datei);
   
   templaden(data);
+  for(i=0 ; i<=maxzaehlererg ; i++)
+  {
+    ergebnistextneuschreiben(textfeldErgebnis[i]);
+  }
   alleknotenneupositionieren(data);
 }

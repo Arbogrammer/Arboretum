@@ -59,11 +59,22 @@ void alleknotenneupositionieren(gpointer data)
   tempspeichern();
   templaden(data);
 
-  for (int i = 0; i <= maxzaehler; i++)
+  int stufenanzahl=0;
+  for(int i=0 ; i <= maxzaehlererg ; i++)
   {
-    if(*vorgaenger[i] != NULL && zeichenzaehlen(gtk_widget_get_name(textfeld[i]),'-') > 1)
+    int stufenanzahlaktuell=zeichenzaehlen(gtk_widget_get_name(textfeldErgebnis[i]),'-')-1;
+    stufenanzahl=(stufenanzahl<stufenanzahlaktuell)?stufenanzahlaktuell:stufenanzahl;    
+  }
+  printf("Stufenanzahl: %i\n",stufenanzahl);
+  for (int j = stufenanzahl; j >= 1; j--)
+  {
+    for (int i = 0 ; i <= maxzaehler ; i++)
     {
-      positionsanpassung(*vorgaenger[i],data);
+      if(zeichenzaehlen(gtk_widget_get_name(textfeld[i]),'-') == j)
+      {
+        printf("Knotenname: %s\nVorgängername: %s\nAlter y-Wert: %i\n",gtk_widget_get_name(textfeld[i]),gtk_widget_get_name(*vorgaenger[i]),y[knotenexistiert(gtk_widget_get_name(*vorgaenger[i]))]);
+        positionsanpassung(*vorgaenger[i],data);
+      }
     }
   }
   
@@ -80,7 +91,7 @@ void alleknotenneupositionieren(gpointer data)
 
 
   /*
-  int stufenanzahl=1
+  int stufenanzahl=0;
   int i;
   for(i=0 ; i <= maxzaehlererg ; i++)
   {
