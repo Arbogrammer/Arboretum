@@ -18,24 +18,21 @@ void alleknotenneupositionieren(gpointer data)
     const char* nameA = gtk_widget_get_name(widgetA);
     const char* nameB = gtk_widget_get_name(widgetB);
 
-    // Ignoriere das letzte Zeichen der Namen
-    size_t lengthA = strlen(nameA);
-    size_t lengthB = strlen(nameB);
+    char nameA2[10000] = "";
+    char nameB2[10000] = "";
+    strcpy(nameA2,nameA);
+    strcpy(nameB2,nameB);
 
-    if (lengthA > 0)
-    {
-        lengthA--;
-    }
+    nameA2[strlen(nameA2)-1] = 0;
+    nameB2[strlen(nameB2)-1] = 0;
 
-    if (lengthB > 0)
-    {
-        lengthB--;
-    }
+    printf("Name: A: %s vs. %s und B: %s vs. %s\n",gtk_widget_get_name(widgetA),nameA2, gtk_widget_get_name(widgetB),nameB2);
 
-    return strncmp(nameA, nameB, lengthA > lengthB ? lengthB : lengthA);
+    return strcmp(nameA2, nameB2);
   }
   qsort(textfeldErgebnis, maxzaehlererg+1, sizeof(GtkWidget*), compare_widgets);
   qsort(textfeldErgebnisWahrscheinlichkeit, maxzaehlererg+1, sizeof(GtkWidget*), compare_widgets);
+  
   
   for (int i = 0; i <= maxzaehlererg; i++)
   {
@@ -46,6 +43,11 @@ void alleknotenneupositionieren(gpointer data)
   
   qsort(textfeld, maxzaehler+1, sizeof(GtkWidget*), compare_widgets);
   qsort(textfeldWahrscheinlichkeit, maxzaehler+1, sizeof(GtkWidget*), compare_widgets_wsk);
+
+  for (int i = 0; i <= maxzaehler; i++)
+  {
+    printf("textfeldWahrscheinlichkeit[%i] hat den Namen %s\n",i,gtk_widget_get_name(textfeldWahrscheinlichkeit[i]));
+  }
   
   for (int i = 0; i <= maxzaehlererg; i++)
   {
@@ -65,14 +67,14 @@ void alleknotenneupositionieren(gpointer data)
     int stufenanzahlaktuell=zeichenzaehlen(gtk_widget_get_name(textfeldErgebnis[i]),'-')-1;
     stufenanzahl=(stufenanzahl<stufenanzahlaktuell)?stufenanzahlaktuell:stufenanzahl;    
   }
-  printf("Stufenanzahl: %i\n",stufenanzahl);
-  for (int j = stufenanzahl; j >= 1; j--)
+//  printf("Stufenanzahl: %i\n",stufenanzahl);
+  for (int j = stufenanzahl; j > 1; j--)
   {
     for (int i = 0 ; i <= maxzaehler ; i++)
     {
       if(zeichenzaehlen(gtk_widget_get_name(textfeld[i]),'-') == j)
       {
-        printf("Knotenname: %s\nVorgängername: %s\nAlter y-Wert: %i\n",gtk_widget_get_name(textfeld[i]),gtk_widget_get_name(*vorgaenger[i]),y[knotenexistiert(gtk_widget_get_name(*vorgaenger[i]))]);
+//        printf("Knotenname: %s\nVorgängername: %s\nAlter y-Wert: %i\n",gtk_widget_get_name(textfeld[i]),gtk_widget_get_name(*vorgaenger[i]),y[knotenexistiert(gtk_widget_get_name(*vorgaenger[i]))]);
         positionsanpassung(*vorgaenger[i],data);
       }
     }

@@ -27,8 +27,8 @@ void loeschen(gpointer data)
     k++;
   }
 
-//  gtk_widget_destroy(textfeld[tempzaehler]);
-  
+  tempspeichern();
+    
   int i=0;
   FILE *datei;
   TEMPDATEI dateinummerierung);
