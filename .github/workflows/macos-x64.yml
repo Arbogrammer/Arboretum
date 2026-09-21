@@ -1,0 +1,29 @@
+name: macOS x64 build
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install GTK 4
+        run: brew install gtk4 pkg-config
+
+      - name: Build macOS app bundle
+        run: bash packaging/macos/build-macos.sh
+
+      - name: Upload macOS package
+        uses: actions/upload-artifact@v5
+        with:
+          name: Arboretum-macOS-x64
+          path: dist/Arboretum-macOS-x64.zip
+          if-no-files-found: error
