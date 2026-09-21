@@ -83,6 +83,10 @@ cat > "$bundle/Contents/Info.plist" <<'EOF'
 </dict></plist>
 EOF
 
+# Re-sign after install_name_tool changed bundled Homebrew libraries.  This is
+# an ad-hoc signature only; notarization still requires an Apple developer ID.
+codesign --force --deep --sign - "$bundle"
+
 rm -f "$root_dir/dist/Arboretum-macOS-x64.zip"
 cd "$root_dir/dist"
 zip -qry Arboretum-macOS-x64.zip Arboretum.app
