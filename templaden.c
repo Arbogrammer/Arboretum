@@ -1,3 +1,50 @@
+static double tempzahl_laden(const char *text)
+{
+  char *kopie = g_strdup(text);
+  char *komma = strchr(kopie, ',');
+  if(komma) *komma = '.';
+  double wert = g_ascii_strtod(kopie, NULL);
+  g_free(kopie);
+  return wert;
+}
+
+static void tempdarstellung_laden(char *zeile)
+{
+  gchar **werte = g_strsplit(zeile, "\x1f", 45);
+  int n = g_strv_length(werte);
+  if(n >= 45)
+  {
+    int v=0;
+    RandLinks=atoi(werte[v++]); RandRechts=atoi(werte[v++]);
+    RandOben=atoi(werte[v++]); RandUnten=atoi(werte[v++]);
+    StufenBreite=atoi(werte[v++]); KnotenAbstand=atoi(werte[v++]);
+    ErgebnisAbstand=atoi(werte[v++]); LinienDicke=atoi(werte[v++]);
+    KnotenTextBreite=atoi(werte[v++]); WahrscheinlichkeitTextBreite=atoi(werte[v++]);
+    ErgebnisTrenner=(char)atoi(werte[v++]); genauigkeit=atoi(werte[v++]);
+    padding=tempzahl_laden(werte[v++]); paddingk=tempzahl_laden(werte[v++]);
+    bruchou=atoi(werte[v++]); kuerzen=atoi(werte[v++]);
+    knotenrahmenabstand=atoi(werte[v++]); wskverschiebung=atoi(werte[v++]);
+    knotenrahmendicke=atoi(werte[v++]);
+    hintergrundfarbe.red=tempzahl_laden(werte[v++]); hintergrundfarbe.green=tempzahl_laden(werte[v++]);
+    hintergrundfarbe.blue=tempzahl_laden(werte[v++]); hintergrundfarbe.alpha=tempzahl_laden(werte[v++]);
+    zweigfarbe.red=tempzahl_laden(werte[v++]); zweigfarbe.green=tempzahl_laden(werte[v++]);
+    zweigfarbe.blue=tempzahl_laden(werte[v++]); zweigfarbe.alpha=tempzahl_laden(werte[v++]);
+    knotenhintergrundfarbe.red=tempzahl_laden(werte[v++]); knotenhintergrundfarbe.green=tempzahl_laden(werte[v++]);
+    knotenhintergrundfarbe.blue=tempzahl_laden(werte[v++]); knotenhintergrundfarbe.alpha=tempzahl_laden(werte[v++]);
+    knotenrandfarbe.red=tempzahl_laden(werte[v++]); knotenrandfarbe.green=tempzahl_laden(werte[v++]);
+    knotenrandfarbe.blue=tempzahl_laden(werte[v++]); knotenrandfarbe.alpha=tempzahl_laden(werte[v++]);
+    schriftfarbe.red=tempzahl_laden(werte[v++]); schriftfarbe.green=tempzahl_laden(werte[v++]);
+    schriftfarbe.blue=tempzahl_laden(werte[v++]); schriftfarbe.alpha=tempzahl_laden(werte[v++]);
+    knotenhintergrundfarbewurdegeaendert=atoi(werte[v++]);
+    knotenrahmenfarbewurdegeaendert=atoi(werte[v++]);
+    knotenrahmendickegeaendert=atoi(werte[v++]);
+    schriftfarbewurdegeaendert=atoi(werte[v++]);
+    schriftartwurdegewechselt=atoi(werte[v++]);
+    g_strlcpy(schriftart,g_strchomp(werte[v]),sizeof(schriftart));
+  }
+  g_strfreev(werte);
+}
+
 void templaden(gpointer data)
 {
 
@@ -8,6 +55,74 @@ void templaden(gpointer data)
   if(dateinummerierung <= 1)
   {
     return;
+  }
+
+  /* Erst vollständig einlesen, bevor der sichtbare Baum verändert wird. */
+  int naechste_dateinummer = dateinummerierung - 1;
+  TEMPDATEI naechste_dateinummer);
+  FILE *datei = fopen(dateiname,"rb");
+  if(!datei)
+  {
+    g_warning("Undo-Zustand konnte nicht geöffnet werden: %s", dateiname);
+    zurueck = 0;
+    return;
+  }
+  if(fseek(datei,0L,SEEK_END) != 0)
+  {
+    g_warning("Undo-Zustand konnte nicht gelesen werden: %s", dateiname);
+    fclose(datei);
+    zurueck = 0;
+    return;
+  }
+  long dateigroesse_lang = ftell(datei);
+  if(dateigroesse_lang <= 0 || fseek(datei,0L,SEEK_SET) != 0)
+  {
+    g_warning("Undo-Zustand ist leer oder unlesbar: %s", dateiname);
+    fclose(datei);
+    zurueck = 0;
+    return;
+  }
+  size_t dateigroesse = (size_t)dateigroesse_lang;
+  char *dateiinhalt=calloc(dateigroesse+2,sizeof(char));
+  if(!dateiinhalt)
+  {
+    g_warning("Nicht genügend Speicher zum Laden des Undo-Zustands");
+    fclose(datei);
+    zurueck = 0;
+    return;
+  }
+  size_t gelesen = fread(dateiinhalt,1,dateigroesse,datei);
+  int schliessfehler = fclose(datei);
+  if(gelesen != dateigroesse || schliessfehler != 0)
+  {
+    g_warning("Undo-Zustand konnte nicht vollständig gelesen werden: %s", dateiname);
+    free(dateiinhalt);
+    zurueck = 0;
+    return;
+  }
+  dateiinhalt[gelesen]=0;
+
+  int abschnitte = 0;
+  for(size_t p=0; p<gelesen; p++)
+    if((unsigned char)dateiinhalt[p] == 30) abschnitte++;
+  if(abschnitte < 4)
+  {
+    g_warning("Undo-Zustand ist beschädigt: %s", dateiname);
+    free(dateiinhalt);
+    zurueck = 0;
+    return;
+  }
+
+  /* Geometrie muss bereits vor dem Neuaufbau der Widgets feststehen. */
+  int gefundene_abschnitte = 0;
+  for(size_t p=0; p<gelesen; p++)
+  {
+    if((unsigned char)dateiinhalt[p] == 30 && ++gefundene_abschnitte == 4)
+    {
+      if(p + 2 < gelesen)
+        tempdarstellung_laden(dateiinhalt+p+2);
+      break;
+    }
   }
 
   int focuszaehler = -1;
@@ -89,27 +204,12 @@ void templaden(gpointer data)
   }
   maxzaehler=0;
   maxzaehlererg=0;
-  dateinummerierung -= 1;
-  TEMPDATEI dateinummerierung);
+  dateinummerierung = naechste_dateinummer;
 
   gtk_widget_set_size_request (da, RandLinks+RandRechts+StufenBreite+KnotenBreite,RandOben+KnotenHoehe+RandUnten);
   gtk_layout_set_size(GTK_LAYOUT (data),RandLinks+RandRechts+StufenBreite+KnotenBreite,RandOben+KnotenHoehe+RandUnten);
 
-  FILE *datei;
-  datei = fopen(dateiname,"r");
-  fseek(datei,0L,SEEK_END);
-  int dateigroesse = ftell(datei);
-//  printf("dateigroesse: %i\n",dateigroesse);
-  rewind(datei);
-  char *dateiinhalt=calloc(dateigroesse+2,sizeof(char));
-  int temp=0, j = 0;
-  while((temp = fgetc(datei))!=EOF)
-  {
-    dateiinhalt[j]=temp;
-    j++;
-  }
-  fclose(datei);
-  dateiinhalt[j]=0;
+  int j = 0;
 //  printf("dateiinhalt: %s\n",dateiinhalt);
   ymax = 0;
   j=0;
@@ -148,6 +248,11 @@ void templaden(gpointer data)
     Stufe=zeichenzaehlen(name,'-')-1;
     maxStufe=((Stufe>maxStufe)?Stufe:maxStufe);
     tempzaehler = atoi(tempzaehlerstring);
+    if(!knotenindex_gueltig(tempzaehler))
+    {
+      free(dateiinhalt);
+      return;
+    }
     y[tempzaehler] = atoi(ystring);
     ymax=((ymax<y[tempzaehler])?y[tempzaehler]:ymax);
     textfeld[tempzaehler] = gtk_entry_new();
@@ -186,7 +291,12 @@ void templaden(gpointer data)
     gtk_entry_grab_focus_without_selecting(GTK_ENTRY(textfeld[0]));
     gtk_editable_set_position(GTK_EDITABLE(textfeld[0]),-1);
   }
-  if(focuszaehler > -1)
+  /* Beim Löschen existiert der zuvor fokussierte Index unter Umständen
+   * nicht mehr. Dann den nächsten, beziehungsweise den letzten verbliebenen
+   * Knoten fokussieren. */
+  if(focuszaehler > maxzaehler)
+    focuszaehler = maxzaehler;
+  if(focuszaehler > -1 && textfeld[focuszaehler])
   {
 //    printf("Focus: %i\n",focuszaehler);
     gtk_entry_grab_focus_without_selecting(GTK_ENTRY(textfeld[focuszaehler]));
@@ -227,6 +337,11 @@ void templaden(gpointer data)
     }
 //    printf("tempzaelerstring: %s\nystring: %s\nname: %s\n",tempzaehlerstring,ystring,name);
     tempzaehler = atoi(tempzaehlerstring);
+    if(!knotenindex_gueltig(tempzaehler))
+    {
+      free(dateiinhalt);
+      return;
+    }
     yerg[tempzaehler] = atoi(ystring);
     textfeldErgebnis[tempzaehler] = gtk_entry_new();
     gtk_widget_set_name(textfeldErgebnis[tempzaehler],name);
@@ -274,6 +389,11 @@ void templaden(gpointer data)
       j++;
     }
     tempzaehler = atoi(tempzaehlerstring);
+    if(!knotenindex_gueltig(tempzaehler))
+    {
+      free(dateiinhalt);
+      return;
+    }
     textfeldWahrscheinlichkeit[tempzaehler] = gtk_entry_new();
     gtk_widget_set_name(textfeldWahrscheinlichkeit[tempzaehler],name);
     gtk_entry_set_width_chars (GTK_ENTRY(textfeldWahrscheinlichkeit[tempzaehler]),WahrscheinlichkeitTextBreite);
@@ -284,7 +404,9 @@ void templaden(gpointer data)
     g_signal_connect (textfeldWahrscheinlichkeit[tempzaehler], "changed", G_CALLBACK (wskeingabe), data);
     j++;
   }
-  if(focuszaehlerw > -1)
+  if(focuszaehlerw > maxzaehler)
+    focuszaehlerw = maxzaehler;
+  if(focuszaehlerw > -1 && textfeldWahrscheinlichkeit[focuszaehlerw])
   {
 //    printf("Focusw: %i\n",focuszaehlerw);
     gtk_entry_grab_focus_without_selecting(GTK_ENTRY(textfeldWahrscheinlichkeit[focuszaehlerw]));
@@ -292,7 +414,7 @@ void templaden(gpointer data)
   }
 
   j += 2;
-  while(dateiinhalt[j] != 0)
+  while(dateiinhalt[j] != 30 && dateiinhalt[j] != 0)
   {
     int l=0, tempzaehler=0;
     char tempzaehlerstring[22] = "", name[10000] = "", text[10000] = "";
@@ -320,6 +442,11 @@ void templaden(gpointer data)
       j++;
     }
     tempzaehler = atoi(tempzaehlerstring);
+    if(!knotenindex_gueltig(tempzaehler))
+    {
+      free(dateiinhalt);
+      return;
+    }
     textfeldErgebnisWahrscheinlichkeit[tempzaehler] = gtk_entry_new();
     gtk_widget_set_name(textfeldErgebnisWahrscheinlichkeit[tempzaehler],name);
     gtk_entry_set_width_chars (GTK_ENTRY(textfeldErgebnisWahrscheinlichkeit[tempzaehler]),WahrscheinlichkeitErgebnisTextBreite);
@@ -334,10 +461,16 @@ void templaden(gpointer data)
     zaehlererg=tempzaehler;
     maxzaehlererg=tempzaehler;
     j++;
-  }  
+  }
 
-
+  /* Neue Snapshots besitzen nach den vier Baumabschnitten die Darstellung. */
   positionsanpassungwsk(data);
+
+  knotenhintergrundfarbeaendern();
+  knotenrandfarbeaendern();
+  knotenranddickeaendern();
+  schriftfarbeaendern();
+  schriftartanpassen(NULL,NULL,NULL);
 
   if(labelein == 2)
   {

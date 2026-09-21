@@ -20,7 +20,7 @@ void exportpdf (char *dateiname)
   surface = cairo_pdf_surface_create(dateiname, breiteda, hoeheda);
   cr = cairo_create(surface);
   
-  zeichnelinien(NULL,cr,NULL);
+  zeichnelinien(NULL, cr, breiteda, hoeheda, NULL);
   
   if(labelein == 0)
   {

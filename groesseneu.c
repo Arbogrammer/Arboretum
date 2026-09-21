@@ -12,6 +12,10 @@ void groesseneu(GtkWidget *widget, GdkRectangle *ap, gpointer data)
     gtk_widget_get_preferred_height(textfeldErgebnis[0], &mh, &nh);
     gtk_widget_get_preferred_width(textfeldErgebnis[0], &mw, &nw);
     ErgebnisBreite = nw;
+    gtk_widget_get_preferred_height(textfeldErgebnisWahrscheinlichkeit[0], &mh, &nh);
+    gtk_widget_get_preferred_width(textfeldErgebnisWahrscheinlichkeit[0], &mw, &nw);
+    WahrscheinlichkeitErgebnisHoehe = nh;
+    WahrscheinlichkeitErgebnisBreite = nw;
     int i=0;
     for(i=0;i<=maxzaehler;i++)
     {

@@ -40,5 +40,6 @@ void wskergebnisspalteanzeigen(gpointer data)
       ergebnissewskanzeigen = 1;
     }
   }
+  arboretum_layout_dirty = TRUE;
   gtk_widget_queue_draw (da);
 }

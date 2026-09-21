@@ -2,8 +2,11 @@ static void dialogsfschliessen(GtkDialog *dialog,gint response_id,  gpointer use
 {
   if (response_id == GTK_RESPONSE_OK)
     {
+      tempspeichern();
       schriftfarbewurdegeaendert = 1;
       gtk_color_chooser_get_rgba (GTK_COLOR_CHOOSER (dialog), &schriftfarbe);
+      schriftfarbe.alpha = 1.0;
+      dateiveraendert++;
       if(labelein)
       {
         umwandeln(NULL,user_data);
@@ -14,4 +17,3 @@ static void dialogsfschliessen(GtkDialog *dialog,gint response_id,  gpointer use
     }
   gtk_widget_hide (GTK_WIDGET (dialog));
 }
-

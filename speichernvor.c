@@ -2,7 +2,7 @@ void speichernvor(GtkWidget *widget, gpointer dateiname)
 {
   if(aktuelledatei[0] == 0)
   {
-    speicherdialog();
+    speicherdialog(widget, dateiname);
   }
   else
   {

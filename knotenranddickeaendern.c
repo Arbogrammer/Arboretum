@@ -1,20 +1,14 @@
 static void knotenranddickeaendern ()
 {
-  GtkCssProvider *cssProvider = gtk_css_provider_new();
-  char cssdaten[200000] = "";
-  int i=0;
-  for(i=0;i<=maxzaehler;i++)
+  if(knotenranddicke_provider)
   {
-    sprintf(cssdaten+strlen(cssdaten),"entry#%s,",gtk_widget_get_name(textfeld[i]));
-    sprintf(cssdaten+strlen(cssdaten),"entry#%s,",gtk_widget_get_name(textfeldWahrscheinlichkeit[i]));
+    arboretum_remove_css_provider(knotenranddicke_provider);
+    g_clear_object(&knotenranddicke_provider);
   }
-  for(i=0;i<=maxzaehlererg;i++)
-  {
-    sprintf(cssdaten+strlen(cssdaten),"entry#%s,",gtk_widget_get_name(textfeldErgebnis[i]));
-    sprintf(cssdaten+strlen(cssdaten),"entry#%s,",gtk_widget_get_name(textfeldErgebnisWahrscheinlichkeit[i]));
-  }
-  sprintf(cssdaten+strlen(cssdaten)-1, " {border-width: %ipx;}",knotenrahmendicke);
-  gtk_css_provider_load_from_data(cssProvider, cssdaten,-1, NULL);
-  gtk_style_context_add_provider_for_screen(gdk_screen_get_default(), GTK_STYLE_PROVIDER(cssProvider), GTK_STYLE_PROVIDER_PRIORITY_USER);
+  if(!knotenrahmendickegeaendert) return;
+  knotenranddicke_provider = gtk_css_provider_new();
+  char cssdaten[1000] = "";
+  sprintf(cssdaten, "entry {border-width: %ipx;}",knotenrahmendicke);
+  gtk_css_provider_load_from_data(knotenranddicke_provider, cssdaten, -1);
+  arboretum_add_css_provider(knotenranddicke_provider);
 }
-

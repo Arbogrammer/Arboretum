@@ -6,7 +6,6 @@ void loeschen(gpointer data)
   }
   GtkWidget *aktuelleswidget;
   aktuelleswidget = gtk_window_get_focus(GTK_WINDOW(window));
-  int tempzaehler = knotenexistiert(gtk_widget_get_name(aktuelleswidget));
 //  gtk_widget_grab_focus(textfeld[0]);
   gchar name[10000] = "";
   strcat(name,gtk_widget_get_name(aktuelleswidget));
@@ -58,7 +57,7 @@ void loeschen(gpointer data)
         }
         if(atoi(nummer) > atoi(nameEnde))
         {
-          gchar neuenummer[10] = "";
+          gchar neuenummer[32] = "";
           sprintf(neuenummer,"%i",atoi(nummer)-1);
           strcat(neuername,"-");
           strcat(neuername,neuenummer);
@@ -90,6 +89,7 @@ void loeschen(gpointer data)
       strcat(neuername,"-E");
       printf("neuername: %s\n",neuername);
       fprintf(datei,"%i%c%i%c%s%c%s%c\n",i-j,31,yerg[i],31,neuername,31,gtk_entry_get_text(GTK_ENTRY(textfeldErgebnis[i])),31);
+      continue;
     }
     if(strncmp(name,altername,strlen(name)) != 0)
     {
@@ -110,7 +110,7 @@ void loeschen(gpointer data)
         }
         if(atoi(nummer) > atoi(nameEnde))
         {
-          gchar neuenummer[10] = "";
+          gchar neuenummer[32] = "";
           sprintf(neuenummer,"%i",atoi(nummer)-1);
           strcat(neuername,"-");
           strcat(neuername,neuenummer);
@@ -153,7 +153,7 @@ void loeschen(gpointer data)
         }
         if(atoi(nummer) > atoi(nameEnde))
         {
-          gchar neuenummer[10] = "";
+          gchar neuenummer[32] = "";
           sprintf(neuenummer,"%i",atoi(nummer)-1);
           strcat(neuername,"-");
           strcat(neuername,neuenummer);
@@ -184,6 +184,7 @@ void loeschen(gpointer data)
       strcat(neuername,nameBeginn);
       strcat(neuername,"-E");
       fprintf(datei,"%i%c%s%c%s%c\n",i-j,31,neuername,31,gtk_entry_get_text(GTK_ENTRY(textfeldErgebnisWahrscheinlichkeit[i])),31);
+      continue;
     }
     if(strncmp(name,altername,strlen(name)) != 0)
     {
@@ -204,7 +205,7 @@ void loeschen(gpointer data)
         }
         if(atoi(nummer) > atoi(nameEnde))
         {
-          gchar neuenummer[10] = "";
+          gchar neuenummer[32] = "";
           sprintf(neuenummer,"%i",atoi(nummer)-1);
           strcat(neuername,"-");
           strcat(neuername,neuenummer);
@@ -222,6 +223,10 @@ void loeschen(gpointer data)
       j++;
     }
   }
+
+  /* templaden() erwartet auch bei Zuständen ohne eigenen
+   * Darstellungsdatensatz den Abschluss des vierten Baumabschnitts. */
+  fprintf(datei,"%c\n",30);
 
   fclose(datei);
   

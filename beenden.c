@@ -1,4 +1,4 @@
-gboolean beenden(GtkWidget *widget, GdkEvent *event, gpointer data)
+gboolean beenden(GtkWidget *widget, gpointer data)
 {
   if(dateiveraendert)
   {
@@ -8,9 +8,29 @@ gboolean beenden(GtkWidget *widget, GdkEvent *event, gpointer data)
     switch(response)
     {
       case GTK_RESPONSE_CANCEL: gtk_widget_destroy(dialog) ; return TRUE;
-      case GTK_RESPONSE_YES: speicherdialog();
+      case GTK_RESPONSE_YES:
+        /* Den modalen Rückfragedialog zuerst schließen. Andernfalls kann er
+         * einen danach geöffneten Dateidialog blockieren. */
+        gtk_widget_destroy(dialog);
+        if(aktuelledatei[0])
+        {
+          speichern(aktuelledatei);
+        }
+        else if(!speicherdialog(NULL, NULL))
+        {
+          /* "Speichern unter" wurde abgebrochen: Fenster offen lassen. */
+          return TRUE;
+        }
+        break;
+      case GTK_RESPONSE_NO:
+        gtk_widget_destroy(dialog);
+        break;
+      default:
+        gtk_widget_destroy(dialog);
+        return TRUE;
     }
   }
-  gtk_main_quit();
+  if (arboretum_main_loop)
+    g_main_loop_quit(arboretum_main_loop);
   return TRUE;
 }

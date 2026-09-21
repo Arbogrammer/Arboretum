@@ -407,6 +407,11 @@ void laden(gpointer data,char *dateiname)
     Stufe=zeichenzaehlen(name,'-')-1;
     maxStufe=((Stufe>maxStufe)?Stufe:maxStufe);
     tempzaehler = atoi(tempzaehlerstring);
+    if(!knotenindex_gueltig(tempzaehler))
+    {
+      free(dateiinhalt);
+      return;
+    }
     y[tempzaehler] = atoi(ystring);
     ymax=((ymax<y[tempzaehler])?y[tempzaehler]:ymax);
     textfeld[tempzaehler] = gtk_entry_new();
@@ -468,6 +473,11 @@ void laden(gpointer data,char *dateiname)
     }
 //    printf("tempzaelerstring: %s\nystring: %s\nname: %s\n",tempzaehlerstring,ystring,name);
     tempzaehler = atoi(tempzaehlerstring);
+    if(!knotenindex_gueltig(tempzaehler))
+    {
+      free(dateiinhalt);
+      return;
+    }
     yerg[tempzaehler] = atoi(ystring);
     textfeldErgebnis[tempzaehler] = gtk_entry_new();
     gtk_widget_set_name(textfeldErgebnis[tempzaehler],name);
@@ -512,6 +522,11 @@ void laden(gpointer data,char *dateiname)
       j++;
     }
     tempzaehler = atoi(tempzaehlerstring);
+    if(!knotenindex_gueltig(tempzaehler))
+    {
+      free(dateiinhalt);
+      return;
+    }
     textfeldWahrscheinlichkeit[tempzaehler] = gtk_entry_new();
     gtk_widget_set_name(textfeldWahrscheinlichkeit[tempzaehler],name);
     gtk_entry_set_width_chars (GTK_ENTRY(textfeldWahrscheinlichkeit[tempzaehler]),WahrscheinlichkeitTextBreite);
@@ -553,6 +568,11 @@ void laden(gpointer data,char *dateiname)
       j++;
     }
     tempzaehler = atoi(tempzaehlerstring);
+    if(!knotenindex_gueltig(tempzaehler))
+    {
+      free(dateiinhalt);
+      return;
+    }
     textfeldErgebnisWahrscheinlichkeit[tempzaehler] = gtk_entry_new();
     gtk_widget_set_name(textfeldErgebnisWahrscheinlichkeit[tempzaehler],name);
     gtk_entry_set_width_chars (GTK_ENTRY(textfeldErgebnisWahrscheinlichkeit[tempzaehler]),WahrscheinlichkeitErgebnisTextBreite);
@@ -574,7 +594,7 @@ void laden(gpointer data,char *dateiname)
 
 
   positionsanpassungwsk(data);
-  g_signal_connect(textfeldErgebnis[0], "size-allocate", G_CALLBACK(wskergebnisverschieben), data);
+  wskergebnisverschieben(NULL, NULL, data);
 
   if(labelein)
   {

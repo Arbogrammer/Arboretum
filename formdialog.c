@@ -12,13 +12,16 @@ static void formdialog(GtkWidget *button, gpointer data)
   content_area = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
 
   hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 8);
-  gtk_container_set_border_width (GTK_CONTAINER (hbox), 8);
-  gtk_box_pack_start (GTK_BOX (content_area), hbox, FALSE, FALSE, 0);
+  gtk_widget_set_margin_start(hbox, 8);
+  gtk_widget_set_margin_end(hbox, 8);
+  gtk_widget_set_margin_top(hbox, 8);
+  gtk_widget_set_margin_bottom(hbox, 8);
+  gtk_box_append (GTK_BOX (content_area), hbox);
 
   table = gtk_grid_new ();
   gtk_grid_set_row_spacing (GTK_GRID (table), 6);
   gtk_grid_set_column_spacing (GTK_GRID (table), 4);
-  gtk_box_pack_start (GTK_BOX (hbox), table, TRUE, TRUE, 0);
+  gtk_box_append (GTK_BOX (hbox), table);
   GtkWidget *randlinks = gtk_spin_button_new_with_range (0, 500, 1);
   gtk_spin_button_set_value(GTK_SPIN_BUTTON(randlinks),RandLinks);
   GtkWidget *randrechts = gtk_spin_button_new_with_range (0, 500, 1);

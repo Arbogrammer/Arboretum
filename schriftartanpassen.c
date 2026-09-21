@@ -100,21 +100,15 @@ void schriftartanpassen(GtkFontChooser *self, gchar *fontname, gpointer user_dat
   }
   else
   {
-    if(schriftartwurdegewechselt)
+    if(schriftart_provider)
     {
-      GtkCssProvider *cssProvider = gtk_css_provider_new();
+      arboretum_remove_css_provider(schriftart_provider);
+      g_clear_object(&schriftart_provider);
+    }
+    if(schriftartwurdegewechselt && schriftart[0] && strrchr(schriftart,' '))
+    {
+      schriftart_provider = gtk_css_provider_new();
       char cssdaten[200000] = "";
-      int i=0;
-      for(i=0;i<=maxzaehler;i++)
-      {
-        sprintf(cssdaten+strlen(cssdaten),"entry#%s,",gtk_widget_get_name(textfeld[i]));
-        sprintf(cssdaten+strlen(cssdaten),"entry#%s,",gtk_widget_get_name(textfeldWahrscheinlichkeit[i]));
-      }
-      for(i=0;i<=maxzaehlererg;i++)
-      {
-        sprintf(cssdaten+strlen(cssdaten),"entry#%s,",gtk_widget_get_name(textfeldErgebnis[i]));
-        sprintf(cssdaten+strlen(cssdaten),"entry#%s,",gtk_widget_get_name(textfeldErgebnisWahrscheinlichkeit[i]));
-      }
       char schriftartnur[1000] = "";
       strcpy(schriftartnur, schriftart);
       if(strstr(schriftartnur, " Regular"))
@@ -169,9 +163,9 @@ void schriftartanpassen(GtkFontChooser *self, gchar *fontname, gpointer user_dat
       {
         memset(strstr(schriftartnur, ","),0,1);
       }
-      sprintf(cssdaten+strlen(cssdaten)-1, " {font: %ipx \"%s\";}",atoi(strrchr(schriftart,' ')),schriftartnur);
-      gtk_css_provider_load_from_data(cssProvider, cssdaten,-1, NULL);
-      gtk_style_context_add_provider_for_screen(gdk_screen_get_default(), GTK_STYLE_PROVIDER(cssProvider), GTK_STYLE_PROVIDER_PRIORITY_USER);
+      sprintf(cssdaten, "entry {font: %ipx \"%s\";}",atoi(strrchr(schriftart,' ')),schriftartnur);
+      gtk_css_provider_load_from_data(schriftart_provider, cssdaten, -1);
+      arboretum_add_css_provider(schriftart_provider);
     }
   }
 }

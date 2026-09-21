@@ -1,28 +1,22 @@
 static void knotenhintergrundfarbeaendern ()
 {
-  GtkCssProvider *cssProvider = gtk_css_provider_new();
-  char cssdaten[200000] = "";
-  int i=0;
-  for(i=0;i<=maxzaehler;i++)
+  if(knotenhintergrund_provider)
   {
-    sprintf(cssdaten+strlen(cssdaten),"entry#%s,",gtk_widget_get_name(textfeld[i]));
-    sprintf(cssdaten+strlen(cssdaten),"entry#%s,",gtk_widget_get_name(textfeldWahrscheinlichkeit[i]));
+    arboretum_remove_css_provider(knotenhintergrund_provider);
+    g_clear_object(&knotenhintergrund_provider);
   }
-  for(i=0;i<=maxzaehlererg;i++)
-  {
-    sprintf(cssdaten+strlen(cssdaten),"entry#%s,",gtk_widget_get_name(textfeldErgebnis[i]));
-    sprintf(cssdaten+strlen(cssdaten),"entry#%s,",gtk_widget_get_name(textfeldErgebnisWahrscheinlichkeit[i]));
-  }
-  char *rot=ftstr(knotenrandfarbe.red*255);
-  char *gruen=ftstr(knotenrandfarbe.green*255);
-  char *blau=ftstr(knotenrandfarbe.blue*255);
-  char *opak=ftstr(knotenrandfarbe.alpha);
-  sprintf(cssdaten+strlen(cssdaten)-1, " {background-color: rgba(%s,%s,%s,%s);}",rot,gruen,blau,opak);
+  if(!knotenhintergrundfarbewurdegeaendert) return;
+  knotenhintergrund_provider = gtk_css_provider_new();
+  char cssdaten[1000] = "";
+  char *rot=ftstr(knotenhintergrundfarbe.red*255);
+  char *gruen=ftstr(knotenhintergrundfarbe.green*255);
+  char *blau=ftstr(knotenhintergrundfarbe.blue*255);
+  char *opak=ftstr(knotenhintergrundfarbe.alpha);
+  sprintf(cssdaten, "entry {background-color: rgba(%s,%s,%s,%s);}",rot,gruen,blau,opak);
   free(rot);
   free(gruen);
   free(blau);
   free(opak);
-  gtk_css_provider_load_from_data(cssProvider, cssdaten,-1, NULL);
-  gtk_style_context_add_provider_for_screen(gdk_screen_get_default(), GTK_STYLE_PROVIDER(cssProvider), GTK_STYLE_PROVIDER_PRIORITY_USER);
+  gtk_css_provider_load_from_data(knotenhintergrund_provider, cssdaten, -1);
+  arboretum_add_css_provider(knotenhintergrund_provider);
 }
-

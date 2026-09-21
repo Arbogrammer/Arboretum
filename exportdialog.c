@@ -1,9 +1,15 @@
-void exportdialog()
+void exportdialog(GtkWidget *widget, gpointer data)
 {
   GtkWidget *dialog;
   GtkFileChooser *chooser;
   GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_SAVE;
   gint res;
+  gboolean bearbeitungsmodus = labelein == 0;
+
+  if (bearbeitungsmodus)
+  {
+    umwandeln (NULL, data);
+  }
 
   dialog = gtk_file_chooser_dialog_new ("Datei speichern",GTK_WINDOW(window),action,"Abbrechen",GTK_RESPONSE_CANCEL,"Speichern",GTK_RESPONSE_ACCEPT,NULL);
   chooser = GTK_FILE_CHOOSER (dialog);
@@ -18,33 +24,54 @@ void exportdialog()
 
     dateiname = gtk_file_chooser_get_filename (chooser);
 
-    if(dateiname[strlen(dateiname)-1] == 'g' && dateiname[strlen(dateiname)-2] == 'n' && dateiname[strlen(dateiname)-3] == 'p' && dateiname[strlen(dateiname)-4] == '.')
+    if (dateiname != NULL)
+    {
+      const char *basisname = strrchr (dateiname, G_DIR_SEPARATOR);
+      const char *endung;
+
+      basisname = basisname == NULL ? dateiname : basisname + 1;
+      endung = strrchr (basisname, '.');
+
+      if (endung == NULL || endung == basisname || endung[1] == '\0')
+      {
+        char *dateiname_mit_endung = g_strconcat (dateiname, ".svg", NULL);
+        g_free (dateiname);
+        dateiname = dateiname_mit_endung;
+      }
+    }
+
+    if(dateiname != NULL && g_str_has_suffix (dateiname, ".png"))
     {
       exportpng(dateiname);
-    } 
-    if(dateiname[strlen(dateiname)-1] == 'g' && dateiname[strlen(dateiname)-2] == 'v' && dateiname[strlen(dateiname)-3] == 's' && dateiname[strlen(dateiname)-4] == '.')
+    }
+    else if(dateiname != NULL && g_str_has_suffix (dateiname, ".svg"))
     {
       exportsvg(dateiname);
-    } 
-    if(dateiname[strlen(dateiname)-1] == 'g' && dateiname[strlen(dateiname)-2] == 'p' && dateiname[strlen(dateiname)-3] == 'j' && dateiname[strlen(dateiname)-4] == '.')
+    }
+    else if(dateiname != NULL && g_str_has_suffix (dateiname, ".jpg"))
     {
       exportjpg(dateiname);
-    } 
-    if(dateiname[strlen(dateiname)-1] == 'g' && dateiname[strlen(dateiname)-2] == 'e' && dateiname[strlen(dateiname)-3] == 'p' && dateiname[strlen(dateiname)-4] == 'j' && dateiname[strlen(dateiname)-5] == '.')
+    }
+    else if(dateiname != NULL && g_str_has_suffix (dateiname, ".jpeg"))
     {
       exportjpg(dateiname);
-    } 
-    if(dateiname[strlen(dateiname)-1] == 'p' && dateiname[strlen(dateiname)-2] == 'm' && dateiname[strlen(dateiname)-3] == 'b' && dateiname[strlen(dateiname)-4] == '.')
+    }
+    else if(dateiname != NULL && g_str_has_suffix (dateiname, ".bmp"))
     {
       exportbmp(dateiname);
-    } 
-    if(dateiname[strlen(dateiname)-1] == 'f' && dateiname[strlen(dateiname)-2] == 'd' && dateiname[strlen(dateiname)-3] == 'p' && dateiname[strlen(dateiname)-4] == '.')
+    }
+    else if(dateiname != NULL && g_str_has_suffix (dateiname, ".pdf"))
     {
       exportpdf(dateiname);
-    } 
+    }
 
     g_free (dateiname);
   }
 
   gtk_widget_destroy (dialog);
+
+  if (bearbeitungsmodus)
+  {
+    umwandeln (NULL, data);
+  }
 }

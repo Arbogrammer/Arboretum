@@ -1,7 +1,58 @@
-static gboolean zeichnelinien(GtkWidget *widget, cairo_t *cr, gpointer data)
-{
+/* Verhindert doppelte Idle-Callbacks, darf aber niemals über den ausgeführten
+ * Callback hinaus gesetzt bleiben. Bei schnellem Tastatur-Autorepeat kann
+ * zwischen Layout-Aktualisierung und dem anschließenden Zeichnen bereits die
+ * nächste Änderung eintreffen. Ein nur im Draw-Callback zurückgesetztes Flag
+ * würde dann dauerhaft TRUE bleiben und alle weiteren Aktualisierungen
+ * unterdrücken. */
+static gboolean arboretum_layout_geplant = FALSE;
 
-  cairo_set_source_rgba(cr, hintergrundfarbe.red, hintergrundfarbe.green, hintergrundfarbe.blue, hintergrundfarbe.alpha);
+static gboolean arboretum_layout_aktualisieren(gpointer data)
+{
+  /* Positionen dürfen in GTK4 nicht während des Zeichnens verändert werden.
+   * Diese Funktion läuft deshalb kurz danach als sogenannter Idle-Callback. */
+  arboretum_layout_geplant = FALSE;
+
+  if(labelein)
+    labelverschieben(data);
+  else
+  {
+    /* Measure first: GTK 4 does not synchronously allocate widgets when the
+     * window is presented, unlike the old GTK 3 show-all path. */
+    groesseneu(NULL, NULL, data);
+    wskergebnisverschieben(NULL, NULL, data);
+    positionsanpassungwsk(data);
+  }
+
+  ErgebnisBreite = gtk_widget_get_allocated_width(textfeldErgebnis[0]);
+  GROESSEDRAWINGAREA
+  GROESSELAYOUTD
+  arboretum_layout_dirty = FALSE;
+  arboretum_widget_queue_draw_clean(da);
+  return G_SOURCE_REMOVE;
+}
+
+static void zeichnelinien(GtkDrawingArea *widget, cairo_t *cr, int width,
+                         int height, gpointer data)
+{
+  /* Cairo zeichnet nur die grafischen Bestandteile (Hintergrund, Rahmen und
+   * Zweige). Die Eingabefelder selbst sind normale GTK-Widgets darüber. */
+  if(data && arboretum_layout_dirty && !arboretum_layout_geplant)
+  {
+    arboretum_layout_geplant = TRUE;
+    g_idle_add_full(G_PRIORITY_DEFAULT_IDLE,
+                    arboretum_layout_aktualisieren, data, NULL);
+  }
+
+  /* Auf dem Bildschirm darf eine transparente Cairo-Zeichenfläche nicht als
+   * schwarzer Puffer sichtbar werden. Exporte (widget == NULL) behalten ihre
+   * echte Transparenz; im Programmfenster wird sie über Weiß zusammengesetzt. */
+  if(widget)
+  {
+    cairo_set_source_rgb(cr, 1, 1, 1);
+    cairo_paint(cr);
+  }
+  cairo_set_source_rgba(cr, hintergrundfarbe.red, hintergrundfarbe.green,
+                        hintergrundfarbe.blue, hintergrundfarbe.alpha);
   cairo_paint(cr);
 
   if(labelein)
@@ -73,20 +124,6 @@ static gboolean zeichnelinien(GtkWidget *widget, cairo_t *cr, gpointer data)
   }
 
 
-  if(data)
-  {
-    if(labelein)
-    {
-      labelverschieben(data);
-    }
-    else
-    {
-      wskergebnisverschieben(NULL, NULL, data);
-      positionsanpassungwsk(data);
-      groesseneu(NULL, NULL, data);
-    }
-//    schriftartanpassen(NULL,NULL,data);
-  }
   int i=0;
   klbmax = 0;
   if(labelein)
@@ -234,25 +271,23 @@ static gboolean zeichnelinien(GtkWidget *widget, cairo_t *cr, gpointer data)
   
   
   
-  if(data == NULL)
-  {
-    return TRUE;
-  }
-  ErgebnisBreite = gtk_widget_get_allocated_width(textfeldErgebnis[0]);
-  GROESSEDRAWINGAREA
-  GROESSELAYOUTD
+  if(data == NULL) return;
   if(scrh)
   {
     gtk_adjustment_set_value(gtk_scrolled_window_get_hadjustment(GTK_SCROLLED_WINDOW(scrollwindow)),gtk_adjustment_get_upper(gtk_scrolled_window_get_hadjustment(GTK_SCROLLED_WINDOW(scrollwindow))));
     scrh=0;
   }
-  if(gtk_window_get_focus(GTK_WINDOW(window)))
+  GtkWidget *focus = gtk_window_get_focus(GTK_WINDOW(window));
+  if(focus)
   {
-    if(y[knotenexistiert(gtk_widget_get_name(gtk_window_get_focus(GTK_WINDOW(window))))] + KnotenHoehe + KnotenAbstand + RandOben - gtk_adjustment_get_value(gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scrollwindow))) > gtk_widget_get_allocated_height(scrollwindow) || y[knotenexistiert(gtk_widget_get_name(gtk_window_get_focus(GTK_WINDOW(window))))] < gtk_adjustment_get_value(gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scrollwindow))))
+    const gchar *focusname = gtk_widget_get_name(focus);
+    int fokusindex = strchr(focusname, 'W') ? wskexistiert(focusname)
+                                           : knotenexistiert(focusname);
+    if(fokusindex >= 0 &&
+       (y[fokusindex] + KnotenHoehe + KnotenAbstand + RandOben - gtk_adjustment_get_value(gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scrollwindow))) > gtk_widget_get_allocated_height(scrollwindow) || y[fokusindex] < gtk_adjustment_get_value(gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scrollwindow)))))
     {
-      gtk_adjustment_set_value(gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scrollwindow)),y[knotenexistiert(gtk_widget_get_name(gtk_window_get_focus(GTK_WINDOW(window))))]-gtk_widget_get_allocated_height(scrollwindow)+KnotenHoehe+KnotenAbstand+RandOben);
+      gtk_adjustment_set_value(gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scrollwindow)),y[fokusindex]-gtk_widget_get_allocated_height(scrollwindow)+KnotenHoehe+KnotenAbstand+RandOben);
       scrv=0;
     }
   }
-  return FALSE;
 }

@@ -7,7 +7,7 @@ gboolean positionsanpassung(GtkWidget *widget, gpointer data)
   strcpy(tempname,gtk_widget_get_name(widget));
   strcat(tempname,knotennummer);
   int ytempo = (knotenexistiert(tempname))?y[knotenexistiert(tempname)]:y[tempzaehler];
-  int ytempu;
+  int ytempu = ytempo;
   while(knotenexistiert(tempname) > -1)
   {
     ytempu = (knotenexistiert(tempname))?y[knotenexistiert(tempname)]:y[tempzaehler];

@@ -1,9 +1,8 @@
-void umwandeln(GtkMenuItem *menuitem, gpointer data)
+void umwandeln(GtkWidget *widget, gpointer data)
 {
   if(labelein==0)
   {
     labelein=1;
-    gtk_widget_set_sensitive(dateimenue_exportieren, TRUE);
     int i=0;
     for(i=0; i<=maxzaehler; i++)
     {
@@ -105,14 +104,12 @@ void umwandeln(GtkMenuItem *menuitem, gpointer data)
           char unten[22] = "";
           sprintf(unten,"-%i",anzahlknoteninstufe(0)-1);
           gtk_layout_put (GTK_LAYOUT (data), wahrscheinlichkeitlabel[i], 0,0);//FensterRandLinks+RandLinks+StufenBreite/2-WahrscheinlichkeitBreite/2,FensterRandOben+RandOben+(((y[0]+yunten+KnotenHoehe)/2)+(y[i]+KnotenHoehe/2))/2-WahrscheinlichkeitHoehe/2);
-          g_signal_connect(wahrscheinlichkeitlabel[i], "size-allocate", G_CALLBACK(wsklabelgroesse), data);
         }
         else
         {
           int Stufetemp = zeichenzaehlen(gtk_widget_get_name(GTK_WIDGET(textfeldWahrscheinlichkeit[i])),'-')-1;
           int ywsktemp=(y[knotenexistiert(gtk_widget_get_name(GTK_WIDGET(*vorgaenger[i])))]+y[i])/2;
           gtk_layout_put (GTK_LAYOUT (data), wahrscheinlichkeitlabel[i], ((FensterRandLinks+RandLinks+StufenBreite+(StufenBreite+KnotenBreite)*Stufetemp)+(FensterRandLinks+RandLinks+StufenBreite+(StufenBreite+KnotenBreite)*(Stufetemp-1)+KnotenBreite))/2-WahrscheinlichkeitBreite/2,FensterRandOben+RandOben+ywsktemp);
-          g_signal_connect(wahrscheinlichkeitlabel[i], "size-allocate", G_CALLBACK(wsklabelgroesse), data);
         }
       }
     }
@@ -233,7 +230,6 @@ void umwandeln(GtkMenuItem *menuitem, gpointer data)
   else
   {
     labelein=0;
-    gtk_widget_set_sensitive(dateimenue_exportieren, FALSE);
     int i=0;
     for(i=0; i<=maxzaehler; i++)
     {

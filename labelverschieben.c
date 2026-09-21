@@ -110,14 +110,21 @@ void labelverschieben(gpointer data)
         int xB = Stufetemp*(StufenBreite+klbmax)+StufenBreite;
         int yA = (Stufetemp==0)?(y[0]+yunten+KnotenHoehe)/2:y[knotenexistiert(gtk_widget_get_name(*vorgaenger[i]))]+KnotenHoehe/2;
         int yB = y[i]+KnotenHoehe/2;
-        int b = breitevordrehung[i];
-        int h = hoehevordrehung[i];
+        /* In GTK3 wurden diese Werte über das inzwischen entfernte Signal
+         * "size-allocate" zwischengespeichert. GTK4 misst das noch ungedrehte
+         * Label hier direkt; Nullwerte würden den Text auf die Linie setzen. */
+        int b = nw;
+        int h = nh;
+        breitevordrehung[i] = b;
+        hoehevordrehung[i] = h;
         double Laenge=sqrt(pow(xA-xB,2)+pow(yA-yB,2));
         winkel[i] = -atan((((double)yB)-((double)yA))/(((double)xB)-((double)xA)))*180.0/G_PI;
         int xwahrscheinlichkeit = (winkel[i]>=0)?(int)(FensterRandLinks+RandLinks+(xA+xB)/2.0-(b/2.0)*(xB-xA)/Laenge+(yB-yA)/Laenge*h-padding*sin(winkel[i]*G_PI/180)+wskverschiebung):(int)(FensterRandLinks+RandLinks+(xA+xB)/2.0-(b/2.0)*(xB-xA)/Laenge-padding*sin(winkel[i]*G_PI/180)+wskverschiebung);
         int ywahrscheinlichkeit = (winkel[i]>=0)?(int)(FensterRandOben+RandOben+(yA+yB)/2.0-(b/2.0)*(yB-yA)/Laenge-nh-padding*cos(winkel[i]*G_PI/180)+(double)wskverschiebung*(yB-yA)/(xB-xA)):(int)(FensterRandOben+RandOben+(yA+yB)/2.0-(b/2.0)*(yB-yA)/Laenge-(xB-xA)/Laenge*h-padding*cos(winkel[i]*G_PI/180)+(double)wskverschiebung*(yB-yA)/(xB-xA));
-        gtk_label_set_angle(GTK_LABEL(wahrscheinlichkeitlabel[i]),winkel[i]);
+        /* Erst positionieren, dann drehen: gtk_fixed_move() würde eine zuvor
+         * gesetzte GSK-Rotation wieder durch eine reine Verschiebung ersetzen. */
         gtk_layout_move (GTK_LAYOUT (data), wahrscheinlichkeitlabel[i], xwahrscheinlichkeit, ywahrscheinlichkeit);//FensterRandLinks+RandLinks+StufenBreite/2+natural_size.height*(y[i]-(y[0]+yunten)/2),FensterRandOben+RandOben+(((y[0]+yunten+KnotenHoehe)/2)+(y[i]+KnotenHoehe/2))/2);
+        gtk_label_set_angle(GTK_LABEL(wahrscheinlichkeitlabel[i]),winkel[i]);
         gtk_layout_move (GTK_LAYOUT (data), knotenlabel[i], FensterRandLinks+RandLinks+StufenBreite+(StufenBreite+klbmax)*Stufetemp+(klbmax-KnotenLabelBreite)/2+paddingk,FensterRandOben+RandOben+y[i]+KnotenHoehe/2-KnotenLabelHoehe/2);
       }
     }

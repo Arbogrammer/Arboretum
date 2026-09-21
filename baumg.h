@@ -1,15 +1,26 @@
+/*
+ * Funktionsübersicht
+ * -----------------
+ * Diese Datei ist zugleich Deklarationssammlung und Zusammenbau des Programms.
+ * Die kleinen .c-Dateien werden am Ende eingebunden und dadurch gemeinsam mit
+ * baumg.c kompiliert. Das ist ungewöhnlich, aber für den bestehenden Aufbau
+ * absichtlich beibehalten worden.
+ */
+
+/* Eingabe, Dateioperationen und Export */
 void buchstabeneingabe(GtkEditable *editable, gpointer data);
 void wskeingabe(GtkEditable *editable, gpointer data);
-static gboolean keyfunc (GtkWidget *widget, GdkEventKey *event, gpointer data);
+static gboolean keyfunc (GtkEventControllerKey *controller, guint keyval,
+                         guint keycode, GdkModifierType state, gpointer data);
 void oeffnen(GtkWidget *widget, gpointer data);
-void speicherdialog();
+gboolean speicherdialog(GtkWidget *widget, gpointer data);
 void speichernvor(GtkWidget *widget, gpointer dateiname);
 void speichern(char *dateiname);
 void tempspeichern();
 void reset(gpointer data);
 void templaden(gpointer data);
 void laden(gpointer data,char *dateiname);
-void exportdialog ();
+void exportdialog (GtkWidget *widget, gpointer data);
 void exportpng (char *dateiname);
 void exportsvg (char *dateiname);
 void exportbmp (char *dateiname);
@@ -33,25 +44,26 @@ int knotenexistiert(const gchar *knotenname);
 int wskexistiert(const gchar *knotenname);
 int ergebniszaehlernummer(const gchar *ergebnisname);
 int weiterunten(char *stringoben, const gchar *stringunten);
-static gboolean zeichnelinien(GtkWidget *widget, cairo_t *cr, gpointer data);
+static void zeichnelinien(GtkDrawingArea *widget, cairo_t *cr, int width,
+                         int height, gpointer data);
 int anzahlnachfolger(int i);
 int nachfolger(int i, int nachfolgernummer);
 // static gboolean zeichneknotenhintergrund(GtkWidget *widget, cairo_t *cr, gpointer data);
-gboolean beenden(GtkWidget *widget, GdkEvent *event, gpointer data);
-void ergebnisspalteanzeigen();
-void wskergebnisspalteanzeigen();
+gboolean beenden(GtkWidget *widget, gpointer data);
+void ergebnisspalteanzeigen(gpointer data);
+void wskergebnisspalteanzeigen(gpointer data);
 void ergebnistextneuschreiben(GtkWidget *widget);
 void neugroesse(GtkWidget *widget, GtkAllocation *allocation, void *data);
 static void hintergrundfarbewechseln (GtkWidget *button, gpointer data);
 static void dialogschliessen(GtkDialog *dialog,gint response_id,  gpointer user_data);
 static void formdialog(GtkWidget *button, gpointer data);
-void xy(GtkWidget *widget, GdkEventButton *event, gpointer data);
+void xy(GtkWidget *widget, double x, double y, gpointer data);
 void positionneu(int KnotenAbstandVorher,gpointer data);
 int anzahlknoteninstufe(int i);
-void positionsanpassungwsk();
+void positionsanpassungwsk(gpointer data);
 void wskergebnisverschieben(GtkWidget *widget, GtkAllocation *allocation, gpointer data);
 void wskergebnisneuschreiben(GtkWidget *widget);
-void umwandeln(GtkMenuItem *menuitem, gpointer data);
+void umwandeln(GtkWidget *widget, gpointer data);
 //void wsklabelverschieben(GtkWidget *widget, GdkRectangle *allocation, gpointer *data);
 void labelverschieben(gpointer data);
 //void wsklabelverschiebentest(GtkWidget widget, gpointer data);
@@ -68,7 +80,7 @@ static void dialogsfschliessen(GtkDialog *dialog,gint response_id,  gpointer use
 static void dialogkhfschliessen(GtkDialog *dialog,gint response_id,  gpointer user_data);
 static void dialogkrfschliessen(GtkDialog *dialog,gint response_id,  gpointer user_data);
 void schriftartanpassen(GtkFontChooser *self, gchar *fontname, gpointer user_data);
-void hilfe(GtkMenuItem *menuitem, gpointer user_data);
+void hilfe(GtkWidget *widget, gpointer user_data);
 int ggt(long long int x, long long int y);
 static void knotenhintergrundfarbeaendern ();
 static void knotenrandfarbeaendern ();
@@ -79,7 +91,10 @@ char *ftstr(double zahl);
 void ueberstreichen();
 void alleknotenneupositionieren(gpointer data);
 
+/* Mathematische Hilfsfunktion. */
 #include <math.h>
+
+/* Implementierungen: Alle folgenden Dateien bilden zusammen ein Programm. */
 #include "buchstabeneingabe.c"
 #include "wskeingabe.c"
 #include "keyfunc.c"

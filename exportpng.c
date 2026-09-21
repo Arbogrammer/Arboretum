@@ -20,7 +20,7 @@ void exportpng (char *dateiname)
   surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, breiteda, hoeheda);
   cr = cairo_create(surface);
   
-  zeichnelinien(NULL,cr,NULL);
+  zeichnelinien(NULL, cr, breiteda, hoeheda, NULL);
   if(labelein == 0)
   {
     return;

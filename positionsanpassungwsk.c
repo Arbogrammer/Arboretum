@@ -1,5 +1,8 @@
 void positionsanpassungwsk(gpointer data)
 {
+  /* Setzt jedes Wahrscheinlichkeitsfeld in die Mitte des zugehörigen Zweigs.
+   * Bei Knoten der ersten Stufe beginnt der Zweig am gemeinsamen Startpunkt;
+   * bei tieferen Stufen liegt er zwischen Vorgänger und aktuellem Knoten. */
   int i=0;
   char unten[22] = "";
 //  printf("anzahlknoteninstufe(0)-1: %i\n",anzahlknoteninstufe(0)-1);

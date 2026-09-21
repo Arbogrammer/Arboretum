@@ -10,7 +10,7 @@ void wskeingabe(GtkEditable *editable, gpointer data)
   WahrscheinlichkeitTextBreite=3;
   for(i=0;i<=maxzaehler;i++)
   {
-    if(WahrscheinlichkeitTextBreite<strlen(gtk_entry_get_text(GTK_ENTRY(textfeldWahrscheinlichkeit[i]))))
+    if((size_t)WahrscheinlichkeitTextBreite<strlen(gtk_entry_get_text(GTK_ENTRY(textfeldWahrscheinlichkeit[i]))))
     {
       WahrscheinlichkeitTextBreite=strlen(gtk_entry_get_text(GTK_ENTRY(textfeldWahrscheinlichkeit[i])));
     }

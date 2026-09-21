@@ -1,4 +1,4 @@
-void speicherdialog()
+gboolean speicherdialog(GtkWidget *widget, gpointer data)
 {
   GtkWidget *dialog;
   GtkFileChooser *chooser;
@@ -20,16 +20,29 @@ void speicherdialog()
   res = gtk_dialog_run (GTK_DIALOG (dialog));
   if (res == GTK_RESPONSE_ACCEPT)
   {
-    char *dateiname;
+    char *auswahl = gtk_file_chooser_get_filename (chooser);
+    char *dateiname = auswahl;
+    size_t laenge = auswahl ? strlen(auswahl) : 0;
 
-    dateiname = gtk_file_chooser_get_filename (chooser);
-    if(dateiname[strlen(dateiname)-1] != 'g' || dateiname[strlen(dateiname)-2] != 'd' || dateiname[strlen(dateiname)-3] != 'b' || dateiname[strlen(dateiname)-4] != '.')
+    if(!auswahl)
     {
-      strcat(dateiname,".bdg");
-    } 
+      gtk_widget_destroy (dialog);
+      return FALSE;
+    }
+
+    if(laenge < 4 || strcmp(auswahl + laenge - 4, ".bdg") != 0)
+      dateiname = g_strconcat(auswahl, ".bdg", NULL);
+
     speichern (dateiname);
-    g_free (dateiname);
+    g_strlcpy(aktuelledatei, dateiname, sizeof(aktuelledatei));
+
+    if(dateiname != auswahl)
+      g_free(dateiname);
+    g_free(auswahl);
+    gtk_widget_destroy (dialog);
+    return TRUE;
   }
 
   gtk_widget_destroy (dialog);
+  return FALSE;
 }

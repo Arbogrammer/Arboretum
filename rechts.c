@@ -1,5 +1,11 @@
 gboolean rechts(GtkWidget *widget, gpointer data)
 {
+  /*
+   * Pfeil nach rechts:
+   * Wechselt zum ersten Kind des aktuellen Knotens. Wenn dieses Kind noch
+   * nicht existiert, werden der Knoten und sein Wahrscheinlichkeitsfeld
+   * erzeugt.
+   */
   if(labelein==1)
   {
     return FALSE;
@@ -11,7 +17,6 @@ gboolean rechts(GtkWidget *widget, gpointer data)
     aktuelleswidget = textfeld[0];
     gtk_entry_grab_focus_without_selecting(GTK_ENTRY((textfeld[0])));
     gtk_editable_set_position(GTK_EDITABLE(textfeld[0]),-1);
-    return FALSE;
   }
 
   if(strrchr(gtk_widget_get_name(aktuelleswidget),'W'))
@@ -41,6 +46,11 @@ gboolean rechts(GtkWidget *widget, gpointer data)
   char nameergw[10004] = "";
   zaehlererg = ergebniszaehlernummer(nameerg);
   int ex = 0;
+  if(Stufe >= MAX_KNOTEN - 1)
+  {
+    knotenlimit_melden("Das Knotenlimit ist erreicht.");
+    return FALSE;
+  }
   Knoten[Stufe+1] = 0;
   int i=0;
   for(i=0;i<=maxzaehler;i++)
@@ -52,6 +62,11 @@ gboolean rechts(GtkWidget *widget, gpointer data)
   }
   if(ex == 0)
   {
+    if(maxzaehler >= MAX_KNOTEN - 1)
+    {
+      knotenlimit_melden("Das Knotenlimit ist erreicht.");
+      return FALSE;
+    }
     dateiveraendert++;
     tempspeichern();
     int tempzaehler = zaehler;

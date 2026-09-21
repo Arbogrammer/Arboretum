@@ -1,3 +1,12 @@
+static double wahrscheinlichkeit_einlesen(const char *text)
+{
+  char normalisiert[1000] = "";
+  g_strlcpy(normalisiert, text, sizeof(normalisiert));
+  char *komma = strchr(normalisiert, ',');
+  if(komma) *komma = '.';
+  return g_ascii_strtod(normalisiert, NULL);
+}
+
 void wskergebnisneuschreiben(GtkWidget *widget)
 {
   int i=0;
@@ -15,6 +24,7 @@ void wskergebnisneuschreiben(GtkWidget *widget)
   double wsk = 1;
   long long int zaehler = 1;
   long long int nenner = 1;
+  char dezimaltrenner = '.';
 
   int position=(int)(strchr(tempnameergw+1,'-')-tempnameergw);
   int laenge = strlen(tempnameergw)-3;
@@ -37,7 +47,9 @@ void wskergebnisneuschreiben(GtkWidget *widget)
     {
       if(einzelwsk[0])
       {
-        wsk *= atof(einzelwsk);
+        wsk *= wahrscheinlichkeit_einlesen(einzelwsk);
+        if(strchr(einzelwsk, ','))
+          dezimaltrenner = ',';
       }
     }
     if(position >= laenge)
@@ -63,7 +75,14 @@ void wskergebnisneuschreiben(GtkWidget *widget)
   }
   else
   {
-    sprintf(wsktext,"%*.*f",genauigkeit+2,genauigkeit,wsk);
+    char zahlenformat[20] = "";
+    snprintf(zahlenformat,sizeof(zahlenformat),"%%.%df",genauigkeit);
+    g_ascii_formatd(wsktext,sizeof(wsktext),zahlenformat,wsk);
+    if(dezimaltrenner == ',')
+    {
+      char *punkt = strchr(wsktext,'.');
+      if(punkt) *punkt = ',';
+    }
   }
   gtk_entry_set_text(GTK_ENTRY(widget),wsktext);
 }

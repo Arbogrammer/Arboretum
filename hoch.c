@@ -11,7 +11,6 @@ gboolean hoch(GtkWidget *widget, gpointer data)
     aktuelleswidget = textfeld[0];
     gtk_entry_grab_focus_without_selecting(GTK_ENTRY((textfeld[0])));
     gtk_editable_set_position(GTK_EDITABLE(textfeld[0]),-1);
-    return FALSE;
   }
 
   if(strrchr(gtk_widget_get_name(aktuelleswidget),'W'))

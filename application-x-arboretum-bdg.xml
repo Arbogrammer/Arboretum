@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/x-arboretum-bdg">
+    <comment>Arboretum-Baumdiagramm</comment>
+    <comment xml:lang="de">Arboretum-Baumdiagramm</comment>
+    <glob pattern="*.bdg"/>
+  </mime-type>
+</mime-info>

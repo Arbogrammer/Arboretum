@@ -1,5 +1,10 @@
 gboolean runter(GtkWidget *widget, gpointer data)
 {
+  /*
+   * Pfeil nach unten:
+   * Gibt es unter dem aktuellen Knoten bereits einen Nachbarn, wird dieser
+   * fokussiert. Andernfalls wird ein neuer Nachbar darunter angelegt.
+   */
   if(labelein==1)
   {
     return FALSE;
@@ -11,7 +16,6 @@ gboolean runter(GtkWidget *widget, gpointer data)
     aktuelleswidget = textfeld[0];
     gtk_entry_grab_focus_without_selecting(GTK_ENTRY((textfeld[0])));
     gtk_editable_set_position(GTK_EDITABLE(textfeld[0]),-1);
-    return FALSE;
   }
   if(strrchr(gtk_widget_get_name(aktuelleswidget),'W'))
   {
@@ -19,7 +23,8 @@ gboolean runter(GtkWidget *widget, gpointer data)
     return FALSE;
   }
 
-  // Einschub: Folgende drei Zeilen sind nur notwendig, wenn man mit der Maus die Felder auswählen will!
+  /* Der Fokus kann auch per Maus gesetzt worden sein. Deshalb wird der
+   * aktuelle Array-Index aus dem Widgetnamen neu bestimmt. */
   zaehler = knotenexistiert(gtk_widget_get_name(aktuelleswidget));
   if(zaehler==-1)
   {
@@ -27,8 +32,6 @@ gboolean runter(GtkWidget *widget, gpointer data)
   }
   Stufe = zeichenzaehlen(gtk_widget_get_name(aktuelleswidget),'-')-1;
   Knoten[Stufe] = atoi(gtk_widget_get_name(aktuelleswidget)+(int)(strrchr(gtk_widget_get_name(aktuelleswidget),'-')-&(gtk_widget_get_name(aktuelleswidget)[0])+1));
-  // Einschub Ende
-
 
   char tempname[10000];
   snprintf(tempname,(int)(strrchr(gtk_widget_get_name(aktuelleswidget),'-')-&(gtk_widget_get_name(aktuelleswidget)[0])+1),"%s",gtk_widget_get_name(aktuelleswidget));
@@ -53,6 +56,12 @@ gboolean runter(GtkWidget *widget, gpointer data)
   }
   if(weiter)
   {
+    /* Kein vorhandener Nachbar: Knoten und zugehörige Felder neu anlegen. */
+    if(maxzaehler >= MAX_KNOTEN - 1 || maxzaehlererg >= MAX_KNOTEN - 1)
+    {
+      knotenlimit_melden("Das Knotenlimit ist erreicht.");
+      return FALSE;
+    }
     dateiveraendert++;
     tempspeichern();
     int tempzaehler = zaehler-1;

@@ -24,7 +24,7 @@ void exportjpg (char *dateiname)
   temphintergrundfarbe.alpha = hintergrundfarbe.alpha;
   hintergrundfarbe.alpha=1;
   
-  zeichnelinien(NULL,cr,NULL);
+  zeichnelinien(NULL, cr, breiteda, hoeheda, NULL);
   if(labelein == 0)
   {
     return;
