@@ -1,35 +1,37 @@
+static int compare_widgets(const void *a, const void *b)
+{
+  GtkWidget *widgetA = *(GtkWidget **)a;
+  GtkWidget *widgetB = *(GtkWidget **)b;
+
+  const char *nameA = gtk_widget_get_name(widgetA);
+  const char *nameB = gtk_widget_get_name(widgetB);
+
+  return strcmp(nameA, nameB);
+}
+
+static int compare_widgets_wsk(const void *a, const void *b)
+{
+  GtkWidget *widgetA = *(GtkWidget **)a;
+  GtkWidget *widgetB = *(GtkWidget **)b;
+
+  const char *nameA = gtk_widget_get_name(widgetA);
+  const char *nameB = gtk_widget_get_name(widgetB);
+
+  char nameA2[10000] = "";
+  char nameB2[10000] = "";
+  strcpy(nameA2,nameA);
+  strcpy(nameB2,nameB);
+
+  nameA2[strlen(nameA2)-1] = 0;
+  nameB2[strlen(nameB2)-1] = 0;
+
+  printf("Name: A: %s vs. %s und B: %s vs. %s\n",gtk_widget_get_name(widgetA),nameA2, gtk_widget_get_name(widgetB),nameB2);
+
+  return strcmp(nameA2, nameB2);
+}
+
 void alleknotenneupositionieren(gpointer data)
 {
-  int compare_widgets(const void* a, const void* b)
-  {
-    GtkWidget* widgetA = *(GtkWidget**)a;
-    GtkWidget* widgetB = *(GtkWidget**)b;
-
-    const char* nameA = gtk_widget_get_name(widgetA);
-    const char* nameB = gtk_widget_get_name(widgetB);
-
-    return strcmp(nameA, nameB);
-  }
-  int compare_widgets_wsk(const void* a, const void* b)
-  {
-    GtkWidget* widgetA = *(GtkWidget**)a;
-    GtkWidget* widgetB = *(GtkWidget**)b;
-
-    const char* nameA = gtk_widget_get_name(widgetA);
-    const char* nameB = gtk_widget_get_name(widgetB);
-
-    char nameA2[10000] = "";
-    char nameB2[10000] = "";
-    strcpy(nameA2,nameA);
-    strcpy(nameB2,nameB);
-
-    nameA2[strlen(nameA2)-1] = 0;
-    nameB2[strlen(nameB2)-1] = 0;
-
-    printf("Name: A: %s vs. %s und B: %s vs. %s\n",gtk_widget_get_name(widgetA),nameA2, gtk_widget_get_name(widgetB),nameB2);
-
-    return strcmp(nameA2, nameB2);
-  }
   qsort(textfeldErgebnis, maxzaehlererg+1, sizeof(GtkWidget*), compare_widgets);
   qsort(textfeldErgebnisWahrscheinlichkeit, maxzaehlererg+1, sizeof(GtkWidget*), compare_widgets);
   
