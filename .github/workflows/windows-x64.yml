@@ -1,0 +1,39 @@
+name: Windows x64 build
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-gtk4
+            mingw-w64-ucrt-x86_64-pkgconf
+            zip
+
+      - name: Build portable Windows package
+        run: bash packaging/windows/package.sh
+
+      - name: Upload Windows package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Arboretum-Windows-x64
+          path: dist/Arboretum-Windows-x64.zip
+          if-no-files-found: error

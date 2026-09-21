@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Arboretum
+Comment=Wahrscheinlichkeitsbäume erstellen und bearbeiten
+Exec=arboretum %f
+Icon=arboretum
+Terminal=false
+Categories=Education;
+MimeType=application/x-arboretum-bdg;
+StartupNotify=true
