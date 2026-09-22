@@ -1,3 +1,20 @@
+/* GTK must finish processing the edit before its entry can be replaced. */
+static guint eingabe_neuaufbau_id = 0;
+
+static gboolean eingabe_neuaufbauen(gpointer data)
+{
+  eingabe_neuaufbau_id = 0;
+  templaden(data);
+  return G_SOURCE_REMOVE;
+}
+
+static void eingabe_neuaufbau_planen(gpointer data)
+{
+  if(!eingabe_neuaufbau_id)
+    eingabe_neuaufbau_id = g_idle_add_full(G_PRIORITY_DEFAULT_IDLE,
+        eingabe_neuaufbauen, g_object_ref(data), g_object_unref);
+}
+
 void buchstabeneingabe(GtkEditable *editable, gpointer data)
 {
 
@@ -45,5 +62,5 @@ void buchstabeneingabe(GtkEditable *editable, gpointer data)
     }
   }
   tempspeichern();
-  templaden(data);
+  eingabe_neuaufbau_planen(data);
 }

@@ -28,5 +28,5 @@ void wskeingabe(GtkEditable *editable, gpointer data)
   }
 
   tempspeichern();
-  templaden(data);
+  eingabe_neuaufbau_planen(data);
 }

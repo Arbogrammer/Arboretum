@@ -32,7 +32,7 @@ void loeschen(gpointer data)
   FILE *datei;
   g_autofree gchar *dateiname = arboretum_temp_path(dateinummerierung);
   dateinummerierung += 1;
-  datei = g_fopen(dateiname,"w+");
+  datei = g_fopen(dateiname,"w+b");
   if(!datei)
   {
     g_warning("Temporäre Datei konnte nicht geöffnet werden: %s", dateiname);
