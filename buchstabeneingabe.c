@@ -1,10 +1,30 @@
-/* GTK must finish processing the edit before its entry can be replaced. */
+/* Keep the entries and their native input contexts alive while editing.
+ * Defer geometry updates until GTK has finished processing the edit. */
 static guint eingabe_neuaufbau_id = 0;
 
 static gboolean eingabe_neuaufbauen(gpointer data)
 {
   eingabe_neuaufbau_id = 0;
-  templaden(data);
+  for(int i=0; i<=maxzaehler; i++)
+  {
+    gtk_entry_set_width_chars(GTK_ENTRY(textfeld[i]), KnotenTextBreite);
+    gtk_entry_set_width_chars(GTK_ENTRY(textfeldWahrscheinlichkeit[i]), WahrscheinlichkeitTextBreite);
+  }
+  for(int i=0; i<=maxzaehlererg; i++)
+  {
+    gtk_entry_set_width_chars(GTK_ENTRY(textfeldErgebnis[i]), ErgebnisTextBreite);
+    gtk_entry_set_width_chars(GTK_ENTRY(textfeldErgebnisWahrscheinlichkeit[i]), WahrscheinlichkeitErgebnisTextBreite);
+  }
+  groesseneu(NULL, NULL, data);
+  for(int i=0; i<=maxzaehlererg; i++)
+    gtk_layout_move(GTK_LAYOUT(data), textfeldErgebnisWahrscheinlichkeit[i],
+        FensterRandLinks+RandLinks+(maxStufe+1)*StufenBreite+
+        (maxStufe+1)*KnotenBreite+ErgebnisAbstand*2+ErgebnisBreite,
+        FensterRandOben+RandOben+yerg[i]);
+  positionsanpassungwsk(data);
+  GROESSEDRAWINGAREA
+  GROESSELAYOUTD
+  gtk_widget_queue_draw(da);
   return G_SOURCE_REMOVE;
 }
 
