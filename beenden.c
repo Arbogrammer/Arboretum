@@ -14,7 +14,8 @@ gboolean beenden(GtkWidget *widget, gpointer data)
         gtk_widget_destroy(dialog);
         if(aktuelledatei[0])
         {
-          speichern(aktuelledatei);
+          if(!speichern(aktuelledatei))
+            return TRUE;
         }
         else if(!speicherdialog(NULL, NULL))
         {

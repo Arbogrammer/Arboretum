@@ -31,6 +31,18 @@ jobs:
       - name: Build portable Windows package
         run: bash packaging/windows/package.sh
 
+      - name: Test packaged EXE, saving and all export formats
+        shell: pwsh
+        run: ./packaging/windows/test.ps1
+
+      - name: Upload runtime test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Windows-test-logs
+          path: dist/test-logs/
+          if-no-files-found: warn
+
       - name: Upload Windows package
         uses: actions/upload-artifact@v4
         with:

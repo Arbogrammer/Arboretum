@@ -8,6 +8,7 @@ rm -rf "$output_dir"
 mkdir -p "$output_dir/share"
 
 gcc -O2 -g -Wall -Wextra -Wno-deprecated-declarations -Wno-unused-parameter \
+  -DARBORETUM_BUILD_ID="\"$(git -C "$root_dir" rev-parse --short HEAD)\"" \
   $(pkg-config --cflags gtk4) "$root_dir/baumg.c" -o "$output_dir/arboretum.exe" \
   $(pkg-config --libs gtk4) -lm
 
@@ -33,6 +34,7 @@ cp -a /ucrt64/share/gtk-4.0 "$output_dir/share/"
 cp -a /ucrt64/share/icons "$output_dir/share/"
 cp -a "$root_dir/arboretum-icon.png" "$output_dir/arboretum-icon.png"
 cp "$root_dir/packaging/windows/Diagnose.bat" "$output_dir/Diagnose.bat"
+cp "$root_dir/packaging/windows/Dateitest.bat" "$output_dir/Dateitest.bat"
 
 cat > "$output_dir/Arboretum.bat" <<'EOF'
 @echo off

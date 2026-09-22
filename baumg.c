@@ -493,11 +493,22 @@ static gboolean pfeiltasten_smoketest(gpointer data)
   return G_SOURCE_REMOVE;
 }
 
-/* Programmeinstieg: Widgets anlegen, Signale verbinden, Ereignisschleife starten. */
+#include "io_smoketest.c"
 
+/* Programmeinstieg: Widgets anlegen, Signale verbinden, Ereignisschleife starten. */
 int main (int argc, char *argv[])
 {
   startup_trace("main entered");
+#ifdef ARBORETUM_BUILD_ID
+  if(g_getenv("ARBORETUM_DIAGNOSTIC"))
+    g_printerr("Arboretum Build: %s\n", ARBORETUM_BUILD_ID);
+#endif
+#ifdef _WIN32
+  /* The native IME backend leaves invalid callbacks when entries are removed
+   * on affected GTK builds. Keep an explicit user override available. */
+  if(!g_getenv("GTK_IM_MODULE"))
+    g_setenv("GTK_IM_MODULE", "simple", FALSE);
+#endif
 
   SETENV
 
@@ -538,6 +549,11 @@ int main (int argc, char *argv[])
   startup_trace("before gtk_init");
   gtk_init ();
   startup_trace("gtk_init complete");
+  if(g_getenv("ARBORETUM_DIAGNOSTIC"))
+    g_printerr("GTK %u.%u.%u; Pango %s; Cairo %s; GTK_IM_MODULE=%s\n",
+        gtk_get_major_version(), gtk_get_minor_version(), gtk_get_micro_version(),
+        pango_version_string(), cairo_version_string(),
+        g_getenv("GTK_IM_MODULE") ? g_getenv("GTK_IM_MODULE") : "(automatisch)");
   gtk_window_set_default_icon_name("arboretum");
   if(argc > 1)
   {
@@ -684,6 +700,8 @@ int main (int argc, char *argv[])
   arboretum_main_loop = g_main_loop_new(NULL, FALSE);
   if(g_getenv("ARBORETUM_KEYBOARD_SMOKE_TEST"))
     g_idle_add(pfeiltasten_smoketest, key_controller);
+  if(g_getenv("ARBORETUM_IO_SMOKE_TEST"))
+    g_idle_add(io_smoketest, layout);
   startup_trace("entering event loop");
   g_main_loop_run(arboretum_main_loop);
   g_main_loop_unref(arboretum_main_loop);

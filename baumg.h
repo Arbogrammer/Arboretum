@@ -15,17 +15,18 @@ static gboolean keyfunc (GtkEventControllerKey *controller, guint keyval,
 void oeffnen(GtkWidget *widget, gpointer data);
 gboolean speicherdialog(GtkWidget *widget, gpointer data);
 void speichernvor(GtkWidget *widget, gpointer dateiname);
-void speichern(char *dateiname);
+gboolean speichern(char *dateiname);
+static void dateifehler(const char *vorgang, const char *pfad, const char *grund);
 void tempspeichern();
 void reset(gpointer data);
 void templaden(gpointer data);
 void laden(gpointer data,char *dateiname);
 void exportdialog (GtkWidget *widget, gpointer data);
-void exportpng (char *dateiname);
-void exportsvg (char *dateiname);
-void exportbmp (char *dateiname);
-void exportjpg (char *dateiname);
-void exportpdf (char *dateiname);
+gboolean exportpng (char *dateiname);
+gboolean exportsvg (char *dateiname);
+gboolean exportbmp (char *dateiname);
+gboolean exportjpg (char *dateiname);
+gboolean exportpdf (char *dateiname);
 void rueckgaengig(GtkWidget *widget, gpointer data);
 void loeschen(gpointer data);
 gboolean pos1(GtkWidget *widget, gpointer data);
@@ -107,6 +108,7 @@ void alleknotenneupositionieren(gpointer data);
 #include "templaden.c"
 #include "laden.c"
 #include "exportdialog.c"
+#include "exportdatei.c"
 #include "exportpng.c"
 #include "exportsvg.c"
 #include "exportjpg.c"

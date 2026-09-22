@@ -77,3 +77,22 @@ Wahrscheinlichkeitsfeld, dessen Zentrierung und die gezeichneten Zweige:
 ```sh
 ARBORETUM_KEYBOARD_SMOKE_TEST=1 ./arboretum
 ```
+
+Speichern, erneutes Laden, Schreibfehler und alle fünf Exportformate lassen
+sich zusätzlich testen:
+
+```sh
+ARBORETUM_IO_SMOKE_TEST=1 ./arboretum
+```
+
+Dabei entstehen Testdateien in einem neuen temporären Ordner; sein Pfad steht
+im Protokoll. Der Windows-Workflow führt beide Tests mit der gebündelten EXE
+aus. Ein erfolgreiches Kompilieren allein reicht damit nicht zum erfolgreichen
+Build. Auf Windows startet `Dateitest.bat` den Dateitest und hält das Protokoll
+offen; `Diagnose.bat` protokolliert die normale Bedienung.
+
+Für Windows verwendet Arboretum vorläufig `GTK_IM_MODULE=simple`: In den
+bisherigen Windows-Tests verhindert diese Einstellung den Absturz beim Löschen
+von Knoten. Normale Texteingabe und Compose-Sequenzen bleiben verfügbar; native
+IME-Komposition (z. B. für ostasiatische Eingabesysteme) ist damit eingeschränkt.
+Eine ausdrücklich gesetzte Umgebungsvariable hat Vorrang.

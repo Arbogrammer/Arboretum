@@ -1,5 +1,25 @@
 void laden(gpointer data,char *dateiname)
 {
+  char *dateiinhalt = NULL;
+  gsize gelesen = 0;
+  g_autoptr(GError) error = NULL;
+  if(!dateiname || !g_file_get_contents(dateiname, &dateiinhalt, &gelesen, &error))
+  {
+    dateifehler("Öffnen", dateiname, error ? error->message : "Kein Dateipfad ausgewählt.");
+    return;
+  }
+  /* Accept older Windows files using CRLF as well as the canonical LF format. */
+  gsize ziel = 0;
+  for(gsize quelle=0; quelle<gelesen; quelle++)
+    if(!(dateiinhalt[quelle] == '\r' && quelle+1<gelesen && dateiinhalt[quelle+1] == '\n'))
+      dateiinhalt[ziel++] = dateiinhalt[quelle];
+  dateiinhalt[ziel] = 0;
+  if(!ziel || !memchr(dateiinhalt, 30, ziel))
+  {
+    dateifehler("Öffnen", dateiname, "Keine lesbare Arboretum-Datei.");
+    g_free(dateiinhalt);
+    return;
+  }
   int i=0;
   zaehler=0;
   Stufe=0;
@@ -26,23 +46,7 @@ void laden(gpointer data,char *dateiname)
   gtk_widget_set_size_request (da, RandLinks+RandRechts+StufenBreite+KnotenBreite,RandOben+KnotenHoehe+RandUnten);
   gtk_layout_set_size(GTK_LAYOUT (data),RandLinks+RandRechts+StufenBreite+KnotenBreite,RandOben+KnotenHoehe+RandUnten);
 
-  FILE *datei;
-  datei = fopen(dateiname,"r");
-  fseek(datei,0L,SEEK_END);
-  int dateigroesse = ftell(datei);
-  rewind(datei);
-  char *dateiinhalt=calloc(dateigroesse+2,sizeof(char));
-  int temp=0, j = 0;
-  while((temp = fgetc(datei))!=EOF)
-  {
-    dateiinhalt[j]=temp;
-    j++;
-  }
-  fclose(datei);
-  dateiinhalt[j]=0;
-
-
-  j=0;
+  int j=0;
   while(dateiinhalt[j] != 30)
   {
     int l=0;
@@ -604,6 +608,6 @@ void laden(gpointer data,char *dateiname)
 
 
   gtk_widget_queue_draw (da);
-  free(dateiinhalt);
-  strcpy(aktuelledatei,dateiname);
+  g_free(dateiinhalt);
+  g_strlcpy(aktuelledatei,dateiname,sizeof(aktuelledatei));
 }
