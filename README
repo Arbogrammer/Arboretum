@@ -3,6 +3,16 @@
 Arboretum ist eine GTK-4-Anwendung zum Erstellen und Exportieren von
 Baumdiagrammen.
 
+## Releases
+
+`VERSION` enthält die Paketversion. Release-Pakete werden aus dem passenden
+Tag (z. B. `v2.0.2`) neu gebaut, nicht aus älteren Downloads zusammengesetzt.
+Alle Plattformen enthalten `BUILD-INFO.txt` mit dem vollständigen Quell-Commit;
+macOS verwendet dieselbe Version auch in den App-Metadaten.
+Die Linux-, Windows- und macOS-Workflows bauen nach Änderungen auf `main` sowie bei einem neuen Versionstag
+und prüfen die fertigen Pakete. Änderungsnotizen liegen unter
+`packaging/RELEASE-2.0.2.md`.
+
 ## Bauen unter Linux
 
 Benötigt werden ein C-Compiler, `pkg-config` und die GTK-4-Entwicklungsdateien.

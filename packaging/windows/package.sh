@@ -3,11 +3,7 @@ set -euo pipefail
 
 root_dir=$(cd "$(dirname "$0")/../.." && pwd)
 output_dir="$root_dir/dist/Arboretum-Windows-x64"
-build_id="${GITHUB_SHA:-}"
-if [[ -z "$build_id" ]]; then
-  build_id=$(git -C "$root_dir" rev-parse HEAD)
-fi
-build_id=${build_id:0:7}
+source "$root_dir/packaging/version.sh"
 
 rm -rf "$output_dir"
 mkdir -p "$output_dir/share"
@@ -40,6 +36,7 @@ cp -a /ucrt64/share/icons "$output_dir/share/"
 cp -a "$root_dir/arboretum-icon.png" "$output_dir/arboretum-icon.png"
 cp "$root_dir/packaging/windows/Diagnose.bat" "$output_dir/Diagnose.bat"
 cp "$root_dir/packaging/windows/Dateitest.bat" "$output_dir/Dateitest.bat"
+arboretum_write_build_info "$output_dir/BUILD-INFO.txt"
 
 cat > "$output_dir/Arboretum.bat" <<'EOF'
 @echo off

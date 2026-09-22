@@ -3,6 +3,8 @@ name: macOS x64 build
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
     tags:
       - "v*"
 
@@ -20,6 +22,17 @@ jobs:
 
       - name: Build macOS app bundle
         run: bash packaging/macos/build-macos.sh
+
+      - name: Test packaged macOS app
+        run: python3 packaging/test-runtime.py dist/Arboretum.app/Contents/MacOS/Arboretum
+
+      - name: Upload runtime test logs
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: macOS-test-logs
+          path: dist/test-logs/
+          if-no-files-found: warn
 
       - name: Upload macOS package
         uses: actions/upload-artifact@v5

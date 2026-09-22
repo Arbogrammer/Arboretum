@@ -2,6 +2,7 @@
 set -euo pipefail
 
 root_dir=$(cd "$(dirname "$0")/../.." && pwd)
+source "$root_dir/packaging/version.sh"
 prefix=$(brew --prefix)
 bundle="$root_dir/dist/Arboretum.app"
 macos_dir="$bundle/Contents/MacOS"
@@ -12,6 +13,7 @@ rm -rf "$bundle"
 mkdir -p "$macos_dir" "$frameworks_dir" "$resources_dir/share"
 
 gcc -O2 -Wall -Wextra -Wno-deprecated-declarations -Wno-unused-parameter \
+  -DARBORETUM_BUILD_ID="\"$build_id\"" \
   $(pkg-config --cflags gtk4) "$root_dir/baumg.c" -o "$macos_dir/Arboretum-bin" \
   $(pkg-config --libs gtk4) -lm
 
@@ -58,6 +60,7 @@ cp -a "$prefix/share/glib-2.0" "$resources_dir/share/"
 cp -a "$prefix/share/gtk-4.0" "$resources_dir/share/"
 cp -a "$prefix/share/icons" "$resources_dir/share/"
 cp -a "$root_dir/arboretum-icon.png" "$resources_dir/arboretum-icon.png"
+arboretum_write_build_info "$resources_dir/BUILD-INFO.txt"
 
 cat > "$macos_dir/Arboretum" <<'EOF'
 #!/bin/sh
@@ -69,7 +72,7 @@ exec "$bundle_dir/MacOS/Arboretum-bin" "$@"
 EOF
 chmod +x "$macos_dir/Arboretum"
 
-cat > "$bundle/Contents/Info.plist" <<'EOF'
+cat > "$bundle/Contents/Info.plist" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
@@ -78,8 +81,8 @@ cat > "$bundle/Contents/Info.plist" <<'EOF'
   <key>CFBundleIdentifier</key><string>org.arbogrammer.arboretum</string>
   <key>CFBundleName</key><string>Arboretum</string>
   <key>CFBundlePackageType</key><string>APPL</string>
-  <key>CFBundleShortVersionString</key><string>2.0</string>
-  <key>CFBundleVersion</key><string>2.0</string>
+  <key>CFBundleShortVersionString</key><string>$arboretum_version</string>
+  <key>CFBundleVersion</key><string>$arboretum_version</string>
 </dict></plist>
 EOF
 
