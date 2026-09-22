@@ -2,8 +2,8 @@ void tempspeichern()
 {
   int i=0;
   FILE *datei;
-  TEMPDATEI dateinummerierung);
-  datei = fopen(dateiname,"w+");
+  g_autofree gchar *dateiname = arboretum_temp_path(dateinummerierung);
+  datei = g_fopen(dateiname,"w+");
   if(!datei)
   {
     g_warning("Undo-Zustand konnte nicht gespeichert werden: %s", dateiname);

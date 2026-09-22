@@ -3,6 +3,7 @@
 //
 
 #include <gtk/gtk.h>
+#include <glib/gstdio.h>
 #include "gtk4_compat.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,13 +39,20 @@
                       {\
                         gtk_widget_set_size_request (da, RandLinks+RandRechts+(maxStufe+1)*StufenBreite+(maxStufe+1)*(klbmax+2*knotenrahmenabstand)-knotenrahmenabstand+((ergebnisseanzeigen>0)?(ErgebnisAbstand+ErgebnisLabelBreite):0)+((ergebnissewskanzeigen>0)?(ErgebnisAbstand+WahrscheinlichkeitErgebnisLabelBreite):0),ymax+KnotenHoehe/2-KnotenLabelHoehe/2+KnotenLabelHoehe+RandUnten+RandOben);\
                       }
-#ifdef _WIN32
-  #define TEMPDATEI char dateiname[100]=""; \
-                    sprintf(dateiname,"%s%i-Baumspeicher%i.bdg",getenv("tmp"),getpid(),
-#else
-  #define TEMPDATEI char dateiname[100]=""; \
-                    sprintf(dateiname,"/tmp/%i-Baumspeicher%i.bdg",getpid(),
-#endif
+static gchar *arboretum_temp_path(int number)
+{
+  g_autofree gchar *name = g_strdup_printf("%i-Baumspeicher%i.bdg", (int)getpid(), number);
+  return g_build_filename(g_get_tmp_dir(), name, NULL);
+}
+
+static void startup_trace(const char *stage)
+{
+  if(g_getenv("ARBORETUM_DIAGNOSTIC"))
+  {
+    fprintf(stderr, "Arboretum startup: %s\n", stage);
+    fflush(stderr);
+  }
+}
 
 #ifdef __APPLE__
   #define SETENV char arbv[5000]="";strcpy(arbv,argv[0]);char *ptr = strrchr(arbv,'/');*ptr=0;char xdg[5000] = ""; sprintf(xdg,"%s/../share",arbv);setenv("XDG_DATA_DIRS",xdg,1);
@@ -489,6 +497,7 @@ static gboolean pfeiltasten_smoketest(gpointer data)
 
 int main (int argc, char *argv[])
 {
+  startup_trace("main entered");
 
   SETENV
 
@@ -526,7 +535,9 @@ int main (int argc, char *argv[])
   schriftfarbe.blue=0;
   schriftfarbe.alpha=1;
 
+  startup_trace("before gtk_init");
   gtk_init ();
+  startup_trace("gtk_init complete");
   gtk_window_set_default_icon_name("arboretum");
   if(argc > 1)
   {
@@ -649,24 +660,31 @@ int main (int argc, char *argv[])
   gtk_widget_set_hexpand(scrollwindow, TRUE);
   gtk_box_append(GTK_BOX(gesamtbox), scrollwindow);
   gtk_window_set_child(GTK_WINDOW(window), gesamtbox);
+  startup_trace("before window presentation");
   gtk_window_present(GTK_WINDOW(window));
+  startup_trace("window presented");
   gtk_widget_hide(wahrscheinlichkeitlabel[0]);
   gtk_widget_grab_focus(textfeld[0]);
   g_idle_add(startfeld_fokussieren, textfeld[0]);
   GtkWidget *fakedialog = gtk_font_chooser_dialog_new ("Schriftart auswählen", GTK_WINDOW (window));
-  char bisherschriftart[1000] = "";
-  sprintf(bisherschriftart,"%s", gtk_font_chooser_get_font (GTK_FONT_CHOOSER(fakedialog)));
-  strcpy(schriftart,bisherschriftart);
+  startup_trace("font chooser created");
+  g_autofree gchar *initial_font = gtk_font_chooser_get_font(GTK_FONT_CHOOSER(fakedialog));
+  g_strlcpy(schriftart, initial_font ? initial_font : "Sans 12", sizeof(schriftart));
+  gtk_window_destroy(GTK_WINDOW(fakedialog));
+  startup_trace("font initialized");
 
   if(argc > 1)
   {
     laden(layout,argv[1]);
   }
+  startup_trace("before initial undo save");
   tempspeichern();
+  startup_trace("initial undo save complete");
 
   arboretum_main_loop = g_main_loop_new(NULL, FALSE);
   if(g_getenv("ARBORETUM_KEYBOARD_SMOKE_TEST"))
     g_idle_add(pfeiltasten_smoketest, key_controller);
+  startup_trace("entering event loop");
   g_main_loop_run(arboretum_main_loop);
   g_main_loop_unref(arboretum_main_loop);
   arboretum_main_loop = NULL;
@@ -675,8 +693,8 @@ int main (int argc, char *argv[])
 //  printf("%i\n",dateinummerierung);
   for(i = 1 ; i < dateinummerierung ; i++)
   {
-    TEMPDATEI i);
-    remove(dateiname);
+    g_autofree gchar *dateiname = arboretum_temp_path(i);
+    g_remove(dateiname);
   }
   return arboretum_exit_status;
 }

@@ -59,8 +59,8 @@ void templaden(gpointer data)
 
   /* Erst vollständig einlesen, bevor der sichtbare Baum verändert wird. */
   int naechste_dateinummer = dateinummerierung - 1;
-  TEMPDATEI naechste_dateinummer);
-  FILE *datei = fopen(dateiname,"rb");
+  g_autofree gchar *dateiname = arboretum_temp_path(naechste_dateinummer);
+  FILE *datei = g_fopen(dateiname,"rb");
   if(!datei)
   {
     g_warning("Undo-Zustand konnte nicht geöffnet werden: %s", dateiname);

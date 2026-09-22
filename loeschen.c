@@ -30,9 +30,15 @@ void loeschen(gpointer data)
     
   int i=0;
   FILE *datei;
-  TEMPDATEI dateinummerierung);
+  g_autofree gchar *dateiname = arboretum_temp_path(dateinummerierung);
   dateinummerierung += 1;
-  datei = fopen(dateiname,"w+");
+  datei = g_fopen(dateiname,"w+");
+  if(!datei)
+  {
+    g_warning("Temporäre Datei konnte nicht geöffnet werden: %s", dateiname);
+    dateinummerierung -= 1;
+    return;
+  }
   int j=0;
   for(i=0 ; i<=maxzaehler ; i++)
   {
