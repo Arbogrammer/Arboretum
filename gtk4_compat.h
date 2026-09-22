@@ -44,7 +44,8 @@ static inline void arboretum_layout_move(GtkFixed *layout, GtkWidget *child,
     gtk_editable_set_width_chars(GTK_EDITABLE(entry), (width));              \
     gtk_editable_set_max_width_chars(GTK_EDITABLE(entry), (width));          \
   } while (0)
-#define gtk_entry_grab_focus_without_selecting(entry) gtk_widget_grab_focus(GTK_WIDGET(entry))
+/* gtk_entry_grab_focus_without_selecting() also exists in GTK4. Use it
+ * directly: plain gtk_widget_grab_focus() would select the entire text. */
 #define gtk_widget_show_all(widget) gtk_widget_set_visible(GTK_WIDGET(widget), TRUE)
 
 /* GTK4 fokussiert intern ein GtkText innerhalb des GtkEntry. Der übrige Code

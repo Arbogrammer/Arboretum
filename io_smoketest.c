@@ -114,6 +114,27 @@ static gboolean io_test_choose_save(gpointer data)
   return G_SOURCE_CONTINUE;
 }
 
+static gboolean io_test_loaded_selection(void)
+{
+  int start, end;
+  gboolean ok = TRUE;
+  for(int i=0; i<=maxzaehler; i++)
+  {
+    ok &= !gtk_editable_get_selection_bounds(GTK_EDITABLE(textfeld[i]), &start, &end);
+    ok &= !gtk_editable_get_selection_bounds(GTK_EDITABLE(textfeldWahrscheinlichkeit[i]), &start, &end);
+  }
+  for(int i=0; i<=maxzaehlererg; i++)
+  {
+    ok &= !gtk_editable_get_selection_bounds(GTK_EDITABLE(textfeldErgebnis[i]), &start, &end);
+    ok &= !gtk_editable_get_selection_bounds(GTK_EDITABLE(textfeldErgebnisWahrscheinlichkeit[i]), &start, &end);
+  }
+  ok &= gtk_window_get_focus(GTK_WINDOW(window)) == textfeld[0];
+  ok &= gtk_editable_get_position(GTK_EDITABLE(textfeld[0])) ==
+        g_utf8_strlen(gtk_entry_get_text(GTK_ENTRY(textfeld[0])), -1);
+  g_printerr("IO-Test Laden ohne Textmarkierung (%d Knoten): %s\n", maxzaehler+1, ok ? "ok" : "FEHLER");
+  return ok;
+}
+
 static gboolean io_smoketest(gpointer data)
 {
   g_autoptr(GError) error = NULL;
@@ -143,6 +164,8 @@ static gboolean io_smoketest(gpointer data)
     ok &= !strcmp(gtk_editable_get_text(GTK_EDITABLE(textfeld[0])), "Äpfel Ω");
   }
   g_printerr("IO-Test Unicode speichern/laden: %s\n", ok ? "ok" : "FEHLER");
+  io_test_drain();
+  ok &= io_test_loaded_selection();
   IoSaveDialogTest dialog_test = {dir, "Dialog-Ä.bdg", 0, FALSE, FALSE};
   guint dialog_source = g_timeout_add(100, io_test_choose_save, &dialog_test);
   gboolean dialog_ok = speicherdialog(NULL, data);
@@ -167,6 +190,8 @@ static gboolean io_smoketest(gpointer data)
       gtk_widget_grab_focus(textfeld[0]);
       runter(NULL, data);
       runter(NULL, data);
+      gtk_entry_set_text(GTK_ENTRY(textfeld[1]), "B");
+      gtk_entry_set_text(GTK_ENTRY(textfeld[2]), "C");
     }
     if(scene > 0)
     {
@@ -182,6 +207,21 @@ static gboolean io_smoketest(gpointer data)
     ergebnisseanzeigen = 1;
     ergebnissewskanzeigen = 1;
     io_test_drain();
+    if(scene == 1)
+    {
+      g_autofree gchar *multi_path = g_build_filename(dir, "Mehrere-Knoten.bdg", NULL);
+      gboolean saved = speichern(multi_path);
+      ok &= saved;
+      if(saved)
+      {
+        laden(data, multi_path);
+        io_test_drain();
+        ok &= io_test_loaded_selection();
+        ok &= maxzaehler == 2 &&
+              !strcmp(gtk_entry_get_text(GTK_ENTRY(textfeld[1])), "B") &&
+              !strcmp(gtk_entry_get_text(GTK_ENTRY(textfeld[2])), "C");
+      }
+    }
     umwandeln(NULL, data);
     io_test_drain();
     arboretum_layout_aktualisieren(data);

@@ -435,7 +435,6 @@ void laden(gpointer data,char *dateiname)
     gtk_entry_set_text(GTK_ENTRY(textfeld[tempzaehler]),text);
     gtk_layout_put (GTK_LAYOUT (data), textfeld[tempzaehler], FensterRandLinks+RandLinks+StufenBreite+(StufenBreite+KnotenBreite)*Stufe,FensterRandOben+RandOben+y[tempzaehler]);
     gtk_widget_show_all(textfeld[tempzaehler]);
-    gtk_entry_grab_focus_without_selecting(GTK_ENTRY((textfeld[zaehler])));
     g_signal_connect (textfeld[tempzaehler], "changed", G_CALLBACK (buchstabeneingabe), data);
     zaehler=tempzaehler;
     maxzaehler=tempzaehler;
@@ -600,11 +599,25 @@ void laden(gpointer data,char *dateiname)
   positionsanpassungwsk(data);
   wskergebnisverschieben(NULL, NULL, data);
 
+  /* Newly shown fields can receive GTK's automatic initial focus. Clear its
+   * selection and focus only once, after the entire document is restored. */
+  for(i=0; i<=maxzaehler; i++)
+  {
+    gtk_editable_set_position(GTK_EDITABLE(textfeld[i]), -1);
+    gtk_editable_set_position(GTK_EDITABLE(textfeldWahrscheinlichkeit[i]), -1);
+  }
+  for(i=0; i<=maxzaehlererg; i++)
+  {
+    gtk_editable_set_position(GTK_EDITABLE(textfeldErgebnis[i]), -1);
+    gtk_editable_set_position(GTK_EDITABLE(textfeldErgebnisWahrscheinlichkeit[i]), -1);
+  }
   if(labelein)
   {
     labelein=0;
     umwandeln(NULL,data);
   }
+  else
+    gtk_entry_grab_focus_without_selecting(GTK_ENTRY(textfeld[0]));
 
 
   gtk_widget_queue_draw (da);
