@@ -3,12 +3,17 @@ set -euo pipefail
 
 root_dir=$(cd "$(dirname "$0")/../.." && pwd)
 output_dir="$root_dir/dist/Arboretum-Windows-x64"
+build_id="${GITHUB_SHA:-}"
+if [[ -z "$build_id" ]]; then
+  build_id=$(git -C "$root_dir" rev-parse HEAD)
+fi
+build_id=${build_id:0:7}
 
 rm -rf "$output_dir"
 mkdir -p "$output_dir/share"
 
 gcc -O2 -g -Wall -Wextra -Wno-deprecated-declarations -Wno-unused-parameter \
-  -DARBORETUM_BUILD_ID="\"$(git -C "$root_dir" rev-parse --short HEAD)\"" \
+  -DARBORETUM_BUILD_ID="\"$build_id\"" \
   $(pkg-config --cflags gtk4) "$root_dir/baumg.c" -o "$output_dir/arboretum.exe" \
   $(pkg-config --libs gtk4) -lm
 

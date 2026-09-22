@@ -270,6 +270,8 @@ static gboolean startfeld_fokussieren(gpointer data)
   return G_SOURCE_REMOVE;
 }
 
+static void io_test_drain(void);
+
 static gboolean pfeiltasten_smoketest(gpointer data)
 {
   /* Optionaler Regressionstest. Er läuft nur, wenn die Umgebungsvariable
@@ -356,17 +358,26 @@ static gboolean pfeiltasten_smoketest(gpointer data)
                                ui_pixel[2] == 255 && ui_pixel[3] == 255;
   cairo_surface_destroy(ui_surface);
 
-  while(g_main_context_pending(NULL))
-    g_main_context_iteration(NULL, FALSE);
-
+  /* GTK allocates on a frame clock. An empty event queue does not imply that
+   * the next layout frame has happened yet, particularly on the Win32 runner. */
+  io_test_drain();
   arboretum_layout_aktualisieren(layout);
-  double probability_x = 0, probability_y = 0;
-  gtk_fixed_get_child_position(GTK_FIXED(layout), textfeldWahrscheinlichkeit[0],
-                               &probability_x, &probability_y);
-  double probability_center = probability_x +
-                              gtk_widget_get_width(textfeldWahrscheinlichkeit[0]) / 2.0;
+  graphene_rect_t probability_bounds = GRAPHENE_RECT_INIT(0, 0, 0, 0);
+  double probability_center = 0;
   double expected_center = FensterRandLinks + RandLinks + StufenBreite / 2.0;
-  gboolean probability_position_ok = fabs(probability_center - expected_center) < 1.0;
+  gboolean probability_position_ok = FALSE;
+  for(int frame=0; frame<15 && !probability_position_ok; frame++)
+  {
+    io_test_drain();
+    gboolean measured = gtk_widget_compute_bounds(textfeldWahrscheinlichkeit[0],
+                                                   GTK_WIDGET(layout), &probability_bounds);
+    probability_center = probability_bounds.origin.x + probability_bounds.size.width / 2.0;
+    probability_position_ok = measured && probability_bounds.size.width > 0 &&
+                              fabs(probability_center - expected_center) < 1.0;
+  }
+  g_printerr("Positionstest: x=%.2f, Breite=%.2f, Mitte=%.2f, erwartet=%.2f: %s\n",
+             probability_bounds.origin.x, probability_bounds.size.width,
+             probability_center, expected_center, probability_position_ok ? "ok" : "FEHLER");
 
   cairo_surface_t *test_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 800, 600);
   cairo_t *test_cr = cairo_create(test_surface);

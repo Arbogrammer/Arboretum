@@ -4,9 +4,52 @@ static void io_test_drain(void)
 {
   for(int i=0; i<20; i++)
   {
-    while(g_main_context_iteration(NULL, FALSE)) {}
+    for(int event=0; event<100 && g_main_context_iteration(NULL, FALSE); event++) {}
     g_usleep(10000);
   }
+}
+
+#ifdef G_OS_WIN32
+#include <windows.h>
+#endif
+
+static gchar *io_test_canonical_path(const char *path)
+{
+  if(!path)
+    return NULL;
+  g_autofree gchar *canonical = g_canonicalize_filename(path, NULL);
+#ifdef G_OS_WIN32
+  /* The runner's TEMP contains RUNNER~1, whereas the chooser may return the
+   * long directory name. Resolve the existing parent, not the unsaved file. */
+  g_autofree gchar *parent = g_path_get_dirname(canonical);
+  g_autofree gchar *name = g_path_get_basename(canonical);
+  g_autofree gunichar2 *wide = g_utf8_to_utf16(parent, -1, NULL, NULL, NULL);
+  DWORD size = wide ? GetLongPathNameW((LPCWSTR)wide, NULL, 0) : 0;
+  if(size)
+  {
+    g_autofree gunichar2 *long_name = g_new0(gunichar2, size);
+    DWORD length = GetLongPathNameW((LPCWSTR)wide, (LPWSTR)long_name, size);
+    if(length && length < size)
+    {
+      g_autofree gchar *long_parent = g_utf16_to_utf8(long_name, -1, NULL, NULL, NULL);
+      if(long_parent)
+      {
+        g_free(canonical);
+        canonical = g_build_filename(long_parent, name, NULL);
+      }
+    }
+  }
+  return g_utf8_casefold(canonical, -1);
+#else
+  return g_steal_pointer(&canonical);
+#endif
+}
+
+static gboolean io_test_same_path(const char *a, const char *b)
+{
+  g_autofree gchar *first = io_test_canonical_path(a);
+  g_autofree gchar *second = io_test_canonical_path(b);
+  return first && second && !strcmp(first, second);
 }
 
 typedef struct
@@ -38,21 +81,34 @@ static gboolean io_test_choose_save(gpointer data)
       gtk_dialog_response(GTK_DIALOG(candidate), GTK_RESPONSE_CANCEL);
       return G_SOURCE_REMOVE;
     }
-    if(!test->initialized)
-    {
-      g_autoptr(GFile) folder = g_file_new_for_path(test->directory);
-      gtk_file_chooser_set_current_folder(chooser, folder, NULL);
-      gtk_file_chooser_set_current_name(chooser, test->filename);
-      test->initialized = TRUE;
-      return G_SOURCE_CONTINUE;
-    }
     g_autofree gchar *selected = gtk_file_chooser_get_filename(chooser);
     g_autofree gchar *expected = g_build_filename(test->directory, test->filename, NULL);
-    if(g_strcmp0(selected, expected) == 0)
+    if(test->attempts == 2 || test->attempts == 199)
+      g_printerr("IO-Test Dialogpfad: gewählt=%s; erwartet=%s\n",
+                 selected ? selected : "(noch kein Pfad)", expected);
+    if(test->initialized && io_test_same_path(selected, expected))
     {
       test->finished = TRUE;
       gtk_dialog_response(GTK_DIALOG(candidate), GTK_RESPONSE_ACCEPT);
       return G_SOURCE_REMOVE;
+    }
+    /* Restoring the chooser's last-used folder is asynchronous and can replace
+     * an early test selection. Retry setup, but never accept another folder. */
+    if(gtk_widget_get_mapped(GTK_WIDGET(candidate)) &&
+        (!test->initialized || test->attempts % 10 == 0))
+    {
+      g_autoptr(GFile) folder = g_file_new_for_path(test->directory);
+      g_autoptr(GError) error = NULL;
+      if(!gtk_file_chooser_set_current_folder(chooser, folder, &error))
+      {
+        g_printerr("IO-Test Dialogordner: %s\n", error ? error->message : "Ordnerwechsel fehlgeschlagen");
+        test->finished = TRUE;
+        gtk_dialog_response(GTK_DIALOG(candidate), GTK_RESPONSE_CANCEL);
+        return G_SOURCE_REMOVE;
+      }
+      gtk_file_chooser_set_current_name(chooser, test->filename);
+      test->initialized = TRUE;
+      return G_SOURCE_CONTINUE;
     }
   }
   return G_SOURCE_CONTINUE;
@@ -94,11 +150,12 @@ static gboolean io_smoketest(gpointer data)
     g_source_remove(dialog_source);
   g_autofree gchar *dialog_path = g_build_filename(dir, dialog_test.filename, NULL);
   dialog_ok = dialog_ok && g_file_test(dialog_path, G_FILE_TEST_IS_REGULAR) &&
-              !strcmp(aktuelledatei, dialog_path);
+              io_test_same_path(aktuelledatei, dialog_path);
   g_printerr("IO-Test Speicherdialog: %s\n", dialog_ok ? "ok" : "FEHLER");
   ok &= dialog_ok;
   g_autofree gchar *bad = g_build_filename(dir, "fehlt", "nicht-schreibbar.bdg", NULL);
   dateiveraendert = 7;
+  g_printerr("IO-Test START erwarteter Schreibfehler (Ordner fehlt absichtlich)\n");
   gboolean failed_save_ok = !speichern(bad) && dateiveraendert == 7;
   g_printerr("IO-Test Schreibfehler bleibt ungespeichert: %s\n", failed_save_ok ? "ok" : "FEHLER");
   ok &= failed_save_ok;
@@ -150,7 +207,9 @@ static gboolean io_smoketest(gpointer data)
       g_printerr("IO-Test %s: %s (%" G_GSIZE_FORMAT " Bytes)\n", name, exported ? "ok" : "FEHLER", length);
       ok &= exported;
     }
+    g_printerr("IO-Test START erwarteter Exportfehler (Ordner fehlt absichtlich)\n");
     gboolean failed_export_ok = !export_datei(bad, "png");
+    g_printerr("IO-Test erwarteter Exportfehler: %s\n", failed_export_ok ? "ok" : "FEHLER");
     ok &= failed_export_ok;
     umwandeln(NULL, data);
     io_test_drain();
