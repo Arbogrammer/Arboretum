@@ -20,7 +20,9 @@ gcc -O2 -Wall -Wextra -Wno-deprecated-declarations -Wno-unused-parameter \
 # Resolve relative Homebrew dependencies as well as absolute ones, then audit
 # every rewritten load command before signing the app.
 python3 "$root_dir/packaging/macos/bundle-libraries.py" \
-  "$macos_dir/Arboretum-bin" "$frameworks_dir" "$prefix"
+  "$macos_dir/Arboretum-bin" "$frameworks_dir" "$prefix" \
+  "$(pkg-config --variable=gdk_pixbuf_query_loaders gdk-pixbuf-2.0)" \
+  "$(pkg-config --variable=gdk_pixbuf_moduledir gdk-pixbuf-2.0)"/*.so
 
 cp -a "$prefix/share/glib-2.0" "$resources_dir/share/"
 cp -a "$prefix/share/gtk-4.0" "$resources_dir/share/"
@@ -34,7 +36,14 @@ set -eu
 bundle_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 export GSETTINGS_SCHEMA_DIR="$bundle_dir/Resources/share/glib-2.0/schemas"
 export XDG_DATA_DIRS="$bundle_dir/Resources/share"
-exec "$bundle_dir/MacOS/Arboretum-bin" "$@"
+# Generate paths at launch: the app can be moved or placed in a Unicode path.
+# Never use Homebrew's loader cache, which would load a second pixbuf library.
+cache=$(mktemp "${TMPDIR:-/tmp}/arboretum-pixbuf.XXXXXX")
+trap 'rm -f "$cache"' EXIT HUP INT TERM
+export GDK_PIXBUF_MODULEDIR="$bundle_dir/Frameworks"
+export GDK_PIXBUF_MODULE_FILE="$cache"
+"$bundle_dir/Frameworks/gdk-pixbuf-query-loaders" "$bundle_dir"/Frameworks/libpixbufloader-*.so > "$cache"
+"$bundle_dir/MacOS/Arboretum-bin" "$@"
 EOF
 chmod +x "$macos_dir/Arboretum"
 

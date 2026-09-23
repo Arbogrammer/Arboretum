@@ -5,6 +5,7 @@ Fail rather than produce an app that still depends on the build machine.
 """
 from pathlib import Path
 import shutil
+import os
 import stat
 import subprocess
 import sys
@@ -52,11 +53,19 @@ def resolve(name, loader, executable, search_paths, prefix):
     raise RuntimeError(f"Cannot resolve {name} required by {loader}; tried {candidates}")
 
 
-def bundle(executable, destination, prefix):
+def bundle(executable, destination, prefix, *extra_images):
     executable, destination, prefix = map(Path, (executable, destination, prefix))
     executable = executable.resolve()
     queue = [(executable, executable, [])]
     copied = {}
+    # Runtime-loaded pixbuf modules are invisible to otool's dependency walk.
+    for image in extra_images:
+        source = Path(image).resolve()
+        target = destination / source.name
+        shutil.copy2(source, target)
+        target.chmod(target.stat().st_mode | stat.S_IWUSR)
+        copied[source.name] = source
+        queue.append((source, target, []))
     for original, target, inherited in queue:
         search_paths = [expand(path, original, executable) for path in rpaths(original)] + inherited
         changes = []
@@ -75,12 +84,13 @@ def bundle(executable, destination, prefix):
                 shutil.copy2(source, library_target)
                 library_target.chmod(library_target.stat().st_mode | stat.S_IWUSR)
                 queue.append((source, library_target, search_paths))
-            relative = "@executable_path/../Frameworks/" if target == executable else "@loader_path/"
+            relative = "@loader_path/" + os.path.relpath(destination, target.parent) + "/"
             changes += ["-change", name, relative + source.name]
         command = ["install_name_tool"]
-        if target != executable:
+        is_library = target.suffix in (".dylib", ".so")
+        if is_library:
             command += ["-id", "@rpath/" + target.name]
-        if changes or target != executable:
+        if changes or is_library:
             subprocess.run(command + changes + [str(target)], check=True)
 
     # Audit the output independently of the resolver. No Homebrew path or

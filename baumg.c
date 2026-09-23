@@ -58,7 +58,7 @@ static void startup_trace(const char *stage)
 }
 
 #ifdef __APPLE__
-  #define SETENV char arbv[5000]="";strcpy(arbv,argv[0]);char *ptr = strrchr(arbv,'/');*ptr=0;char xdg[5000] = ""; sprintf(xdg,"%s/../share",arbv);setenv("XDG_DATA_DIRS",xdg,1);
+  #define SETENV /* Bundle environment is configured by the macOS launcher. */
 #else
   #define SETENV ;
 #endif
