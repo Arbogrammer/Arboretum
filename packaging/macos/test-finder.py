@@ -31,7 +31,10 @@ with tempfile.TemporaryDirectory(prefix="arboretum-finder-") as folder:
         process = subprocess.Popen(command)
         try:
             if mode == "running":
-                time.sleep(3)
+                deadline = time.monotonic() + 20
+                while not trace.exists() or "entering event loop" not in trace.read_text():
+                    assert time.monotonic() < deadline, "App did not become ready"
+                    time.sleep(0.1)
                 subprocess.run(["/usr/bin/open", "-a", str(app), str(document)],
                                check=True, timeout=15)
             assert process.wait(timeout=40) == 0

@@ -36,15 +36,6 @@ set -eu
 bundle_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 export GSETTINGS_SCHEMA_DIR="$bundle_dir/Resources/share/glib-2.0/schemas"
 export XDG_DATA_DIRS="$bundle_dir/Resources/share"
-# Generate paths at launch: the app can be moved or placed in a Unicode path.
-# Never use Homebrew's loader cache, which would load a second pixbuf library.
-cache=$(mktemp "${TMPDIR:-/tmp}/arboretum-pixbuf.XXXXXX")
-trap 'rm -f "$cache"' EXIT HUP INT TERM
-export GDK_PIXBUF_MODULEDIR="$bundle_dir/Frameworks"
-export GDK_PIXBUF_MODULE_FILE="$cache"
-"$bundle_dir/Frameworks/gdk-pixbuf-query-loaders" "$bundle_dir"/Frameworks/libpixbufloader-*.so > "$cache"
-export ARBORETUM_PIXBUF_CACHE_OWNER=$$
-# Keep the LaunchServices process identity so Finder events reach GTK.
 exec "$bundle_dir/MacOS/Arboretum-bin" "$@"
 EOF
 chmod +x "$macos_dir/Arboretum"
@@ -54,7 +45,7 @@ cat > "$bundle/Contents/Info.plist" <<EOF
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
   <key>CFBundleDisplayName</key><string>Arboretum</string>
-  <key>CFBundleExecutable</key><string>Arboretum</string>
+  <key>CFBundleExecutable</key><string>Arboretum-bin</string>
   <key>CFBundleIdentifier</key><string>org.arbogrammer.arboretum</string>
   <key>CFBundleName</key><string>Arboretum</string>
   <key>CFBundlePackageType</key><string>APPL</string>

@@ -58,6 +58,7 @@ static void startup_trace(const char *stage)
 }
 
 #ifdef __APPLE__
+  #include "packaging/macos/runtime.c"
   #define SETENV /* Bundle environment is configured by the macOS launcher. */
 #else
   #define SETENV ;
@@ -556,6 +557,9 @@ int main (int argc, char *argv[])
   argc = g_strv_length(unicode_argv);
 #endif
   arboretum_test_executable = argv[0];
+#ifdef __APPLE__
+  if(!macos_prepare_bundle()) return 1;
+#endif
   startup_trace("main entered");
 #ifdef ARBORETUM_BUILD_ID
   if(g_getenv("ARBORETUM_DIAGNOSTIC"))
@@ -768,11 +772,6 @@ int main (int argc, char *argv[])
   g_main_loop_run(arboretum_main_loop);
   g_main_loop_unref(arboretum_main_loop);
   arboretum_main_loop = NULL;
-#ifdef __APPLE__
-  const char *cache_owner = g_getenv("ARBORETUM_PIXBUF_CACHE_OWNER");
-  if(cache_owner && g_ascii_strtoll(cache_owner, NULL, 10) == getpid())
-    g_remove(g_getenv("GDK_PIXBUF_MODULE_FILE"));
-#endif
 
   int i;
 //  printf("%i\n",dateinummerierung);
