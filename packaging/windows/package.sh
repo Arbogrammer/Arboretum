@@ -17,6 +17,13 @@ gcc -O2 -g -Wall -Wextra -Wno-deprecated-declarations -Wno-unused-parameter \
 # that comes from the UCRT64 runtime and place it next to the executable.
 declare -A copied=()
 queue=("$output_dir/arboretum.exe")
+# GLib needs these executables for child processes with redirected streams.
+# They are runtime dependencies, but cannot be discovered by following DLLs.
+for helper in /ucrt64/bin/gspawn-win64-helper.exe /ucrt64/bin/gspawn-win64-helper-console.exe; do
+  destination="$output_dir/$(basename "$helper")"
+  cp "$helper" "$destination"
+  queue+=("$destination")
+done
 while ((${#queue[@]})); do
   file=${queue[0]}
   queue=("${queue[@]:1}")
