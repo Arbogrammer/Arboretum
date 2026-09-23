@@ -4,6 +4,9 @@
 
 #include <gtk/gtk.h>
 #include <glib/gstdio.h>
+#ifdef G_OS_WIN32
+#include <glib/gwin32.h>
+#endif
 #include "gtk4_compat.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -509,6 +512,16 @@ static gboolean pfeiltasten_smoketest(gpointer data)
 /* Programmeinstieg: Widgets anlegen, Signale verbinden, Ereignisschleife starten. */
 int main (int argc, char *argv[])
 {
+#ifdef G_OS_WIN32
+  /* The C runtime's argv uses the Windows ANSI code page. GTK/GLib filenames
+   * require UTF-8, so decode the original Unicode command line instead. */
+  g_auto(GStrv) unicode_argv = g_win32_get_command_line();
+  if(!unicode_argv)
+    return 1;
+  argv = unicode_argv;
+  argc = g_strv_length(unicode_argv);
+#endif
+  arboretum_test_executable = argv[0];
   startup_trace("main entered");
 #ifdef ARBORETUM_BUILD_ID
   if(g_getenv("ARBORETUM_DIAGNOSTIC"))
@@ -566,23 +579,8 @@ int main (int argc, char *argv[])
         pango_version_string(), cairo_version_string(),
         g_getenv("GTK_IM_MODULE") ? g_getenv("GTK_IM_MODULE") : "(automatisch)");
   gtk_window_set_default_icon_name("arboretum");
-  if(argc > 1)
-  {
-    strcpy(aktuelledatei,argv[1]);
-  }
-  char Titel[5010] = "Arboretum";
-  if(aktuelledatei[0])
-  {
-    strcat(Titel," - ");
-    if(strrchr(aktuelledatei,'/'))
-    {
-      strcat(Titel,strrchr(aktuelledatei,'/')+1);
-    }
-    else
-    {
-      strcat(Titel,aktuelledatei);
-    }
-  }
+  g_autofree gchar *start_name = argc > 1 ? g_path_get_basename(argv[1]) : NULL;
+  g_autofree gchar *Titel = start_name ? g_strdup_printf("Arboretum - %s", start_name) : g_strdup("Arboretum");
 
   window = gtk_window_new ();
   gesamtbox = gtk_box_new(GTK_ORIENTATION_VERTICAL,0);
@@ -692,7 +690,6 @@ int main (int argc, char *argv[])
   startup_trace("window presented");
   gtk_widget_hide(wahrscheinlichkeitlabel[0]);
   gtk_widget_grab_focus(textfeld[0]);
-  g_idle_add(startfeld_fokussieren, textfeld[0]);
   GtkWidget *fakedialog = gtk_font_chooser_dialog_new ("Schriftart auswählen", GTK_WINDOW (window));
   startup_trace("font chooser created");
   g_autofree gchar *initial_font = gtk_font_chooser_get_font(GTK_FONT_CHOOSER(fakedialog));
@@ -704,6 +701,11 @@ int main (int argc, char *argv[])
   {
     laden(layout,argv[1]);
   }
+  /* Loading replaces the initial entry. Never queue a callback for that
+   * destroyed widget; focus the final document's entry instead. */
+  if(!labelein)
+    g_idle_add_full(G_PRIORITY_DEFAULT_IDLE, startfeld_fokussieren,
+                    g_object_ref(textfeld[0]), g_object_unref);
   startup_trace("before initial undo save");
   tempspeichern();
   startup_trace("initial undo save complete");
@@ -713,6 +715,8 @@ int main (int argc, char *argv[])
     g_idle_add(pfeiltasten_smoketest, key_controller);
   if(g_getenv("ARBORETUM_IO_SMOKE_TEST"))
     g_idle_add(io_smoketest, layout);
+  if(g_getenv("ARBORETUM_STARTUP_SMOKE_TEST"))
+    g_idle_add(startup_file_smoketest, NULL);
   startup_trace("entering event loop");
   g_main_loop_run(arboretum_main_loop);
   g_main_loop_unref(arboretum_main_loop);

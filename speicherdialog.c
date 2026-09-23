@@ -1,7 +1,7 @@
 static void dateifehler(const char *vorgang, const char *pfad, const char *grund)
 {
   g_printerr("%s fehlgeschlagen: %s: %s\n", vorgang, pfad ? pfad : "(kein Pfad)", grund);
-  if(g_getenv("ARBORETUM_IO_SMOKE_TEST"))
+  if(g_getenv("ARBORETUM_IO_SMOKE_TEST") || g_getenv("ARBORETUM_STARTUP_SMOKE_TEST"))
     return;
   GtkWidget *meldung = gtk_message_dialog_new(GTK_WINDOW(window),
       GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE,

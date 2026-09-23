@@ -1,5 +1,43 @@
 /* Optional integration test of the actual save/load and export paths. Runs on
  * the Windows runner as well as locally. Outputs stay in a fresh temp folder. */
+static const char *arboretum_test_executable;
+
+static gboolean startup_file_smoketest(gpointer unused)
+{
+  const char *expected = g_getenv("ARBORETUM_STARTUP_EXPECTED_PATH");
+  gboolean ok = expected && !g_strcmp0(aktuelledatei, expected) && maxzaehler == 0 &&
+      !strcmp(gtk_entry_get_text(GTK_ENTRY(textfeld[0])), "Äpfel Ω");
+  g_printerr("IO-Test Unicode-Datei als Startargument: %s\n", ok ? "ok" : "FEHLER");
+  arboretum_exit_status = ok ? 0 : 1;
+  g_main_loop_quit(arboretum_main_loop);
+  return G_SOURCE_REMOVE;
+}
+
+static gboolean io_test_startup_file(const char *directory)
+{
+  g_autofree gchar *folder = g_build_filename(directory, "Bäume und Grüße Ω", NULL);
+  g_autofree gchar *path = g_build_filename(folder, "Äpfel Öl Übung.bdg", NULL);
+  if(g_mkdir(folder, 0700) != 0 || !speichern(path))
+    return FALSE;
+  g_auto(GStrv) env = g_get_environ();
+  env = g_environ_unsetenv(env, "ARBORETUM_IO_SMOKE_TEST");
+  env = g_environ_unsetenv(env, "ARBORETUM_KEYBOARD_SMOKE_TEST");
+  env = g_environ_setenv(env, "ARBORETUM_STARTUP_SMOKE_TEST", "1", TRUE);
+  env = g_environ_setenv(env, "ARBORETUM_STARTUP_EXPECTED_PATH", path, TRUE);
+  gchar *args[] = {(gchar *)arboretum_test_executable, path, NULL};
+  g_autofree gchar *out = NULL;
+  g_autofree gchar *err = NULL;
+  g_autoptr(GError) error = NULL;
+  gint status = 0;
+  gboolean ok = g_spawn_sync(NULL, args, env, G_SPAWN_SEARCH_PATH, NULL, NULL,
+                             &out, &err, &status, &error);
+  if(out) g_printerr("%s", out);
+  if(err) g_printerr("%s", err);
+  if(ok) ok = g_spawn_check_wait_status(status, &error);
+  if(error) g_printerr("IO-Test Startargument: %s\n", error->message);
+  return ok;
+}
+
 static void io_test_drain(void)
 {
   for(int i=0; i<20; i++)
@@ -164,6 +202,7 @@ static gboolean io_smoketest(gpointer data)
     ok &= !strcmp(gtk_editable_get_text(GTK_EDITABLE(textfeld[0])), "Äpfel Ω");
   }
   g_printerr("IO-Test Unicode speichern/laden: %s\n", ok ? "ok" : "FEHLER");
+  ok &= io_test_startup_file(dir);
   io_test_drain();
   ok &= io_test_loaded_selection();
   IoSaveDialogTest dialog_test = {dir, "Dialog-Ä.bdg", 0, FALSE, FALSE};

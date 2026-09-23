@@ -1,5 +1,10 @@
 void laden(gpointer data,char *dateiname)
 {
+  if(dateiname && strlen(dateiname) >= sizeof(aktuelledatei))
+  {
+    dateifehler("Öffnen", dateiname, "Der Dateipfad ist zu lang.");
+    return;
+  }
   char *dateiinhalt = NULL;
   gsize gelesen = 0;
   g_autoptr(GError) error = NULL;
