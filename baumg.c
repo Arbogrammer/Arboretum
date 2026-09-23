@@ -522,6 +522,7 @@ static void macos_open_files(GApplication *app, GFile **files, gint count,
     if(!aktuelledatei[0] && !dateiveraendert)
     {
       laden(layout, path);
+      startup_trace("Finder file loaded");
       if(!g_strcmp0(aktuelledatei, path))
       {
         g_autofree gchar *name = g_path_get_basename(path);
@@ -541,6 +542,7 @@ static void macos_open_files(GApplication *app, GFile **files, gint count,
     }
   }
   gtk_window_present(GTK_WINDOW(window));
+  startup_trace("Finder event handled");
 }
 #endif
 
@@ -561,6 +563,11 @@ int main (int argc, char *argv[])
   if(!macos_prepare_bundle()) return 1;
 #endif
   startup_trace("main entered");
+#ifdef __APPLE__
+  if(g_getenv("ARBORETUM_DIAGNOSTIC"))
+    g_printerr("Finder test flags: startup=%s finder=%s\n",
+        g_getenv("ARBORETUM_STARTUP_SMOKE_TEST"), g_getenv("ARBORETUM_FINDER_SMOKE_TEST"));
+#endif
 #ifdef ARBORETUM_BUILD_ID
   if(g_getenv("ARBORETUM_DIAGNOSTIC"))
     g_printerr("Arboretum Build: %s\n", ARBORETUM_BUILD_ID);

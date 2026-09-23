@@ -41,6 +41,13 @@ with tempfile.TemporaryDirectory(prefix="arboretum-finder-") as folder:
             assert result.read_text() == "ok", f"Finder {mode}: wrong document"
             print(f"Finder {mode}: Unicode document loaded correctly", flush=True)
         finally:
+            if process.poll() is None:
+                pids = subprocess.run(["pgrep", "-f", str(app / "Contents/MacOS/Arboretum-bin")],
+                                      capture_output=True, text=True).stdout.split()
+                for pid in pids:
+                    sample = logs / f"Finder-{mode}-{pid}-sample.txt"
+                    subprocess.run(["/usr/bin/sample", pid, "2", "-file", str(sample)], timeout=15)
+                    if sample.exists(): print(sample.read_text()[:18000], flush=True)
             print(f"Finder {mode} result: {result.read_text() if result.exists() else 'missing'}", flush=True)
             if trace.exists():
                 print(trace.read_text(), flush=True)
