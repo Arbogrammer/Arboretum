@@ -19,8 +19,11 @@ with tempfile.TemporaryDirectory(prefix="arboretum-finder-") as folder:
             "ARBORETUM_FINDER_SMOKE_TEST": "1",
             "ARBORETUM_STARTUP_EXPECTED_PATH": str(document),
             "ARBORETUM_FINDER_RESULT": str(result),
+            "ARBORETUM_DIAGNOSTIC": "1",
         }
         command = ["/usr/bin/open", "-n", "-W", "-a", str(app)]
+        trace = (logs / f"Finder-{mode}.txt").resolve()
+        command += ["--stdout", str(trace), "--stderr", str(trace)]
         for key, value in env.items():
             command += ["--env", f"{key}={value}"]
         if mode == "cold":
@@ -35,6 +38,9 @@ with tempfile.TemporaryDirectory(prefix="arboretum-finder-") as folder:
             assert result.read_text() == "ok", f"Finder {mode}: wrong document"
             print(f"Finder {mode}: Unicode document loaded correctly", flush=True)
         finally:
+            print(f"Finder {mode} result: {result.read_text() if result.exists() else 'missing'}", flush=True)
+            if trace.exists():
+                print(trace.read_text(), flush=True)
             if process.poll() is None:
                 process.kill()
                 process.wait()

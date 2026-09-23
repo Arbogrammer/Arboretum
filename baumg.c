@@ -513,6 +513,7 @@ static gboolean pfeiltasten_smoketest(gpointer data)
 static void macos_open_files(GApplication *app, GFile **files, gint count,
                              const gchar *hint, gpointer layout)
 {
+  startup_trace("Finder open event received");
   for(int i = 0; i < count; i++)
   {
     g_autofree gchar *path = g_file_get_path(files[i]);
