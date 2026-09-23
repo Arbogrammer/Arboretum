@@ -15,6 +15,8 @@ with tempfile.TemporaryDirectory(prefix="arboretum-finder-") as folder:
     for mode in ("cold", "running"):
         result = Path(folder) / mode
         env = {
+            # Match the runtime suite: hosted Intel runners have no usable GPU.
+            "GSK_RENDERER": "cairo",
             "ARBORETUM_STARTUP_SMOKE_TEST": "1",
             "ARBORETUM_FINDER_SMOKE_TEST": "1",
             "ARBORETUM_STARTUP_EXPECTED_PATH": str(document),
