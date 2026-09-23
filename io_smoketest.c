@@ -10,17 +10,19 @@ static gboolean startup_file_smoketest(gpointer unused)
     return G_SOURCE_CONTINUE;
   const char *actual = aktuelledatei;
 #ifdef __APPLE__
-  /* Finder can return decomposed Unicode while the fixture uses NFC. */
-  g_autofree gchar *normalized_expected = expected ? g_utf8_normalize(expected, -1, G_NORMALIZE_NFC) : NULL;
-  g_autofree gchar *normalized_actual = g_utf8_normalize(actual, -1, G_NORMALIZE_NFC);
+  /* Finder resolves /var to /private/var and may return decomposed Unicode. */
+  g_autofree gchar *resolved_expected = expected ? realpath(expected, NULL) : NULL;
+  g_autofree gchar *resolved_actual = realpath(actual, NULL);
+  g_autofree gchar *normalized_expected = resolved_expected ? g_utf8_normalize(resolved_expected, -1, G_NORMALIZE_NFC) : NULL;
+  g_autofree gchar *normalized_actual = resolved_actual ? g_utf8_normalize(resolved_actual, -1, G_NORMALIZE_NFC) : NULL;
   expected = normalized_expected;
   actual = normalized_actual;
 #endif
-  gboolean ok = expected && !g_strcmp0(actual, expected) && maxzaehler == 0 &&
+  gboolean ok = expected && actual && !g_strcmp0(actual, expected) && maxzaehler == 0 &&
       !strcmp(gtk_entry_get_text(GTK_ENTRY(textfeld[0])), "Äpfel Ω");
   if(!ok)
     g_printerr("Startup test expected=%s actual=%s nodes=%d text=%s\n",
-        expected ? expected : "(null)", actual, maxzaehler,
+        expected ? expected : "(null)", actual ? actual : "(null)", maxzaehler,
         gtk_entry_get_text(GTK_ENTRY(textfeld[0])));
   g_printerr("IO-Test Unicode-Datei als Startargument: %s\n", ok ? "ok" : "FEHLER");
   arboretum_exit_status = ok ? 0 : 1;
