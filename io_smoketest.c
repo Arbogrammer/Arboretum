@@ -8,8 +8,20 @@ static gboolean startup_file_smoketest(gpointer unused)
   static int attempts;
   if(g_getenv("ARBORETUM_FINDER_SMOKE_TEST") && !aktuelledatei[0] && ++attempts < 150)
     return G_SOURCE_CONTINUE;
-  gboolean ok = expected && !g_strcmp0(aktuelledatei, expected) && maxzaehler == 0 &&
+  const char *actual = aktuelledatei;
+#ifdef __APPLE__
+  /* Finder can return decomposed Unicode while the fixture uses NFC. */
+  g_autofree gchar *normalized_expected = expected ? g_utf8_normalize(expected, -1, G_NORMALIZE_NFC) : NULL;
+  g_autofree gchar *normalized_actual = g_utf8_normalize(actual, -1, G_NORMALIZE_NFC);
+  expected = normalized_expected;
+  actual = normalized_actual;
+#endif
+  gboolean ok = expected && !g_strcmp0(actual, expected) && maxzaehler == 0 &&
       !strcmp(gtk_entry_get_text(GTK_ENTRY(textfeld[0])), "Äpfel Ω");
+  if(!ok)
+    g_printerr("Startup test expected=%s actual=%s nodes=%d text=%s\n",
+        expected ? expected : "(null)", actual, maxzaehler,
+        gtk_entry_get_text(GTK_ENTRY(textfeld[0])));
   g_printerr("IO-Test Unicode-Datei als Startargument: %s\n", ok ? "ok" : "FEHLER");
   arboretum_exit_status = ok ? 0 : 1;
   const char *result_path = g_getenv("ARBORETUM_FINDER_RESULT");
