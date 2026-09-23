@@ -10,6 +10,8 @@ gebaut. Die Datei `BUILD-INFO.txt` in jedem Paket nennt den vollständigen Commi
   Eingabefelder während des Tippens entfällt.
 - Windows: korrigierte temporäre Dateipfade und ein Workaround für den
   beobachteten Absturz beim Löschen von Knoten.
+- macOS: Bibliotheken mit relativen Ladepfaden werden vollständig ins
+  App-Bundle übernommen und vor dem Signieren überprüft.
 - Speichern und Laden unterstützen Unicode-Dateipfade; Schreibfehler werden
   angezeigt, statt einen erfolgreichen Speichervorgang vorzutäuschen.
 - Überarbeiteter PNG-, JPEG-, BMP-, SVG- und PDF-Export. JPEG und BMP werden

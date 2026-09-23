@@ -17,44 +17,10 @@ gcc -O2 -Wall -Wextra -Wno-deprecated-declarations -Wno-unused-parameter \
   $(pkg-config --cflags gtk4) "$root_dir/baumg.c" -o "$macos_dir/Arboretum-bin" \
   $(pkg-config --libs gtk4) -lm
 
-# Copy all Homebrew dynamic libraries used by the executable, including their
-# transitive dependencies. Apple system frameworks deliberately stay external.
-while :; do
-  added=0
-  for target in "$macos_dir/Arboretum-bin" "$frameworks_dir"/*; do
-    [ -f "$target" ] || continue
-    while IFS= read -r library; do
-      case "$library" in
-        "$prefix"/*)
-          name=$(basename "$library")
-          destination="$frameworks_dir/$name"
-          if [ ! -e "$destination" ]; then
-            cp -L "$library" "$destination"
-            added=1
-          fi
-          ;;
-      esac
-    done < <(otool -L "$target" | tail -n +2 | awk '{print $1}')
-  done
-  [ "$added" -eq 0 ] && break
-done
-
-# Make each bundled library resolve its neighbours from inside the app bundle.
-for target in "$macos_dir/Arboretum-bin" "$frameworks_dir"/*; do
-  [ -f "$target" ] || continue
-  if [ "$target" = "$macos_dir/Arboretum-bin" ]; then
-    replacement='@executable_path/../Frameworks'
-  else
-    replacement='@loader_path'
-  fi
-  otool -L "$target" | tail -n +2 | awk '{print $1}' | while IFS= read -r library; do
-    case "$library" in
-      "$prefix"/*)
-        install_name_tool -change "$library" "$replacement/$(basename "$library")" "$target"
-        ;;
-    esac
-  done
-done
+# Resolve relative Homebrew dependencies as well as absolute ones, then audit
+# every rewritten load command before signing the app.
+python3 "$root_dir/packaging/macos/bundle-libraries.py" \
+  "$macos_dir/Arboretum-bin" "$frameworks_dir" "$prefix"
 
 cp -a "$prefix/share/glib-2.0" "$resources_dir/share/"
 cp -a "$prefix/share/gtk-4.0" "$resources_dir/share/"
