@@ -246,6 +246,17 @@ static GtkWidget *werkzeugknopf(GtkWidget *leiste, const char *text,
   return button;
 }
 
+static GtkWidget *werkzeugknopf_mit_hinweis(GtkWidget *leiste,
+                                             const char *text,
+                                             const char *hinweis,
+                                             GCallback callback,
+                                             gpointer data)
+{
+  GtkWidget *button = werkzeugknopf(leiste, text, callback, data);
+  gtk_widget_set_tooltip_text(button, hinweis);
+  return button;
+}
+
 static GtkWidget *werkzeuggruppe(GtkWidget *leiste, const char *text)
 {
   GtkWidget *menuknopf = gtk_menu_button_new();
@@ -698,14 +709,24 @@ int main (int argc, char *argv[])
   dateimenue_exportieren = werkzeugknopf(dateigruppe, "Exportieren",
                                          G_CALLBACK(exportdialog), layout);
 
-  werkzeugknopf(menueleiste, "Rückgängig", G_CALLBACK(rueckgaengig), layout);
+  werkzeugknopf_mit_hinweis(menueleiste, "Rückgängig",
+                            "Macht die zuletzt vorgenommene Änderung rückgängig.",
+                            G_CALLBACK(rueckgaengig), layout);
 
   GtkWidget *darstellungsgruppe = werkzeuggruppe(menueleiste, "Darstellung");
-  werkzeugknopf(darstellungsgruppe, "Form", G_CALLBACK(formdialog), layout);
+  werkzeugknopf_mit_hinweis(darstellungsgruppe, "Form",
+                            "Passt Abstände, Größen und die Bruchdarstellung an.",
+                            G_CALLBACK(formdialog), layout);
   werkzeugknopf(darstellungsgruppe, "Schriftart", G_CALLBACK(schriftartwechseln), layout);
-  werkzeugknopf(darstellungsgruppe, "Fixieren", G_CALLBACK(umwandeln), layout);
-  werkzeugknopf(darstellungsgruppe, "Ergebnis", G_CALLBACK(ergebnisspalteanzeigen), layout);
-  werkzeugknopf(darstellungsgruppe, "Wahrscheinlichkeit", G_CALLBACK(wskergebnisspalteanzeigen), layout);
+  werkzeugknopf_mit_hinweis(darstellungsgruppe, "Fixieren",
+                            "Wandelt berechnete Werte in festen Text um.",
+                            G_CALLBACK(umwandeln), layout);
+  werkzeugknopf_mit_hinweis(darstellungsgruppe, "Ergebnis",
+                            "Blendet die Ergebnis-Spalte ein oder aus.",
+                            G_CALLBACK(ergebnisspalteanzeigen), layout);
+  werkzeugknopf_mit_hinweis(darstellungsgruppe, "Wahrscheinlichkeit",
+                            "Blendet die Wahrscheinlichkeiten ein oder aus.",
+                            G_CALLBACK(wskergebnisspalteanzeigen), layout);
 
   GtkWidget *farbgruppe = werkzeuggruppe(menueleiste, "Farbe");
   werkzeugknopf(farbgruppe, "Hintergrund", G_CALLBACK(hintergrundfarbewechseln), layout);

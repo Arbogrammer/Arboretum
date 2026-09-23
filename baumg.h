@@ -96,6 +96,7 @@ void alleknotenneupositionieren(gpointer data);
 #include <math.h>
 
 /* Implementierungen: Alle folgenden Dateien bilden zusammen ein Programm. */
+#include "overlineformat.c"
 #include "buchstabeneingabe.c"
 #include "wskeingabe.c"
 #include "keyfunc.c"

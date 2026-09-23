@@ -9,31 +9,24 @@ void schriftartanpassen(GtkFontChooser *self, gchar *fontname, gpointer user_dat
       strcpy(text, gtk_entry_get_text(GTK_ENTRY(textfeld[i])));
       char format[10000] = "";
       sprintf(format,"<span font=\"%s\" style=\"normal\">\%s</span>",schriftart,"%s");
-      char *markup;
-      markup = g_markup_printf_escaped (format, text);
-      gtk_label_set_markup (GTK_LABEL (knotenlabel[i]), markup);
-      g_free (markup);
+      arboretum_label_set_formatted(GTK_LABEL(knotenlabel[i]), format, text);
     }
     if(bruchou && bruch)
     {
       for(i=0;i<=maxzaehler;i++)
       {
         char zaehlertext[10000];
-        strcpy(zaehlertext, gtk_label_get_text(GTK_LABEL(zaehlerlabel[i])));
+        strcpy(zaehlertext, arboretum_label_get_encoded_text(GTK_LABEL(zaehlerlabel[i])));
         char nennertext[10000];
-        strcpy(nennertext, gtk_label_get_text(GTK_LABEL(nennerlabel[i])));
+        strcpy(nennertext, arboretum_label_get_encoded_text(GTK_LABEL(nennerlabel[i])));
         char formatz[10000] = "";
         char formatn[10000] = "";
         sprintf(formatz,"<span font=\"%s\" style=\"normal\">\%s</span>",schriftart,"%s");
-        char *markupz;
-        markupz = g_markup_printf_escaped (formatz, zaehlertext);
-        gtk_label_set_markup (GTK_LABEL (zaehlerlabel[i]), markupz);
-        g_free (markupz);
+        arboretum_label_set_formatted(GTK_LABEL(zaehlerlabel[i]), formatz,
+                                      zaehlertext);
         sprintf(formatn,"<span font=\"%s\" style=\"normal\">\%s</span>",schriftart,"%s");
-        char *markupn;
-        markupn = g_markup_printf_escaped (formatn, nennertext);
-        gtk_label_set_markup (GTK_LABEL (nennerlabel[i]), markupn);
-        g_free (markupn);
+        arboretum_label_set_formatted(GTK_LABEL(nennerlabel[i]), formatn,
+                                      nennertext);
       }
     }
     else
@@ -44,10 +37,8 @@ void schriftartanpassen(GtkFontChooser *self, gchar *fontname, gpointer user_dat
         strcpy(text, gtk_entry_get_text(GTK_ENTRY(textfeldWahrscheinlichkeit[i])));
         char format[10000] = "";
         sprintf(format,"<span font=\"%s\" style=\"normal\">\%s</span>",schriftart,"%s");
-        char *markup;
-        markup = g_markup_printf_escaped (format, text);
-        gtk_label_set_markup (GTK_LABEL (wahrscheinlichkeitlabel[i]), markup);
-        g_free (markup);
+        arboretum_label_set_formatted(GTK_LABEL(wahrscheinlichkeitlabel[i]),
+                                      format, text);
       }
     }
     for(i=0;i<=maxzaehlererg;i++)
@@ -56,31 +47,24 @@ void schriftartanpassen(GtkFontChooser *self, gchar *fontname, gpointer user_dat
       strcpy(text, gtk_entry_get_text(GTK_ENTRY(textfeldErgebnis[i])));
       char format[10000] = "";
       sprintf(format,"<span font=\"%s\" style=\"normal\">\%s</span>",schriftart,"%s");
-      char *markup;
-      markup = g_markup_printf_escaped (format, text);
-      gtk_label_set_markup (GTK_LABEL (ergebnislabel[i]), markup);
-      g_free (markup);
+      arboretum_label_set_formatted(GTK_LABEL(ergebnislabel[i]), format, text);
     }
     if(bruchou && bruch)
     {
       for(i=0;i<=maxzaehlererg;i++)
       {
         char zaehlertext[10000];
-        strcpy(zaehlertext, gtk_label_get_text(GTK_LABEL(ergebniszaehlerlabel[i])));
+        strcpy(zaehlertext, arboretum_label_get_encoded_text(GTK_LABEL(ergebniszaehlerlabel[i])));
         char nennertext[10000];
-        strcpy(nennertext, gtk_label_get_text(GTK_LABEL(ergebnisnennerlabel[i])));
+        strcpy(nennertext, arboretum_label_get_encoded_text(GTK_LABEL(ergebnisnennerlabel[i])));
         char formatz[10000] = "";
         char formatn[10000] = "";
         sprintf(formatz,"<span font=\"%s\" style=\"normal\">\%s</span>",schriftart,"%s");
-        char *markupz;
-        markupz = g_markup_printf_escaped (formatz, zaehlertext);
-        gtk_label_set_markup (GTK_LABEL (ergebniszaehlerlabel[i]), markupz);
-        g_free (markupz);
+        arboretum_label_set_formatted(GTK_LABEL(ergebniszaehlerlabel[i]),
+                                      formatz, zaehlertext);
         sprintf(formatn,"<span font=\"%s\" style=\"normal\">\%s</span>",schriftart,"%s");
-        char *markupn;
-        markupn = g_markup_printf_escaped (formatn, nennertext);
-        gtk_label_set_markup (GTK_LABEL (ergebnisnennerlabel[i]), markupn);
-        g_free (markupn);
+        arboretum_label_set_formatted(GTK_LABEL(ergebnisnennerlabel[i]),
+                                      formatn, nennertext);
       }
     }
     else
@@ -91,10 +75,8 @@ void schriftartanpassen(GtkFontChooser *self, gchar *fontname, gpointer user_dat
         strcpy(text, gtk_entry_get_text(GTK_ENTRY(textfeldErgebnisWahrscheinlichkeit[i])));
         char format[10000] = "";
         sprintf(format,"<span font=\"%s\" style=\"normal\">\%s</span>",schriftart,"%s");
-        char *markup;
-        markup = g_markup_printf_escaped (format, text);
-        gtk_label_set_markup (GTK_LABEL (ergebniswsklabel[i]), markup);
-        g_free (markup);
+        arboretum_label_set_formatted(GTK_LABEL(ergebniswsklabel[i]), format,
+                                      text);
       }
     }
   }

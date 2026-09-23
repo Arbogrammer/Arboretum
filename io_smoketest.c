@@ -19,7 +19,7 @@ static gboolean startup_file_smoketest(gpointer unused)
   actual = normalized_actual;
 #endif
   gboolean ok = expected && actual && !g_strcmp0(actual, expected) && maxzaehler == 0 &&
-      !strcmp(gtk_entry_get_text(GTK_ENTRY(textfeld[0])), "Äpfel Ω");
+      !strcmp(gtk_entry_get_text(GTK_ENTRY(textfeld[0])), "Ä̅pfel Ω");
   if(!ok)
     g_printerr("Startup test expected=%s actual=%s nodes=%d text=%s\n",
         expected ? expected : "(null)", actual ? actual : "(null)", maxzaehler,
@@ -207,7 +207,7 @@ static gboolean io_smoketest(gpointer data)
   }
   g_printerr("IO-Test Ausgabeordner: %s\n", dir);
   g_signal_handlers_block_by_func(textfeld[0], G_CALLBACK(buchstabeneingabe), data);
-  gtk_editable_set_text(GTK_EDITABLE(textfeld[0]), "Äpfel Ω");
+  gtk_editable_set_text(GTK_EDITABLE(textfeld[0]), "Ä̅pfel Ω");
   g_signal_handlers_unblock_by_func(textfeld[0], G_CALLBACK(buchstabeneingabe), data);
   buchstabeneingabe(GTK_EDITABLE(textfeld[0]), data);
   io_test_drain();
@@ -219,7 +219,10 @@ static gboolean io_smoketest(gpointer data)
     dateiveraendert = 1;
     ok = speichern(pfad) && !dateiveraendert;
     laden(data, pfad);
-    ok &= !strcmp(gtk_editable_get_text(GTK_EDITABLE(textfeld[0])), "Äpfel Ω");
+    ok &= !strcmp(gtk_editable_get_text(GTK_EDITABLE(textfeld[0])), "Ä̅pfel Ω");
+    ok &= arboretum_attributes_contain(
+              gtk_entry_get_attributes(GTK_ENTRY(textfeld[0])),
+              PANGO_ATTR_OVERLINE);
   }
   g_printerr("IO-Test Unicode speichern/laden: %s\n", ok ? "ok" : "FEHLER");
   ok &= io_test_startup_file(dir);
@@ -283,6 +286,18 @@ static gboolean io_smoketest(gpointer data)
     }
     umwandeln(NULL, data);
     io_test_drain();
+    if(scene == 0)
+    {
+      gboolean overline_ok =
+          !strcmp(gtk_label_get_text(GTK_LABEL(knotenlabel[0])), "Äpfel Ω") &&
+          arboretum_attributes_contain(
+              pango_layout_get_attributes(
+                  gtk_label_get_layout(GTK_LABEL(knotenlabel[0]))),
+              PANGO_ATTR_OVERLINE);
+      g_printerr("IO-Test nativer Überstrich: %s\n",
+                 overline_ok ? "ok" : "FEHLER");
+      ok &= overline_ok;
+    }
     arboretum_layout_aktualisieren(data);
     io_test_drain();
     const char *formats[] = {"svg", "png", "jpeg", "bmp", "pdf"};

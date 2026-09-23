@@ -16,10 +16,7 @@ void umwandeln(GtkWidget *widget, gpointer data)
       
       char format[10000] = "";
       sprintf(format,"<span font=\"%s\" foreground=\"#%02X%02X%02X\" style=\"normal\">\%s</span>",schriftart,(int)(schriftfarbe.red*255),(int)(schriftfarbe.green*255),(int)(schriftfarbe.blue*255),"%s");
-      char *markup;
-      markup = g_markup_printf_escaped (format, text);
-      gtk_label_set_markup (GTK_LABEL (knotenlabel[i]), markup);
-      g_free (markup);
+      arboretum_label_set_formatted(GTK_LABEL(knotenlabel[i]), format, text);
       
       int tempStufe = zeichenzaehlen(name,'-')-1;
       gtk_layout_put (GTK_LAYOUT (data), knotenlabel[i], FensterRandLinks+RandLinks+StufenBreite+(StufenBreite+KnotenBreite)*tempStufe+KnotenBreite/2,FensterRandOben+RandOben+y[i]+KnotenHoehe/4);
@@ -54,14 +51,10 @@ void umwandeln(GtkWidget *widget, gpointer data)
         char formatn[10000] = "";
         sprintf(formatz,"<span font=\"%s\" foreground=\"#%02X%02X%02X\" style=\"normal\">\%s</span>",schriftart,(int)(schriftfarbe.red*255),(int)(schriftfarbe.green*255),(int)(schriftfarbe.blue*255),"%s");
         sprintf(formatn,"<span font=\"%s\" foreground=\"#%02X%02X%02X\" style=\"normal\">\%s</span>",schriftart,(int)(schriftfarbe.red*255),(int)(schriftfarbe.green*255),(int)(schriftfarbe.blue*255),"%s");
-        char *markupz;
-        char *markupn;
-        markupz = g_markup_printf_escaped (formatz, zaehlertext);
-        gtk_label_set_markup (GTK_LABEL (zaehlerlabel[i]), markupz);
-        markupn = g_markup_printf_escaped (formatn, nennertext);
-        gtk_label_set_markup (GTK_LABEL (nennerlabel[i]), markupn);
-        g_free (markupz);
-        g_free (markupn);
+        arboretum_label_set_formatted(GTK_LABEL(zaehlerlabel[i]), formatz,
+                                      zaehlertext);
+        arboretum_label_set_formatted(GTK_LABEL(nennerlabel[i]), formatn,
+                                      nennertext);
 /*
         if(zeichenzaehlen(gtk_widget_get_name(GTK_WIDGET(textfeldWahrscheinlichkeit[i])),'-') == 1)
         {
@@ -94,10 +87,8 @@ void umwandeln(GtkWidget *widget, gpointer data)
 
         char format[10000] = "";
         sprintf(format,"<span font=\"%s\" foreground=\"#%02X%02X%02X\" style=\"normal\">\%s</span>",schriftart,(int)(schriftfarbe.red*255),(int)(schriftfarbe.green*255),(int)(schriftfarbe.blue*255),"%s");
-        char *markup;
-        markup = g_markup_printf_escaped (format, text);
-        gtk_label_set_markup (GTK_LABEL (wahrscheinlichkeitlabel[i]), markup);
-        g_free (markup);
+        arboretum_label_set_formatted(GTK_LABEL(wahrscheinlichkeitlabel[i]),
+                                      format, text);
 
         if(zeichenzaehlen(gtk_widget_get_name(GTK_WIDGET(textfeldWahrscheinlichkeit[i])),'-') == 1)
         {
@@ -141,10 +132,7 @@ void umwandeln(GtkWidget *widget, gpointer data)
 
       char format[10000] = "";
       sprintf(format,"<span font=\"%s\" foreground=\"#%02X%02X%02X\" style=\"normal\">\%s</span>",schriftart,(int)(schriftfarbe.red*255),(int)(schriftfarbe.green*255),(int)(schriftfarbe.blue*255),"%s");
-      char *markup;
-      markup = g_markup_printf_escaped (format, text);
-      gtk_label_set_markup (GTK_LABEL (ergebnislabel[i]), markup);
-      g_free (markup);
+      arboretum_label_set_formatted(GTK_LABEL(ergebnislabel[i]), format, text);
 
       gtk_layout_put (GTK_LAYOUT (data), ergebnislabel[i], FensterRandLinks+RandLinks+(maxStufe+1)*StufenBreite+(maxStufe+1)*KnotenLabelBreite+ErgebnisAbstand,FensterRandOben+RandOben+yerg[i]+KnotenHoehe/4);
       gtk_widget_show(ergebnislabel[i]);
@@ -177,14 +165,10 @@ void umwandeln(GtkWidget *widget, gpointer data)
         char formatn[10000] = "";
         sprintf(formatz,"<span font=\"%s\" foreground=\"#%02X%02X%02X\" style=\"normal\">\%s</span>",schriftart,(int)(schriftfarbe.red*255),(int)(schriftfarbe.green*255),(int)(schriftfarbe.blue*255),"%s");
         sprintf(formatn,"<span font=\"%s\" foreground=\"#%02X%02X%02X\" style=\"normal\">\%s</span>",schriftart,(int)(schriftfarbe.red*255),(int)(schriftfarbe.green*255),(int)(schriftfarbe.blue*255),"%s");
-        char *markupz;
-        char *markupn;
-        markupz = g_markup_printf_escaped (formatz, zaehlertext);
-        gtk_label_set_markup (GTK_LABEL (ergebniszaehlerlabel[i]), markupz);
-        markupn = g_markup_printf_escaped (formatn, nennertext);
-        gtk_label_set_markup (GTK_LABEL (ergebnisnennerlabel[i]), markupn);
-        g_free (markupz);
-        g_free (markupn);
+        arboretum_label_set_formatted(GTK_LABEL(ergebniszaehlerlabel[i]),
+                                      formatz, zaehlertext);
+        arboretum_label_set_formatted(GTK_LABEL(ergebnisnennerlabel[i]),
+                                      formatn, nennertext);
         gtk_layout_put (GTK_LAYOUT (data), ergebniszaehlerlabel[i], 0,0);//FensterRandLinks+RandLinks+StufenBreite/2-WahrscheinlichkeitBreite/2,FensterRandOben+RandOben+(((y[0]+yunten+KnotenHoehe)/2)+(y[i]+KnotenHoehe/2))/2-WahrscheinlichkeitHoehe/2);
         gtk_layout_put (GTK_LAYOUT (data), ergebnisnennerlabel[i], 0,0);//FensterRandLinks+RandLinks+StufenBreite/2-WahrscheinlichkeitBreite/2,FensterRandOben+RandOben+(((y[0]+yunten+KnotenHoehe)/2)+(y[i]+KnotenHoehe/2))/2-WahrscheinlichkeitHoehe/2);
       }
@@ -203,10 +187,8 @@ void umwandeln(GtkWidget *widget, gpointer data)
 
         char format[10000] = "";
         sprintf(format,"<span font=\"%s\" foreground=\"#%02X%02X%02X\" style=\"normal\">\%s</span>",schriftart,(int)(schriftfarbe.red*255),(int)(schriftfarbe.green*255),(int)(schriftfarbe.blue*255),"%s");
-        char *markup;
-        markup = g_markup_printf_escaped (format, text);
-        gtk_label_set_markup (GTK_LABEL (ergebniswsklabel[i]), markup);
-        g_free (markup);
+        arboretum_label_set_formatted(GTK_LABEL(ergebniswsklabel[i]), format,
+                                      text);
 
         gtk_layout_put (GTK_LAYOUT (data), ergebniswsklabel[i], FensterRandLinks+RandLinks+(maxStufe+1)*StufenBreite+(maxStufe+1)*KnotenLabelBreite+ErgebnisAbstand*2+ErgebnisLabelBreite,FensterRandOben+RandOben+yerg[i]+KnotenHoehe/4);
         gtk_widget_show(ergebniswsklabel[i]);

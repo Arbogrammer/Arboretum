@@ -592,6 +592,7 @@ void laden(gpointer data,char *dateiname)
   }
 
   bruch=0;
+  arboretum_refresh_entry_overlines();
   for(i=0;i<=maxzaehler;i++)
   {
     if(strchr(gtk_entry_get_text(GTK_ENTRY(textfeldWahrscheinlichkeit[i])),'/'))

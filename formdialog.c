@@ -63,6 +63,64 @@ static void formdialog(GtkWidget *button, gpointer data)
   gtk_spin_button_set_value(GTK_SPIN_BUTTON(wskversch),wskverschiebung);
   GtkWidget *knotenrahmendickeauswahl = gtk_spin_button_new_with_range (1, 20, 1);
   gtk_spin_button_set_value(GTK_SPIN_BUTTON(knotenrahmendickeauswahl),knotenrahmendicke);
+
+  gtk_widget_set_tooltip_text(randlinks,
+                              "Freier Rand links neben dem Baum (Pixel)."
+  );
+  gtk_widget_set_tooltip_text(randrechts,
+                              "Freier Rand rechts neben dem Baum (Pixel)."
+  );
+  gtk_widget_set_tooltip_text(randoben,
+                              "Freier Rand oberhalb des Baums (Pixel)."
+  );
+  gtk_widget_set_tooltip_text(randunten,
+                              "Freier Rand unterhalb des Baums (Pixel)."
+  );
+  gtk_widget_set_tooltip_text(liniendicke,
+                              "Stärke der Zweiglinien (Pixel)."
+  );
+  gtk_widget_set_tooltip_text(stufenbreite,
+                              "Horizontaler Abstand zwischen zwei Stufen des Baums (Pixel)."
+  );
+  gtk_widget_set_tooltip_text(ergebnisabstand,
+                              "Abstand zwischen Knoten und der Ergebnis-Spalte (Pixel)."
+  );
+  gtk_widget_set_tooltip_text(knotenabstand,
+                              "Vertikaler Mindestabstand zwischen Knoten (Pixel)."
+  );
+  gtk_widget_set_tooltip_text(ergebnistrenner,
+                              "Ein einzelnes Zeichen, das die Teile eines Ergebnisses trennt."
+  );
+  gtk_widget_set_tooltip_text(genau,
+                              "Anzahl der Nachkommastellen für berechnete Dezimalwerte."
+  );
+  gtk_widget_set_tooltip_text(knotentextbreite,
+                              "Breite der Eingabefelder für Knotenbeschriftungen (Zeichen)."
+  );
+  gtk_widget_set_tooltip_text(wahrscheinlichkeittextbreite,
+                              "Breite der Eingabefelder für Wahrscheinlichkeiten (Zeichen)."
+  );
+  gtk_widget_set_tooltip_text(pad,
+                              "Abstand eines Wahrscheinlichkeitswerts zum zugehörigen Zweig (Pixel)."
+  );
+  gtk_widget_set_tooltip_text(padk,
+                              "Mindestabstand zwischen Knotenbeschriftung und Zweig (Pixel)."
+  );
+  gtk_widget_set_tooltip_text(bruchdarstellungvertikal,
+                              "Zeigt Zähler und Nenner eines Bruchs untereinander an."
+  );
+  gtk_widget_set_tooltip_text(kuerzenauswahl,
+                              "Kürzt berechnete Brüche automatisch."
+  );
+  gtk_widget_set_tooltip_text(knotenrahmenabstandauswahl,
+                              "Innenabstand zwischen Knoteninhalt und Rahmen (Pixel)."
+  );
+  gtk_widget_set_tooltip_text(wskversch,
+                              "Verschiebt Wahrscheinlichkeitswerte horizontal; negative Werte nach links."
+  );
+  gtk_widget_set_tooltip_text(knotenrahmendickeauswahl,
+                              "Stärke des Rahmens um Knoten (Pixel)."
+  );
   
   label = gtk_label_new ("Linker Seitenrand:");
   gtk_widget_set_halign (label, GTK_ALIGN_START);

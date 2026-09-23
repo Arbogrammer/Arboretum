@@ -464,6 +464,7 @@ void templaden(gpointer data)
   }
 
   /* Neue Snapshots besitzen nach den vier Baumabschnitten die Darstellung. */
+  arboretum_refresh_entry_overlines();
   positionsanpassungwsk(data);
 
   knotenhintergrundfarbeaendern();

@@ -81,6 +81,7 @@ void buchstabeneingabe(GtkEditable *editable, gpointer data)
       }
     }
   }
+  arboretum_refresh_entry_overlines();
   tempspeichern();
   eingabe_neuaufbau_planen(data);
 }
