@@ -43,7 +43,9 @@ trap 'rm -f "$cache"' EXIT HUP INT TERM
 export GDK_PIXBUF_MODULEDIR="$bundle_dir/Frameworks"
 export GDK_PIXBUF_MODULE_FILE="$cache"
 "$bundle_dir/Frameworks/gdk-pixbuf-query-loaders" "$bundle_dir"/Frameworks/libpixbufloader-*.so > "$cache"
-"$bundle_dir/MacOS/Arboretum-bin" "$@"
+export ARBORETUM_PIXBUF_CACHE_OWNER=$$
+# Keep the LaunchServices process identity so Finder events reach GTK.
+exec "$bundle_dir/MacOS/Arboretum-bin" "$@"
 EOF
 chmod +x "$macos_dir/Arboretum"
 
@@ -58,6 +60,21 @@ cat > "$bundle/Contents/Info.plist" <<EOF
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>$arboretum_version</string>
   <key>CFBundleVersion</key><string>$arboretum_version</string>
+  <key>CFBundleDocumentTypes</key><array><dict>
+    <key>CFBundleTypeName</key><string>Arboretum-Baum</string>
+    <key>CFBundleTypeRole</key><string>Editor</string>
+    <key>LSHandlerRank</key><string>Owner</string>
+    <key>LSItemContentTypes</key><array><string>org.arbogrammer.arboretum.bdg</string></array>
+    <key>CFBundleTypeExtensions</key><array><string>bdg</string></array>
+  </dict></array>
+  <key>UTExportedTypeDeclarations</key><array><dict>
+    <key>UTTypeIdentifier</key><string>org.arbogrammer.arboretum.bdg</string>
+    <key>UTTypeDescription</key><string>Arboretum-Baum</string>
+    <key>UTTypeConformsTo</key><array><string>public.data</string></array>
+    <key>UTTypeTagSpecification</key><dict>
+      <key>public.filename-extension</key><array><string>bdg</string></array>
+    </dict>
+  </dict></array>
 </dict></plist>
 EOF
 

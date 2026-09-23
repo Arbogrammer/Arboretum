@@ -26,6 +26,9 @@ jobs:
       - name: Test packaged macOS app
         run: python3 packaging/test-runtime.py dist/Arboretum.app/Contents/MacOS/Arboretum
 
+      - name: Test Finder document opening
+        run: python3 packaging/macos/test-finder.py
+
       - name: Upload runtime test logs
         if: always()
         uses: actions/upload-artifact@v5

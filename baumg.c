@@ -509,6 +509,39 @@ static gboolean pfeiltasten_smoketest(gpointer data)
 
 #include "io_smoketest.c"
 
+#ifdef __APPLE__
+static void macos_open_files(GApplication *app, GFile **files, gint count,
+                             const gchar *hint, gpointer layout)
+{
+  for(int i = 0; i < count; i++)
+  {
+    g_autofree gchar *path = g_file_get_path(files[i]);
+    if(!path) continue;
+    if(!aktuelledatei[0] && !dateiveraendert)
+    {
+      laden(layout, path);
+      if(!g_strcmp0(aktuelledatei, path))
+      {
+        g_autofree gchar *name = g_path_get_basename(path);
+        g_autofree gchar *title = g_strdup_printf("Arboretum - %s", name);
+        gtk_window_set_title(GTK_WINDOW(window), title);
+        tempspeichern();
+        dateiveraendert = 0;
+      }
+    }
+    else if(g_strcmp0(path, aktuelledatei))
+    {
+      /* Each process owns one tree. Never overwrite an open/edited document. */
+      gchar *args[] = {(gchar *)arboretum_test_executable, path, NULL};
+      g_autoptr(GError) error = NULL;
+      if(!g_spawn_async(NULL, args, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, &error))
+        dateifehler("Öffnen", path, error->message);
+    }
+  }
+  gtk_window_present(GTK_WINDOW(window));
+}
+#endif
+
 /* Programmeinstieg: Widgets anlegen, Signale verbinden, Ereignisschleife starten. */
 int main (int argc, char *argv[])
 {
@@ -711,16 +744,34 @@ int main (int argc, char *argv[])
   startup_trace("initial undo save complete");
 
   arboretum_main_loop = g_main_loop_new(NULL, FALSE);
+#ifdef __APPLE__
+  /* GtkApplication installs the native Finder openFiles event handler. */
+  g_autoptr(GtkApplication) mac_app = gtk_application_new(
+      "org.arbogrammer.arboretum", G_APPLICATION_HANDLES_OPEN | G_APPLICATION_NON_UNIQUE);
+  g_signal_connect(mac_app, "open", G_CALLBACK(macos_open_files), layout);
+  g_autoptr(GError) registration_error = NULL;
+  if(!g_application_register(G_APPLICATION(mac_app), NULL, &registration_error))
+  {
+    g_printerr("macOS-Anmeldung fehlgeschlagen: %s\n", registration_error->message);
+    return 1;
+  }
+  gtk_application_add_window(mac_app, GTK_WINDOW(window));
+#endif
   if(g_getenv("ARBORETUM_KEYBOARD_SMOKE_TEST"))
     g_idle_add(pfeiltasten_smoketest, key_controller);
   if(g_getenv("ARBORETUM_IO_SMOKE_TEST"))
     g_idle_add(io_smoketest, layout);
   if(g_getenv("ARBORETUM_STARTUP_SMOKE_TEST"))
-    g_idle_add(startup_file_smoketest, NULL);
+    g_timeout_add(100, startup_file_smoketest, NULL);
   startup_trace("entering event loop");
   g_main_loop_run(arboretum_main_loop);
   g_main_loop_unref(arboretum_main_loop);
   arboretum_main_loop = NULL;
+#ifdef __APPLE__
+  const char *cache_owner = g_getenv("ARBORETUM_PIXBUF_CACHE_OWNER");
+  if(cache_owner && g_ascii_strtoll(cache_owner, NULL, 10) == getpid())
+    g_remove(g_getenv("GDK_PIXBUF_MODULE_FILE"));
+#endif
 
   int i;
 //  printf("%i\n",dateinummerierung);

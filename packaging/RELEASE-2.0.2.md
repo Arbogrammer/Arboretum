@@ -16,6 +16,8 @@ gebaut. Die Datei `BUILD-INFO.txt` in jedem Paket nennt den vollständigen Commi
   App-Bundle übernommen und vor dem Signieren überprüft.
 - macOS: Bildformat-Module einschließlich BMP werden mitgeliefert und auf
   die gebündelten Bibliotheken abgestimmt.
+- macOS: BDG-Dateien können über den Finder geöffnet werden, auch wenn
+  Arboretum bereits läuft.
 - Speichern und Laden unterstützen Unicode-Dateipfade; Schreibfehler werden
   angezeigt, statt einen erfolgreichen Speichervorgang vorzutäuschen.
 - Überarbeiteter PNG-, JPEG-, BMP-, SVG- und PDF-Export. JPEG und BMP werden

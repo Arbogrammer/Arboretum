@@ -5,10 +5,16 @@ static const char *arboretum_test_executable;
 static gboolean startup_file_smoketest(gpointer unused)
 {
   const char *expected = g_getenv("ARBORETUM_STARTUP_EXPECTED_PATH");
+  static int attempts;
+  if(g_getenv("ARBORETUM_FINDER_SMOKE_TEST") && !aktuelledatei[0] && ++attempts < 150)
+    return G_SOURCE_CONTINUE;
   gboolean ok = expected && !g_strcmp0(aktuelledatei, expected) && maxzaehler == 0 &&
       !strcmp(gtk_entry_get_text(GTK_ENTRY(textfeld[0])), "Äpfel Ω");
   g_printerr("IO-Test Unicode-Datei als Startargument: %s\n", ok ? "ok" : "FEHLER");
   arboretum_exit_status = ok ? 0 : 1;
+  const char *result_path = g_getenv("ARBORETUM_FINDER_RESULT");
+  if(result_path)
+    g_file_set_contents(result_path, ok ? "ok" : "FAILED", -1, NULL);
   g_main_loop_quit(arboretum_main_loop);
   return G_SOURCE_REMOVE;
 }
