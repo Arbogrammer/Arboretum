@@ -1,1 +1,4 @@
 Baum nach unten statt nach rechts
+Eigenständige Dokumentfenster innerhalb eines Prozesses einführen; dafür den
+derzeit globalen Baum- und Fensterzustand pro Fenster kapseln. Bis dahin
+startet „Neu“ eine zweite, unabhängige Instanz.

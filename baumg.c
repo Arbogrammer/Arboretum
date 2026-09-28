@@ -222,10 +222,15 @@ int knotenrahmendicke=1;
 
 #include "baumg.h"
 
-void neueinstanz(GtkWidget *widget, gpointer *datei)
+void neueinstanz(GtkWidget *widget, gpointer data)
 {
-  int status = system((char *)datei);
-  (void)status;
+  gchar *args[] = {(gchar *)data, NULL};
+  g_autoptr(GError) error = NULL;
+
+  /* system() wartet bis zur neuen Instanz und blockiert damit den UI-Thread. */
+  if(!g_spawn_async(NULL, args, NULL, G_SPAWN_SEARCH_PATH,
+                    NULL, NULL, NULL, &error))
+    dateifehler("Neue Instanz", (const char *)data, error->message);
 }
 
 static GtkWidget *werkzeugknopf(GtkWidget *leiste, const char *text,

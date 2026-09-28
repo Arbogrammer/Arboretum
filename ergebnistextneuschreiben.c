@@ -64,7 +64,7 @@ void ergebnistextneuschreiben(GtkWidget *widget)
   
   if(!strcmp(ergebnistext,"Vulkanier") || !strcmp(ergebnistext,"vulkanier") || !strcmp(ergebnistext,"Vulkan") || !strcmp(ergebnistext,"vulkan"))
   {
-    GtkWidget *egg = gtk_message_dialog_new(NULL,GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,GTK_MESSAGE_OTHER,GTK_BUTTONS_CLOSE,"%s","Lebe lang und in Frieden!");
+    GtkWidget *egg = gtk_message_dialog_new(GTK_WINDOW(window),GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,GTK_MESSAGE_OTHER,GTK_BUTTONS_CLOSE,"%s","Lebe lang und in Frieden!");
     gtk_widget_show(egg);
     if(gtk_dialog_run (GTK_DIALOG (egg)) == GTK_RESPONSE_CLOSE)
     {
@@ -73,7 +73,7 @@ void ergebnistextneuschreiben(GtkWidget *widget)
   }
   if(!strcmp(ergebnistext,"42"))
   {
-    GtkWidget *egg = gtk_message_dialog_new(NULL,GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,GTK_MESSAGE_OTHER,GTK_BUTTONS_CLOSE,"%s","Antworten ist leichter als Fragen.\nBloß in der Nacht zu schlafen, hieß die Sache nicht ernst zu nehmen.");
+    GtkWidget *egg = gtk_message_dialog_new(GTK_WINDOW(window),GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,GTK_MESSAGE_OTHER,GTK_BUTTONS_CLOSE,"%s","Antworten ist leichter als Fragen.\nBloß in der Nacht zu schlafen, hieß die Sache nicht ernst zu nehmen.");
     gtk_widget_show(egg);
     if(gtk_dialog_run (GTK_DIALOG (egg)) == GTK_RESPONSE_CLOSE)
     {
@@ -82,7 +82,7 @@ void ergebnistextneuschreiben(GtkWidget *widget)
   }
   if(!strcmp(ergebnistext,"Hilfe") || !strcmp(ergebnistext,"hilfe"))
   {
-    GtkWidget *egg = gtk_message_dialog_new(NULL,GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,GTK_MESSAGE_OTHER,GTK_BUTTONS_CLOSE,"%s","Ist nicht ein helfendes Leben ein zehnfaches?");
+    GtkWidget *egg = gtk_message_dialog_new(GTK_WINDOW(window),GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,GTK_MESSAGE_OTHER,GTK_BUTTONS_CLOSE,"%s","Ist nicht ein helfendes Leben ein zehnfaches?");
     gtk_widget_show(egg);
     if(gtk_dialog_run (GTK_DIALOG (egg)) == GTK_RESPONSE_CLOSE)
     {
