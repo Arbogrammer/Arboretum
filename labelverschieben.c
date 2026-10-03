@@ -1,218 +1,120 @@
 void labelverschieben(gpointer data) {
-  if (labelein) {
-    int i = 0;
-    int j = 0;
-    int mh = 0, nh = 0, mw = 0, nw = 0;
-    klbmax = 0;
-    for (j = 0; j <= maxzaehler; j++) {
-      gtk_widget_get_preferred_width(knotenlabel[j], &mw, &KnotenLabelBreite);
-      if (klbmax < KnotenLabelBreite) {
-        klbmax = KnotenLabelBreite;
-      }
-    }
-    klbmax += 2 * paddingk;
-    gtk_widget_get_preferred_height(knotenlabel[0], &mh, &KnotenLabelHoehe);
-    int elbmax = 0;
-    for (j = 0; j <= maxzaehlererg; j++) {
-      gtk_widget_get_preferred_width(ergebnislabel[j], &mw,
-                                     &ErgebnisLabelBreite);
-      if (elbmax < ErgebnisLabelBreite) {
-        elbmax = ErgebnisLabelBreite;
-      }
-    }
-    ErgebnisLabelBreite = elbmax;
-    int welbmax = 0;
-    for (j = 0; j <= maxzaehlererg; j++) {
-      if (bruchou && bruch) {
-        gtk_widget_get_preferred_width(ergebniszaehlerlabel[j], &mw,
-                                       &ZaehlerErgebnisLabelBreite);
-        gtk_widget_get_preferred_width(ergebnisnennerlabel[j], &mw,
-                                       &NennerErgebnisLabelBreite);
-        gtk_widget_get_preferred_height(ergebniszaehlerlabel[j], &mw,
-                                        &ZaehlerErgebnisLabelHoehe);
-        gtk_widget_get_preferred_height(ergebnisnennerlabel[j], &mw,
-                                        &NennerErgebnisLabelHoehe);
-        if (welbmax < ZaehlerErgebnisLabelBreite) {
-          welbmax = ZaehlerErgebnisLabelBreite;
-        }
-        if (welbmax < NennerErgebnisLabelBreite) {
-          welbmax = NennerErgebnisLabelBreite;
-        }
-      } else {
-        gtk_widget_get_preferred_width(ergebniswsklabel[j], &mw,
-                                       &WahrscheinlichkeitErgebnisLabelBreite);
-        if (welbmax < WahrscheinlichkeitErgebnisLabelBreite) {
-          welbmax = WahrscheinlichkeitErgebnisLabelBreite;
-        }
-      }
-    }
-    WahrscheinlichkeitErgebnisLabelBreite = welbmax;
-
-    if (bruchou && bruch) {
-      for (i = 0; i <= maxzaehler; i++) {
-        GtkAllocation apz;
-        GtkAllocation apn;
-        gtk_widget_get_allocation(zaehlerlabel[i], &apz);
-        gtk_widget_get_allocation(nennerlabel[i], &apn);
-        gtk_widget_get_preferred_width(knotenlabel[i], &mw, &KnotenLabelBreite);
-        KnotenLabelBreite += 2 * paddingk;
-        char unten[22] = "";
-        sprintf(unten, "-%i", anzahlknoteninstufe(0) - 1);
-        int yunten = y[knotenexistiert(unten)];
-        int Stufetemp =
-            zeichenzaehlen(gtk_widget_get_name(zaehlerlabel[i]), '-') - 1;
-
-        int xA = Stufetemp * (StufenBreite + klbmax);
-        int xB = Stufetemp * (StufenBreite + klbmax) + StufenBreite;
-        int yA = (Stufetemp == 0)
-                     ? (y[0] + yunten + KnotenHoehe) / 2
-                     : y[knotenexistiert(gtk_widget_get_name(*vorgaenger[i]))] +
-                           KnotenHoehe / 2;
-        int yB = y[i] + KnotenHoehe / 2;
-        int bZ = apz.width;
-        int hZ = apz.height;
-        int bN = apn.width;
-        int hN = apn.height;
-        int xwahrscheinlichkeitZ = FensterRandLinks + RandLinks + 0.5 * xA +
-                                   0.5 * xB - 0.5 * bZ + wskverschiebung;
-        int ywahrscheinlichkeitZ =
-            FensterRandOben + RandOben + 0.5 * yA + 0.5 * yB -
-            0.5 * bN * abs(yA - yB) / StufenBreite - hN - hZ +
-            (double)wskverschiebung * (yB - yA) / (xB - xA);
-        int xwahrscheinlichkeitN = FensterRandLinks + RandLinks + 0.5 * xA +
-                                   0.5 * xB - 0.5 * bN + wskverschiebung;
-        int ywahrscheinlichkeitN =
-            FensterRandOben + RandOben + 0.5 * yA + 0.5 * yB -
-            0.5 * bN * abs(yA - yB) / StufenBreite - hN +
-            (double)wskverschiebung * (yB - yA) / (xB - xA);
-        gtk_layout_move(
-            GTK_LAYOUT(data), zaehlerlabel[i], xwahrscheinlichkeitZ,
-            ywahrscheinlichkeitZ); // FensterRandLinks+RandLinks+StufenBreite/2+natural_size.height*(y[i]-(y[0]+yunten)/2),FensterRandOben+RandOben+(((y[0]+yunten+KnotenHoehe)/2)+(y[i]+KnotenHoehe/2))/2);
-        gtk_layout_move(
-            GTK_LAYOUT(data), nennerlabel[i], xwahrscheinlichkeitN,
-            ywahrscheinlichkeitN); // FensterRandLinks+RandLinks+StufenBreite/2+natural_size.height*(y[i]-(y[0]+yunten)/2),FensterRandOben+RandOben+(((y[0]+yunten+KnotenHoehe)/2)+(y[i]+KnotenHoehe/2))/2);
-        gtk_layout_move(GTK_LAYOUT(data), knotenlabel[i],
-                        FensterRandLinks + RandLinks + StufenBreite +
-                            (StufenBreite + klbmax) * Stufetemp +
-                            (klbmax - KnotenLabelBreite) / 2 + paddingk,
-                        FensterRandOben + RandOben + y[i] + KnotenHoehe / 2 -
-                            KnotenLabelHoehe / 2);
-      }
-    } else {
-      for (i = 0; i <= maxzaehler; i++) {
-        GtkAllocation ap;
-        gtk_widget_get_allocation(wahrscheinlichkeitlabel[i], &ap);
-        gtk_widget_get_preferred_height(wahrscheinlichkeitlabel[i], &mh, &nh);
-        gtk_widget_get_preferred_width(wahrscheinlichkeitlabel[i], &mw, &nw);
-        gtk_widget_get_preferred_width(knotenlabel[i], &mw, &KnotenLabelBreite);
-        KnotenLabelBreite += 2 * paddingk;
-        char unten[22] = "";
-        sprintf(unten, "-%i", anzahlknoteninstufe(0) - 1);
-        int yunten = y[knotenexistiert(unten)];
-        int Stufetemp =
-            zeichenzaehlen(gtk_widget_get_name(wahrscheinlichkeitlabel[i]),
-                           '-') -
-            1;
-
-        int xA = Stufetemp * (StufenBreite + klbmax);
-        int xB = Stufetemp * (StufenBreite + klbmax) + StufenBreite;
-        int yA = (Stufetemp == 0)
-                     ? (y[0] + yunten + KnotenHoehe) / 2
-                     : y[knotenexistiert(gtk_widget_get_name(*vorgaenger[i]))] +
-                           KnotenHoehe / 2;
-        int yB = y[i] + KnotenHoehe / 2;
-        /* In GTK3 wurden diese Werte über das inzwischen entfernte Signal
-         * "size-allocate" zwischengespeichert. GTK4 misst das noch ungedrehte
-         * Label hier direkt; Nullwerte würden den Text auf die Linie setzen. */
-        int b = nw;
-        int h = nh;
-        breitevordrehung[i] = b;
-        hoehevordrehung[i] = h;
-        double Laenge = sqrt(pow(xA - xB, 2) + pow(yA - yB, 2));
-        winkel[i] = -atan((((double)yB) - ((double)yA)) /
-                          (((double)xB) - ((double)xA))) *
-                    180.0 / G_PI;
-        int xwahrscheinlichkeit =
-            (winkel[i] >= 0)
-                ? (int)(FensterRandLinks + RandLinks + (xA + xB) / 2.0 -
-                        (b / 2.0) * (xB - xA) / Laenge +
-                        (yB - yA) / Laenge * h -
-                        padding * sin(winkel[i] * G_PI / 180) + wskverschiebung)
-                : (int)(FensterRandLinks + RandLinks + (xA + xB) / 2.0 -
-                        (b / 2.0) * (xB - xA) / Laenge -
-                        padding * sin(winkel[i] * G_PI / 180) +
-                        wskverschiebung);
-        int ywahrscheinlichkeit =
-            (winkel[i] >= 0)
-                ? (int)(FensterRandOben + RandOben + (yA + yB) / 2.0 -
-                        (b / 2.0) * (yB - yA) / Laenge - nh -
-                        padding * cos(winkel[i] * G_PI / 180) +
-                        (double)wskverschiebung * (yB - yA) / (xB - xA))
-                : (int)(FensterRandOben + RandOben + (yA + yB) / 2.0 -
-                        (b / 2.0) * (yB - yA) / Laenge -
-                        (xB - xA) / Laenge * h -
-                        padding * cos(winkel[i] * G_PI / 180) +
-                        (double)wskverschiebung * (yB - yA) / (xB - xA));
-        /* Erst positionieren, dann drehen: gtk_fixed_move() würde eine zuvor
-         * gesetzte GSK-Rotation wieder durch eine reine Verschiebung ersetzen.
-         */
-        gtk_layout_move(
-            GTK_LAYOUT(data), wahrscheinlichkeitlabel[i], xwahrscheinlichkeit,
-            ywahrscheinlichkeit); // FensterRandLinks+RandLinks+StufenBreite/2+natural_size.height*(y[i]-(y[0]+yunten)/2),FensterRandOben+RandOben+(((y[0]+yunten+KnotenHoehe)/2)+(y[i]+KnotenHoehe/2))/2);
-        gtk_label_set_angle(GTK_LABEL(wahrscheinlichkeitlabel[i]), winkel[i]);
-        gtk_layout_move(GTK_LAYOUT(data), knotenlabel[i],
-                        FensterRandLinks + RandLinks + StufenBreite +
-                            (StufenBreite + klbmax) * Stufetemp +
-                            (klbmax - KnotenLabelBreite) / 2 + paddingk,
-                        FensterRandOben + RandOben + y[i] + KnotenHoehe / 2 -
-                            KnotenLabelHoehe / 2);
-      }
-    }
-    for (i = 0; i <= maxzaehlererg; i++) {
-      gtk_layout_move(GTK_LAYOUT(data), ergebnislabel[i],
-                      FensterRandLinks + RandLinks +
-                          (maxStufe + 1) * StufenBreite +
-                          (maxStufe + 1) * klbmax + ErgebnisAbstand,
-                      FensterRandOben + RandOben + yerg[i] + KnotenHoehe / 2 -
-                          KnotenLabelHoehe / 2);
-      if (bruchou && bruch) {
-        GtkAllocation apz;
-        GtkAllocation apn;
-        gtk_widget_get_allocation(ergebniszaehlerlabel[i], &apz);
-        gtk_widget_get_allocation(ergebnisnennerlabel[i], &apn);
-        int bZ = apz.width;
-        int bN = apn.width;
-        gtk_layout_move(
-            GTK_LAYOUT(data), ergebniszaehlerlabel[i],
-            FensterRandLinks + RandLinks + (maxStufe + 1) * StufenBreite +
-                (maxStufe + 1) * klbmax + ErgebnisAbstand +
-                ((ergebnisseanzeigen) ? ErgebnisAbstand + ErgebnisLabelBreite
-                                      : 0) +
-                (welbmax - bZ) / 2 + 2 * knotenrahmenabstand,
-            FensterRandOben + RandOben + yerg[i] + KnotenHoehe / 2 -
-                KnotenLabelHoehe / 2 - ZaehlerErgebnisLabelHoehe / 2);
-        gtk_layout_move(
-            GTK_LAYOUT(data), ergebnisnennerlabel[i],
-            FensterRandLinks + RandLinks + (maxStufe + 1) * StufenBreite +
-                (maxStufe + 1) * klbmax + ErgebnisAbstand +
-                ((ergebnisseanzeigen) ? ErgebnisAbstand + ErgebnisLabelBreite
-                                      : 0) +
-                (welbmax - bN) / 2 + 2 * knotenrahmenabstand,
-            FensterRandOben + RandOben + yerg[i] + KnotenHoehe / 2 -
-                KnotenLabelHoehe / 2 + NennerErgebnisLabelHoehe / 2);
-      } else {
-        gtk_layout_move(
-            GTK_LAYOUT(data), ergebniswsklabel[i],
-            FensterRandLinks + RandLinks + (maxStufe + 1) * StufenBreite +
-                (maxStufe + 1) * klbmax + ErgebnisAbstand +
-                ((ergebnisseanzeigen) ? ErgebnisAbstand + ErgebnisLabelBreite
-                                      : 0) +
-                2 * knotenrahmenabstand,
-            FensterRandOben + RandOben + yerg[i] + KnotenHoehe / 2 -
-                KnotenLabelHoehe / 2);
-      }
-    }
-  } else {
+  if (!labelein)
     return;
+  int w, h;
+  klbmax = 0;
+  for (int i = 0; i <= maxzaehler; i++) {
+    wsk_messen(knotenlabel[i], &w, &h);
+    klbmax = MAX(klbmax, w);
+  }
+  klbmax += 2 * paddingk;
+  wsk_messen(knotenlabel[0], &w, &KnotenLabelHoehe);
+  ErgebnisLabelBreite = WahrscheinlichkeitErgebnisLabelBreite = 0;
+  for (int i = 0; i <= maxzaehlererg; i++) {
+    wsk_messen(ergebnislabel[i], &w, &h);
+    ErgebnisLabelBreite = MAX(ErgebnisLabelBreite, w);
+    if (bruch && bruchou) {
+      int nw, nh;
+      wsk_messen(ergebniszaehlerlabel[i], &w, &h);
+      wsk_messen(ergebnisnennerlabel[i], &nw, &nh);
+      w = MAX(w, nw);
+    } else
+      wsk_messen(ergebniswsklabel[i], &w, &h);
+    WahrscheinlichkeitErgebnisLabelBreite =
+        MAX(WahrscheinlichkeitErgebnisLabelBreite, w);
+  }
+  wsk_layout_berechnen();
+  wsklayout_width = wsklayout_height = 1;
+  for (int i = 0; i <= maxzaehler; i++) {
+    WskLayout *p = &wsklayout[i];
+    wsk_messen(knotenlabel[i], &w, &h);
+    double x = baum_vertikal ? p->x2 - w / 2. : p->x2 + (klbmax - w) / 2.;
+    double yy =
+        baum_vertikal
+            ? p->y2 +
+                  (MAX(KnotenHoehe, KnotenLabelHoehe + 2 * paddingk) - h) / 2.
+            : p->y2 - h / 2.;
+    wsk_place(data, knotenlabel[i], x, yy, w, h);
+    if (bruch && bruchou) {
+      wsk_place(data, zaehlerlabel[i], p->cx - p->zw / 2., p->cy - p->h / 2.,
+                p->zw, p->zh);
+      wsk_place(data, nennerlabel[i], p->cx - p->nw / 2.,
+                p->cy - p->h / 2. + p->zh, p->nw, p->nh);
+    } else {
+      GtkWidget *label = wahrscheinlichkeitlabel[i];
+      gtk_layout_move(GTK_LAYOUT(data), label, p->cx - p->w / 2.,
+                      p->cy - p->h / 2.);
+      graphene_point_t center = GRAPHENE_POINT_INIT(p->cx, p->cy);
+      graphene_point_t origin = GRAPHENE_POINT_INIT(-p->w / 2., -p->h / 2.);
+      GskTransform *t = gsk_transform_translate(NULL, &center);
+      t = gsk_transform_rotate(t, p->angle * 180 / G_PI);
+      t = gsk_transform_translate(t, &origin);
+      gtk_fixed_set_child_transform(GTK_FIXED(data), label, t);
+      gsk_transform_unref(t);
+      winkel[i] = -p->angle * 180 / G_PI;
+      double *stored_angle = g_new(double, 1);
+      *stored_angle = winkel[i];
+      g_object_set_data_full(G_OBJECT(label), "arboretum-angle", stored_angle,
+                             g_free);
+      breitevordrehung[i] = p->w;
+      hoehevordrehung[i] = p->h;
+      double rw = fabs(cos(p->angle)) * p->w + fabs(sin(p->angle)) * p->h;
+      double rh = fabs(sin(p->angle)) * p->w + fabs(cos(p->angle)) * p->h;
+      wsk_extent(p->cx - rw / 2, p->cy - rh / 2, rw, rh);
+    }
+  }
+  for (int i = 0; i <= maxzaehlererg; i++) {
+    const char *name = gtk_widget_get_name(textfeldErgebnis[i]);
+    g_autofree char *leafname = g_strndup(name, strrchr(name, '-') - name);
+    int leaf = knotenexistiert(leafname);
+    double pos = leaf >= 0 ? wsklayout[leaf].position : yerg[i];
+    double x = FensterRandLinks + RandLinks +
+               (maxStufe + 1) * (StufenBreite + klbmax) + ErgebnisAbstand;
+    double yy = FensterRandOben + RandOben + pos + KnotenHoehe / 2.;
+    wsk_messen(ergebnislabel[i], &w, &h);
+    if (baum_vertikal) {
+      x = FensterRandLinks + RandLinks + pos + KnotenBreite / 2.;
+      yy = wsk_stufe_y(maxStufe) +
+           MAX(KnotenHoehe, KnotenLabelHoehe + 2 * paddingk) + ErgebnisAbstand +
+           h / 2.;
+    }
+    if (ergebnisseanzeigen)
+      wsk_place(data, ergebnislabel[i], baum_vertikal ? x - w / 2. : x,
+                yy - h / 2., w, h);
+    if (ergebnisseanzeigen) {
+      if (baum_vertikal)
+        yy += h + ErgebnisAbstand;
+      else
+        x += ErgebnisLabelBreite + ErgebnisAbstand;
+    }
+    if (ergebnissewskanzeigen) {
+      if (bruch && bruchou) {
+        int nw, nh;
+        wsk_messen(ergebniszaehlerlabel[i], &w, &h);
+        wsk_messen(ergebnisnennerlabel[i], &nw, &nh);
+        double cx =
+            baum_vertikal ? x : x + WahrscheinlichkeitErgebnisLabelBreite / 2.;
+        wsk_place(data, ergebniszaehlerlabel[i], cx - w / 2.,
+                  yy - (h + nh) / 2., w, h);
+        wsk_place(data, ergebnisnennerlabel[i], cx - nw / 2.,
+                  yy - (h + nh) / 2. + h, nw, nh);
+      } else {
+        wsk_messen(ergebniswsklabel[i], &w, &h);
+        wsk_place(data, ergebniswsklabel[i], baum_vertikal ? x - w / 2. : x,
+                  yy - h / 2., w, h);
+      }
+    }
+  }
+  wsk_layout_groesse(data);
+  if (wsklayout_hinweis) {
+    gtk_widget_set_visible(wsklayout_hinweis,
+                           wskautomatik && wsklayout_kollisionen > 0);
+    if (wskautomatik && wsklayout_kollisionen > 0) {
+      g_autofree char *text = g_strdup_printf(
+          "Automatik: %d Überschneidungen verbleiben. Bitte den Stufenabstand "
+          "erhöhen oder die manuelle Verschiebung verringern.",
+          wsklayout_kollisionen);
+      gtk_label_set_text(GTK_LABEL(wsklayout_hinweis), text);
+    }
   }
 }

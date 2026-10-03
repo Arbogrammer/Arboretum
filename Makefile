@@ -12,6 +12,9 @@ USER_DATA_DIR ?= $(HOME)/.local/share
 
 all: arboretum
 
+layout-test: layout_test.c baumg.c baumg.h $(wildcard *.c)
+	$(CC) $(CFLAGS) layout_test.c -o $@ $(LDLIBS)
+
 arboretum: baumg.c baumg.h gtk4_compat.h $(wildcard *.c)
 	$(CC) $(CFLAGS) baumg.c -o $@ $(LDLIBS)
 
@@ -38,7 +41,7 @@ deep-test-file: deep-tree-generator
 	./deep-tree-generator /tmp/arboretum-deep-5000.bdg 5000
 
 clean:
-	$(RM) arboretum security-parser-test parser-fuzz deep-tree-generator bdg-testdata-generator
+	$(RM) arboretum security-parser-test layout-test parser-fuzz deep-tree-generator bdg-testdata-generator
 
 install-user: arboretum arboretum.desktop arboretum-icon.png $(MIME_TYPE).xml
 	install -Dm644 arboretum.desktop $(USER_DATA_DIR)/applications/$(APP_ID).desktop

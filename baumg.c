@@ -335,6 +335,10 @@ int bruch = 0;
 int kuerzen = 1;
 int bruchou = 1;
 gboolean letzte_wahrscheinlichkeit_automatisch = TRUE;
+/* 0: oberhalb, 1: unterhalb, 2: nach Hälfte der Geschwister. */
+int wskseite = 2;
+gboolean wskmitteunten = FALSE;
+gboolean wskautomatik = FALSE;
 gboolean baum_vertikal = FALSE; /* FALSE erhält die bisherige Ansicht. */
 GtkCheckButton *baumrichtungsschalter = NULL;
 
@@ -493,7 +497,8 @@ static gboolean pfeiltasten_smoketest(gpointer data) {
   gboolean standardstil_ok =
       knotenhintergrund_provider == NULL && knotenrand_provider == NULL &&
       knotenranddicke_provider == NULL && schriftfarbe_provider == NULL &&
-      schriftart_provider == NULL;
+      /* Auch die Standardschrift wird inzwischen explizit angewendet. */
+      schriftart_provider != NULL && !schriftartwurdegewechselt;
   keyfunc(controller, GDK_KEY_Down, 0, 0, layout);
   gboolean down_ok = maxzaehler == 1 && knotenexistiert("-1") >= 0;
   keyfunc(controller, GDK_KEY_Right, 0, 0, layout);
@@ -1079,6 +1084,10 @@ int main(int argc, char *argv[]) {
   gtk_layout_put(GTK_LAYOUT(layout), wahrscheinlichkeitlabel[0], 0, 0);
   gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scrollwindow), layout);
   gtk_box_append(GTK_BOX(gesamtbox), menuescroll);
+  wsklayout_hinweis = gtk_label_new(NULL);
+  gtk_label_set_wrap(GTK_LABEL(wsklayout_hinweis), TRUE);
+  gtk_widget_set_visible(wsklayout_hinweis, FALSE);
+  gtk_box_append(GTK_BOX(gesamtbox), wsklayout_hinweis);
   gtk_widget_set_vexpand(scrollwindow, TRUE);
   gtk_widget_set_hexpand(scrollwindow, TRUE);
   gtk_box_append(GTK_BOX(gesamtbox), scrollwindow);
@@ -1096,6 +1105,10 @@ int main(int argc, char *argv[]) {
   g_strlcpy(schriftart, initial_font ? initial_font : "Sans 12",
             sizeof(schriftart));
   gtk_window_destroy(GTK_WINDOW(fakedialog));
+  /* Die fixierte Ansicht verwendet diese Pango-Schriftbeschreibung bereits
+   * ohne explizite Nutzerauswahl. Die Eingabefelder müssen sie ebenfalls
+   * erhalten, damit beide Ansichten dieselbe Größe verwenden. */
+  schriftartanpassen(NULL, NULL, NULL);
   startup_trace("font initialized");
 
   if (argc > 1) {

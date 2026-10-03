@@ -85,8 +85,7 @@ void schriftartanpassen(GtkFontChooser *self, gchar *fontname,
       arboretum_remove_css_provider(schriftart_provider);
       g_clear_object(&schriftart_provider);
     }
-    if (schriftartwurdegewechselt && schriftart[0] &&
-        strrchr(schriftart, ' ')) {
+    if (schriftart[0] && strrchr(schriftart, ' ')) {
       schriftart_provider = gtk_css_provider_new();
       char cssdaten[200000] = "";
       char schriftartnur[1000] = "";
@@ -130,7 +129,7 @@ void schriftartanpassen(GtkFontChooser *self, gchar *fontname,
       if (strstr(schriftartnur, ",")) {
         memset(strstr(schriftartnur, ","), 0, 1);
       }
-      sprintf(cssdaten, "entry {font: %ipx \"%s\";}",
+      sprintf(cssdaten, "entry {font: %ipt \"%s\";}",
               atoi(strrchr(schriftart, ' ')), schriftartnur);
       gtk_css_provider_load_from_data(schriftart_provider, cssdaten, -1);
       arboretum_add_css_provider(schriftart_provider);

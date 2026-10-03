@@ -251,6 +251,7 @@ void umwandeln(GtkWidget *widget, gpointer data) {
     }
   } else {
     labelein = 0;
+    if (wsklayout_hinweis) gtk_widget_hide(wsklayout_hinweis);
     int i = 0;
     for (i = 0; i <= maxzaehler; i++) {
       gtk_widget_hide(knotenlabel[i]);
@@ -276,6 +277,5 @@ void umwandeln(GtkWidget *widget, gpointer data) {
     }
   }
   gtk_widget_queue_draw(da);
-  if (baum_vertikal)
-    baumrichtung_aktualisieren(data);
+  baumrichtung_aktualisieren(data);
 }

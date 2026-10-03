@@ -1,3 +1,8 @@
+static void wsk_seitenwahl_geaendert(GObject *wahl, GParamSpec *pspec, gpointer mitte) {
+  gtk_widget_set_visible(GTK_WIDGET(mitte),
+                         gtk_drop_down_get_selected(GTK_DROP_DOWN(wahl)) == 2);
+}
+
 static void formdialog(GtkWidget *button, gpointer data) {
   GtkWidget *content_area;
   GtkWidget *dialog;
@@ -73,6 +78,33 @@ static void formdialog(GtkWidget *button, gpointer data) {
                             knotenrahmenabstand);
   GtkWidget *wskversch = gtk_spin_button_new_with_range(-500, 500, 1);
   gtk_spin_button_set_value(GTK_SPIN_BUTTON(wskversch), wskverschiebung);
+  const char *seiten[] = {"Wahrscheinlichkeit oberhalb des Zweiges",
+                          "Wahrscheinlichkeit unterhalb des Zweiges",
+                          "Obere Hälfte oberhalb, untere Hälfte unterhalb", NULL};
+  const char *vertikale_seiten[] = {"Wahrscheinlichkeit links des Zweiges",
+                                    "Wahrscheinlichkeit rechts des Zweiges",
+                                    "Linke Hälfte links, rechte Hälfte rechts", NULL};
+  GtkWidget *seitenwahl = gtk_drop_down_new_from_strings(baum_vertikal ? vertikale_seiten : seiten);
+  gtk_drop_down_set_selected(GTK_DROP_DOWN(seitenwahl), wskseite);
+  GtkWidget *mittenbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
+  gtk_box_append(GTK_BOX(mittenbox), gtk_label_new("Mittlerer Zweig:"));
+  const char *mitten[] = {"oberhalb", "unterhalb", NULL};
+  const char *vertikale_mitten[] = {"links", "rechts", NULL};
+  GtkWidget *mittenwahl = gtk_drop_down_new_from_strings(baum_vertikal ? vertikale_mitten : mitten);
+  gtk_drop_down_set_selected(GTK_DROP_DOWN(mittenwahl), wskmitteunten);
+  gtk_box_append(GTK_BOX(mittenbox), mittenwahl);
+  g_signal_connect(seitenwahl, "notify::selected",
+                    G_CALLBACK(wsk_seitenwahl_geaendert), mittenbox);
+  GtkWidget *automatik = gtk_check_button_new_with_label(
+      "Wahrscheinlichkeiten automatisch optimieren (fixierter Modus)");
+  gtk_check_button_set_active(GTK_CHECK_BUTTON(automatik), wskautomatik);
+  gtk_widget_set_tooltip_text(seitenwahl,
+      "Gilt im fixierten Modus. In der vertikalen Ansicht entsprechen "
+      "oberhalb und unterhalb der linken und rechten Zweigseite.");
+  gtk_widget_set_tooltip_text(automatik,
+      "Behält die gewählte Zweigseite bei. Verschiebt zunächst bis zu 15 % "
+      "der Stufenbreite (höchstens 24 Pixel) in Zweigrichtung und vergrößert "
+      "bei Bedarf die Abstände zwischen den Ästen. Manuelle Abstände bleiben erhalten.");
   GtkWidget *knotenrahmendickeauswahl =
       gtk_spin_button_new_with_range(1, 20, 1);
   gtk_spin_button_set_value(GTK_SPIN_BUTTON(knotenrahmendickeauswahl),
@@ -201,7 +233,8 @@ static void formdialog(GtkWidget *button, gpointer data) {
   gtk_widget_set_halign(label, GTK_ALIGN_START);
   gtk_grid_attach(GTK_GRID(table), label, 2, 8, 1, 1);
   gtk_grid_attach(GTK_GRID(table), knotenrahmenabstandauswahl, 3, 8, 1, 1);
-  label = gtk_label_new("Verschiebung der Wahrscheinlichkeiten nach rechts:");
+  label = gtk_label_new(baum_vertikal ? "Verschiebung der Wahrscheinlichkeiten nach unten:"
+                                      : "Verschiebung der Wahrscheinlichkeiten nach rechts:");
   gtk_widget_set_halign(label, GTK_ALIGN_START);
   gtk_grid_attach(GTK_GRID(table), label, 2, 10, 1, 1);
   gtk_grid_attach(GTK_GRID(table), wskversch, 3, 10, 1, 1);
@@ -210,11 +243,23 @@ static void formdialog(GtkWidget *button, gpointer data) {
   gtk_grid_attach(GTK_GRID(table), label, 2, 9, 1, 1);
   gtk_grid_attach(GTK_GRID(table), knotenrahmendickeauswahl, 3, 9, 1, 1);
 
+  label = gtk_label_new("Position der Wahrscheinlichkeiten:");
+  gtk_widget_set_halign(label, GTK_ALIGN_START);
+  gtk_grid_attach(GTK_GRID(table), label, 0, 11, 2, 1);
+  gtk_grid_attach(GTK_GRID(table), seitenwahl, 2, 11, 2, 1);
+  gtk_grid_attach(GTK_GRID(table), mittenbox, 2, 12, 2, 1);
+  gtk_grid_attach(GTK_GRID(table), automatik, 0, 13, 4, 1);
   gtk_widget_show_all(hbox);
+  wsk_seitenwahl_geaendert(G_OBJECT(seitenwahl), NULL, mittenbox);
 
   response = gtk_dialog_run(GTK_DIALOG(dialog));
 
   if (response == GTK_RESPONSE_OK) {
+    gboolean war_fixiert = labelein == 1;
+    if (war_fixiert) umwandeln(NULL, data);
+    wskseite = gtk_drop_down_get_selected(GTK_DROP_DOWN(seitenwahl));
+    wskmitteunten = gtk_drop_down_get_selected(GTK_DROP_DOWN(mittenwahl)) == 1;
+    wskautomatik = gtk_check_button_get_active(GTK_CHECK_BUTTON(automatik));
     RandLinks = gtk_spin_button_get_value(GTK_SPIN_BUTTON(randlinks));
     RandRechts = gtk_spin_button_get_value(GTK_SPIN_BUTTON(randrechts));
     RandOben = gtk_spin_button_get_value(GTK_SPIN_BUTTON(randoben));
@@ -278,6 +323,7 @@ static void formdialog(GtkWidget *button, gpointer data) {
     /* Die Widgets existieren bereits. Ein erneutes Laden des gerade
      * gespeicherten Undo-Schnappschusses würde sie nur zerstören und mit
      * den alten Startkoordinaten wieder anlegen. */
+    if (war_fixiert) umwandeln(NULL, data);
     baumrichtung_aktualisieren(data);
     tempspeichern();
     gtk_widget_queue_draw(da);

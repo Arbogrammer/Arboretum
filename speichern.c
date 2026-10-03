@@ -11,7 +11,7 @@ gboolean speichern(char *dateiname) {
       "%i%c%i%c%i%c%i%c%i%c%i%c%i%c%i%c%i%c%i%c%i%c%i%c%i%c%i%c%i%c%c%c%i%c%i%"
       "c%i%c%f%c%f%c%f%c%f%c%f%c%f%c%f%c%f%c%f%c%f%c%f%c%f%c%f%c%f%c%f%c%f%c%f%"
       "c%f%c%f%c%f%c%i%c%i%c%i%c%i%c%i%c%i%c%i%c%i%c%i%c%i%c%i%c%i%c%i%c%i%c%s%"
-      "c%f%c%f%c%i%c%i%c%i%c%i%c%i%c%i%c\n",
+      "c%f%c%f%c%i%c%i%c%i%c%i%c%i%c%i%c",
       RandLinks, 31, RandRechts, 31, RandOben, 31, RandUnten, 31,
       FensterRandLinks, 31, FensterRandRechts, 31, FensterRandOben, 31,
       FensterRandUnten, 31, StufenBreite, 31, KnotenAbstand, 31, KnotenHoehe,
@@ -34,6 +34,9 @@ gboolean speichern(char *dateiname) {
       NennerErgebnisLabelHoehe, 31, schriftart, 31, padding, 31, paddingk, 31,
       genauigkeit, 31, kuerzen, 31, bruchou, 31, knotenrahmenabstand, 31,
       wskverschiebung, 31, knotenrahmendicke, 31);
+  g_string_append_printf(inhalt, "%d%c%d%c%d%c%d%c\n",
+                          letzte_wahrscheinlichkeit_automatisch, 31,
+                          wskseite, 31, wskmitteunten, 31, wskautomatik, 31);
   g_string_append_printf(inhalt, "%c\n", 30);
 
   for (i = 0; i <= maxzaehler; i++) {

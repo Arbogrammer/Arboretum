@@ -88,6 +88,12 @@ static gboolean bdg_zeile_pruefen(const char *daten, gsize laenge, gsize *pos,
       return FALSE;
     }
     gsize feldlaenge = *pos - start;
+    if (header && feld >= 62 &&
+        !bdg_ganzzahl_pruefen(daten + start, feldlaenge, 0,
+                              feld == 63 ? 2 : 1, NULL)) {
+      *grund = "Ungültige Einstellung für die Wahrscheinlichkeitsdarstellung.";
+      return FALSE;
+    }
     if (memchr(daten + start, '\0', feldlaenge)) {
       *grund = "Ein Feld enthält ein unzulässiges Nullbyte.";
       return FALSE;
@@ -212,7 +218,14 @@ static gboolean bdg_abschnitt_pruefen(const char *daten, gsize laenge,
 static gboolean bdg_struktur_pruefen(const char *daten, gsize laenge,
                                      const char **grund) {
   gsize pos = 0;
-  return bdg_abschnitt_pruefen(daten, laenge, &pos, 62, FALSE, TRUE, 0,
+  guint kopffelder = 0;
+  for (gsize i = 0; i < laenge && daten[i] != '\n'; i++)
+    if ((unsigned char)daten[i] == 31) kopffelder++;
+  if (kopffelder != 62 && kopffelder != 63 && kopffelder != 66) {
+    *grund = "Unbekannte Anzahl von Darstellungseinstellungen.";
+    return FALSE;
+  }
+  return bdg_abschnitt_pruefen(daten, laenge, &pos, kopffelder, FALSE, TRUE, 0,
                                grund) &&
          bdg_abschnitt_pruefen(daten, laenge, &pos, 4, FALSE, FALSE, 1,
                                grund) &&
@@ -267,6 +280,7 @@ void laden(gpointer data, char *dateiname) {
     g_free(dateiinhalt);
     return;
   }
+  if (labelein == 1) umwandeln(NULL, data);
   int i = 0;
   zaehler = 0;
   Stufe = 0;
@@ -338,7 +352,8 @@ void laden(gpointer data, char *dateiname) {
          genauigkeitstring[22] = "", kuerzenstring[22] = "",
          bruchoustring[22] = "", knotenrahmenabstandstring[22] = "",
          wskverschiebungstring[22] = "", knotenrahmendickestring[22] = "",
-         letztewskautomatischstring[22] = "";
+         letztewskautomatischstring[22] = "", seitens[22] = "",
+         mittens[22] = "", automatiks[22] = "";
     while (dateiinhalt[j] != 10) {
       int k = 0;
       while (dateiinhalt[j] != 31) {
@@ -531,6 +546,9 @@ void laden(gpointer data, char *dateiname) {
         if (l == 62) {
           letztewskautomatischstring[k] = dateiinhalt[j];
         }
+        if (l == 63) seitens[k] = dateiinhalt[j];
+        if (l == 64) mittens[k] = dateiinhalt[j];
+        if (l == 65) automatiks[k] = dateiinhalt[j];
         k++;
         j++;
       }
@@ -602,6 +620,9 @@ void laden(gpointer data, char *dateiname) {
     knotenrahmendicke = atoi(knotenrahmendickestring);
     if (letztewskautomatischstring[0])
       letzte_wahrscheinlichkeit_automatisch = atoi(letztewskautomatischstring);
+    wskseite = seitens[0] ? atoi(seitens) : 2;
+    wskmitteunten = mittens[0] ? atoi(mittens) : FALSE;
+    wskautomatik = automatiks[0] ? atoi(automatiks) : FALSE;
     j++;
   }
 

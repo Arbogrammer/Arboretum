@@ -68,6 +68,8 @@ void wskergebnisverschieben(GtkWidget *widget, GtkAllocation *allocation,
 void wskergebnisneuschreiben(GtkWidget *widget);
 void umwandeln(GtkWidget *widget, gpointer data);
 void labelverschieben(gpointer data);
+static void wsk_layout_zeichnen(cairo_t *cr);
+static void wsk_layout_groesse(gpointer data);
 void wsklabelgroesse(GtkWidget *widget, GdkRectangle *allocation,
                      gpointer data);
 void groesseneu(GtkWidget *widget, GdkRectangle *ap, gpointer data);
@@ -112,6 +114,7 @@ void baumfokus_wiederherstellen(void);
 
 /* Implementierungen: Alle folgenden Dateien bilden zusammen ein Programm. */
 #include "overlineformat.c"
+#include "wahrscheinlichkeitslayout.c"
 #include "buchstabeneingabe.c"
 #include "wskeingabe.c"
 #include "keyfunc.c"

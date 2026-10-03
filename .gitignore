@@ -3,4 +3,5 @@
 /deep-tree-generator
 /parser-fuzz
 /security-parser-test
+/layout-test
 /dist/

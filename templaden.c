@@ -64,7 +64,11 @@ static void tempdarstellung_laden(char *zeile) {
       baum_vertikal = atoi(werte[v++]);
     /* Alte Undo-Dateien enthalten die Einstellung noch nicht. */
     if (v < n)
-      letzte_wahrscheinlichkeit_automatisch = atoi(werte[v]);
+      letzte_wahrscheinlichkeit_automatisch = atoi(werte[v++]);
+    wskseite = v < n ? atoi(werte[v++]) : 2;
+    wskseite = CLAMP(wskseite, 0, 2);
+    wskmitteunten = v < n ? atoi(werte[v++]) != 0 : FALSE;
+    wskautomatik = v < n ? atoi(werte[v++]) != 0 : FALSE;
   }
   g_strfreev(werte);
 }
@@ -464,6 +468,12 @@ void templaden(gpointer data) {
   }
 
   /* Neue Snapshots besitzen nach den vier Baumabschnitten die Darstellung. */
+  gboolean wieder_fixieren = labelein == 2;
+  labelein = 0;
+  bruch = 0;
+  for (int i = 0; i <= maxzaehler; i++)
+    if (strchr(gtk_entry_get_text(GTK_ENTRY(textfeldWahrscheinlichkeit[i])), '/'))
+      bruch = 1;
   arboretum_refresh_entry_overlines();
   positionsanpassungwsk(data);
   if (baum_vertikal)
@@ -475,8 +485,7 @@ void templaden(gpointer data) {
   schriftfarbeaendern();
   schriftartanpassen(NULL, NULL, NULL);
 
-  if (labelein == 2) {
-    labelein = 0;
+  if (wieder_fixieren) {
     umwandeln(NULL, data);
   }
 

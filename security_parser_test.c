@@ -56,6 +56,18 @@ static void test_minimaldatei(void) {
   g_assert_true(gueltig(datei));
 }
 
+static void test_layout_optionen(void) {
+  g_autoptr(GString) datei = minimaldatei("0", "Text");
+  gsize pos = strchr(datei->str, '\n') - datei->str;
+  g_string_insert(datei, pos, "1\0372\0371\0371\037");
+  g_assert_true(gueltig(datei));
+  datei->str[pos + 2] = '3';
+  g_assert_false(gueltig(datei));
+  datei->str[pos + 2] = '2';
+  datei->str[pos + 6] = '2';
+  g_assert_false(gueltig(datei));
+}
+
 static void test_textgrenze(void) {
   g_autofree char *genau = g_strnfill(MAX_EINGABE_BYTES, 'A');
   g_autofree char *zuviel = g_strnfill(MAX_EINGABE_BYTES + 1, 'A');
@@ -175,6 +187,7 @@ static void test_testdatenordner(void) {
 int main(int argc, char **argv) {
   g_test_init(&argc, &argv, NULL);
   g_test_add_func("/bdg/minimal", test_minimaldatei);
+  g_test_add_func("/bdg/layout-optionen", test_layout_optionen);
   g_test_add_func("/bdg/textgrenze", test_textgrenze);
   g_test_add_func("/bdg/trenner-und-bytes", test_trenner_und_bytes);
   g_test_add_func("/bdg/indizes", test_indizes);
