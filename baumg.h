@@ -28,6 +28,11 @@ gboolean exportsvg(char *dateiname);
 gboolean exportbmp(char *dateiname);
 gboolean exportjpg(char *dateiname);
 gboolean exportpdf(char *dateiname);
+static void undo_leeren(void);
+static void undo_gruppe_beenden(void);
+static void undo_snapshot_merken(const char *pfad);
+static void baumrichtung_synchronisieren(void);
+void wiederherstellen(GtkWidget *widget, gpointer data);
 void rueckgaengig(GtkWidget *widget, gpointer data);
 void loeschen(gpointer data);
 gboolean pos1(GtkWidget *widget, gpointer data);
@@ -117,6 +122,7 @@ void baumfokus_wiederherstellen(void);
 #include "wahrscheinlichkeitslayout.c"
 #include "buchstabeneingabe.c"
 #include "wskeingabe.c"
+#include "undo.c"
 #include "keyfunc.c"
 #include "oeffnen.c"
 #include "speicherdialog.c"

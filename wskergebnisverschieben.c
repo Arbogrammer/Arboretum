@@ -1,7 +1,11 @@
 void wskergebnisverschieben(GtkWidget *widget, GtkAllocation *allocation,
                             gpointer data) {
   int i;
-  ErgebnisBreite = gtk_widget_get_allocated_width(textfeldErgebnis[0]);
+  /* Allocation may still describe the previous text (or be zero directly
+   * after loading). Use the requested width of the newly sized entries. */
+  gtk_widget_get_preferred_width(textfeldErgebnis[0], NULL, &ErgebnisBreite);
+  gtk_widget_get_preferred_width(textfeldErgebnisWahrscheinlichkeit[0], NULL,
+                                 &WahrscheinlichkeitErgebnisBreite);
   for (i = 0; i <= maxzaehlererg; i++) {
     int x =
         baum_vertikal

@@ -1,3 +1,41 @@
+/* Adjustments invalidate scrollbar allocations. Never change them from a
+ * snapshot/draw callback; process pending scrolling after painting instead. */
+static gboolean arboretum_scroll_geplant = FALSE;
+
+static gboolean arboretum_scroll_aktualisieren(gpointer unused) {
+  arboretum_scroll_geplant = FALSE;
+  if (labelein) return G_SOURCE_REMOVE;
+  if (scrh) {
+    gtk_adjustment_set_value(
+        gtk_scrolled_window_get_hadjustment(GTK_SCROLLED_WINDOW(scrollwindow)),
+        gtk_adjustment_get_upper(gtk_scrolled_window_get_hadjustment(
+            GTK_SCROLLED_WINDOW(scrollwindow))));
+    scrh = 0;
+  }
+  GtkWidget *focus = gtk_window_get_focus(GTK_WINDOW(window));
+  if (focus) {
+    const gchar *focusname = gtk_widget_get_name(focus);
+    int fokusindex = strchr(focusname, 'W') ? wskexistiert(focusname)
+                                            : knotenexistiert(focusname);
+    if (fokusindex >= 0 &&
+        (y[fokusindex] + KnotenHoehe + KnotenAbstand + RandOben -
+                 gtk_adjustment_get_value(gtk_scrolled_window_get_vadjustment(
+                     GTK_SCROLLED_WINDOW(scrollwindow))) >
+             gtk_widget_get_allocated_height(scrollwindow) ||
+         y[fokusindex] <
+             gtk_adjustment_get_value(gtk_scrolled_window_get_vadjustment(
+                 GTK_SCROLLED_WINDOW(scrollwindow))))) {
+      gtk_adjustment_set_value(
+          gtk_scrolled_window_get_vadjustment(
+              GTK_SCROLLED_WINDOW(scrollwindow)),
+          y[fokusindex] - gtk_widget_get_allocated_height(scrollwindow) +
+              KnotenHoehe + KnotenAbstand + RandOben);
+      scrv = 0;
+    }
+  }
+  return G_SOURCE_REMOVE;
+}
+
 /* Verhindert doppelte Idle-Callbacks, darf aber niemals über den ausgeführten
  * Callback hinaus gesetzt bleiben. Bei schnellem Tastatur-Autorepeat kann
  * zwischen Layout-Aktualisierung und dem anschließenden Zeichnen bereits die
@@ -181,34 +219,8 @@ static void zeichnelinien(GtkDrawingArea *widget, cairo_t *cr, int width,
     cairo_stroke(cr);
   }
 
-  if (data == NULL)
-    return;
-  if (scrh) {
-    gtk_adjustment_set_value(
-        gtk_scrolled_window_get_hadjustment(GTK_SCROLLED_WINDOW(scrollwindow)),
-        gtk_adjustment_get_upper(gtk_scrolled_window_get_hadjustment(
-            GTK_SCROLLED_WINDOW(scrollwindow))));
-    scrh = 0;
-  }
-  GtkWidget *focus = gtk_window_get_focus(GTK_WINDOW(window));
-  if (focus) {
-    const gchar *focusname = gtk_widget_get_name(focus);
-    int fokusindex = strchr(focusname, 'W') ? wskexistiert(focusname)
-                                            : knotenexistiert(focusname);
-    if (fokusindex >= 0 &&
-        (y[fokusindex] + KnotenHoehe + KnotenAbstand + RandOben -
-                 gtk_adjustment_get_value(gtk_scrolled_window_get_vadjustment(
-                     GTK_SCROLLED_WINDOW(scrollwindow))) >
-             gtk_widget_get_allocated_height(scrollwindow) ||
-         y[fokusindex] <
-             gtk_adjustment_get_value(gtk_scrolled_window_get_vadjustment(
-                 GTK_SCROLLED_WINDOW(scrollwindow))))) {
-      gtk_adjustment_set_value(
-          gtk_scrolled_window_get_vadjustment(
-              GTK_SCROLLED_WINDOW(scrollwindow)),
-          y[fokusindex] - gtk_widget_get_allocated_height(scrollwindow) +
-              KnotenHoehe + KnotenAbstand + RandOben);
-      scrv = 0;
-    }
+  if (widget && data && !arboretum_scroll_geplant) {
+    arboretum_scroll_geplant = TRUE;
+    g_idle_add(arboretum_scroll_aktualisieren, NULL);
   }
 }

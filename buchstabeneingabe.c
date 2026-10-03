@@ -35,14 +35,10 @@ static gboolean eingabe_neuaufbauen(gpointer data) {
     int stufe = zeichenzaehlen(gtk_widget_get_name(textfeld[i]), '-') - 1;
     gtk_entry_set_width_chars(GTK_ENTRY(textfeld[i]),
                               knoten_textbreite_fuer_stufe(stufe));
-    gtk_entry_set_width_chars(GTK_ENTRY(textfeldWahrscheinlichkeit[i]),
-                              WahrscheinlichkeitTextBreite);
   }
   for (int i = 0; i <= maxzaehlererg; i++) {
     gtk_entry_set_width_chars(GTK_ENTRY(textfeldErgebnis[i]),
                               ErgebnisTextBreite);
-    gtk_entry_set_width_chars(GTK_ENTRY(textfeldErgebnisWahrscheinlichkeit[i]),
-                              WahrscheinlichkeitErgebnisTextBreite);
   }
   groesseneu(NULL, NULL, data);
   /* Ergebniswahrscheinlichkeiten folgen derselben Geometrie wie die
@@ -95,6 +91,5 @@ void buchstabeneingabe(GtkEditable *editable, gpointer data) {
     }
   }
   arboretum_refresh_entry_overlines();
-  tempspeichern();
   eingabe_neuaufbau_planen(data);
 }

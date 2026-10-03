@@ -287,11 +287,21 @@ static gboolean urnen_generieren(GtkWidget *dialog, gpointer daten) {
              * werden, wie bei jeder anderen strukturellen Änderung. */
             tempspeichern();
             laden(felder[4], tmpname);
+            gboolean war_fixiert = labelein;
+            if (war_fixiert)
+              umwandeln(NULL, felder[4]);
             urnen_erste_wsk_eintragen(&baum, (int *)baum.anzahlen->data);
+            /* Die Eingabesignale sind beim Eintragen gesperrt. Deshalb
+             * Brucherkennung nach den endgültigen Werten aktualisieren. */
+            wahrscheinlichkeit_alle_pruefen();
             for (int i = 0; i <= maxzaehlererg; i++) {
               ergebnistextneuschreiben(textfeldErgebnis[i]);
               wskergebnisneuschreiben(textfeldErgebnisWahrscheinlichkeit[i]);
             }
+            if (war_fixiert)
+              umwandeln(NULL, felder[4]);
+            else
+              eingabe_neuaufbau_planen(felder[4]);
             dateiveraendert++;
             gtk_window_destroy(GTK_WINDOW(dialog));
           }

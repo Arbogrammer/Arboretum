@@ -1,94 +1,66 @@
-static double wahrscheinlichkeit_einlesen(const char *text) {
-  char normalisiert[1000] = "";
-  g_strlcpy(normalisiert, text, sizeof(normalisiert));
-  char *komma = strchr(normalisiert, ',');
-  if (komma)
-    *komma = '.';
-  return g_ascii_strtod(normalisiert, NULL);
-}
-
+/* Only values on this path determine its numeric representation. */
 void wskergebnisneuschreiben(GtkWidget *widget) {
-  int i = 0;
-  bruch = 0;
-  for (i = 0; i <= maxzaehler; i++) {
-    if (strchr(gtk_entry_get_text(GTK_ENTRY(textfeldWahrscheinlichkeit[i])),
-               '/')) {
-      bruch = 1;
-    }
-  }
-
-  g_autofree gchar *tempnameergw = g_strdup(gtk_widget_get_name(widget));
-  double wsk = 1;
-  long long int zaehler = 1;
-  long long int nenner = 1;
-  char dezimaltrenner = '.';
-
-  int position = (int)(strchr(tempnameergw + 1, '-') - tempnameergw);
-  int laenge = strlen(tempnameergw) - 3;
-  tempnameergw[position] = 87; // W
-  tempnameergw[position + 1] = 0;
-
-  while (wskexistiert(tempnameergw) > -1) {
-    char einzelwsk[1000] = "";
-    strcpy(einzelwsk,
-           gtk_entry_get_text(GTK_ENTRY(
-               textfeldWahrscheinlichkeit[wskexistiert(tempnameergw)])));
-    /* Eine Pfadwahrscheinlichkeit ist erst definiert, wenn jede Kante
-     * befüllt ist. Leere Felder dürfen nicht stillschweigend als Faktor 1
-     * in das Ergebnis eingehen. */
-    if (!einzelwsk[0]) {
+  const char *name = gtk_widget_get_name(widget);
+  g_autofree char *pfad = g_strdup(name);
+  char *ende = strstr(pfad, "-EW");
+  if (!ende) return;
+  *ende = '\0';
+  double produkt = 1.0;
+  long long z = 1, n = 1;
+  gboolean exakt = TRUE, hat_bruch = FALSE, komma = FALSE;
+  for (char *p = pfad + 1;; p++) {
+    if (*p && *p != '-') continue;
+    char zeichen = *p;
+    *p = '\0';
+    g_autofree char *kante = g_strconcat(pfad, "W", NULL);
+    int index = wskexistiert(kante);
+    *p = zeichen;
+    double wert;
+    if (index < 0 || !wahrscheinlichkeit_lesen(
+          gtk_entry_get_text(GTK_ENTRY(textfeldWahrscheinlichkeit[index])), &wert)) {
       gtk_entry_set_text(GTK_ENTRY(widget), "");
       return;
     }
-    if (bruch) {
-      long long int faktor_zaehler = atoll(einzelwsk);
-      long long int produkt;
-      if (__builtin_mul_overflow(zaehler, faktor_zaehler, &produkt)) {
-        gtk_entry_set_text(GTK_ENTRY(widget), "");
-        return;
-      }
-      zaehler = produkt;
-      if (strchr(einzelwsk, '/')) {
-        long long int faktor_nenner = atoll(strchr(einzelwsk, '/') + 1);
-        if (__builtin_mul_overflow(nenner, faktor_nenner, &produkt)) {
-          gtk_entry_set_text(GTK_ENTRY(widget), "");
-          return;
-        }
-        nenner = produkt;
-      }
+    const char *text = gtk_entry_get_text(GTK_ENTRY(textfeldWahrscheinlichkeit[index]));
+    produkt *= wert;
+    komma |= strchr(text, ',') != NULL;
+    long long faktor_z, faktor_n;
+    if (strchr(text, '/')) {
+      hat_bruch = TRUE;
+      wahrscheinlichkeit_als_bruch(text, &faktor_z, &faktor_n);
+    } else if (wert == 0.0 || wert == 1.0) {
+      faktor_z = (long long)wert;
+      faktor_n = 1;
     } else {
-      if (einzelwsk[0]) {
-        wsk *= wahrscheinlichkeit_einlesen(einzelwsk);
-        if (strchr(einzelwsk, ','))
-          dezimaltrenner = ',';
+      exakt = FALSE;
+      faktor_z = 1;
+      faktor_n = 1;
+    }
+    if (exakt) {
+      if (kuerzen) {
+        long long teiler = ggt(z, faktor_n);
+        z /= teiler; faktor_n /= teiler;
+        teiler = ggt(faktor_z, n);
+        faktor_z /= teiler; n /= teiler;
       }
+      if (__builtin_mul_overflow(z, faktor_z, &z) ||
+          __builtin_mul_overflow(n, faktor_n, &n))
+        exakt = FALSE; /* Fall back to the finite decimal product. */
     }
-    if (position >= laenge) {
-      break;
-    } else {
-      g_free(g_steal_pointer(&tempnameergw));
-      tempnameergw = g_strdup(gtk_widget_get_name(widget));
-      position = (int)(strchr(tempnameergw + position + 1, '-') - tempnameergw);
-      tempnameergw[position] = 87; // W
-      tempnameergw[position + 1] = 0;
-    }
+    if (!zeichen) break;
   }
-  char wsktext[100] = "";
-  if (bruch) {
-    sprintf(wsktext, "%lld/%lld", zaehler, nenner);
-    if (kuerzen && ggt(zaehler, nenner) != 0) {
-      sprintf(wsktext, "%lld/%lld", zaehler / ggt(zaehler, nenner),
-              nenner / ggt(zaehler, nenner));
-    }
+  char ergebnis[100];
+  if (exakt && hat_bruch) {
+    long long teiler = kuerzen ? ggt(z, n) : 1;
+    g_snprintf(ergebnis, sizeof ergebnis, "%lld/%lld", z / teiler, n / teiler);
   } else {
-    char zahlenformat[20] = "";
-    snprintf(zahlenformat, sizeof(zahlenformat), "%%.%df", genauigkeit);
-    g_ascii_formatd(wsktext, sizeof(wsktext), zahlenformat, wsk);
-    if (dezimaltrenner == ',') {
-      char *punkt = strchr(wsktext, '.');
-      if (punkt)
-        *punkt = ',';
+    char format[20];
+    g_snprintf(format, sizeof format, "%%.%df", genauigkeit);
+    g_ascii_formatd(ergebnis, sizeof ergebnis, format, produkt);
+    if (komma) {
+      char *punkt = strchr(ergebnis, '.');
+      if (punkt) *punkt = ',';
     }
   }
-  gtk_entry_set_text(GTK_ENTRY(widget), wsktext);
+  gtk_entry_set_text(GTK_ENTRY(widget), ergebnis);
 }

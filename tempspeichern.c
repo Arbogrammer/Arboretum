@@ -119,5 +119,6 @@ void tempspeichern() {
     return;
   }
 
+  undo_snapshot_merken(dateiname);
   dateinummerierung += 1;
 }

@@ -6,12 +6,12 @@ Baumdiagrammen.
 ## Releases
 
 `VERSION` enthält die Paketversion. Release-Pakete werden aus dem passenden
-Tag (z. B. `v3.1.0`) neu gebaut, nicht aus älteren Downloads zusammengesetzt.
+Tag (z. B. `v3.2.0`) neu gebaut, nicht aus älteren Downloads zusammengesetzt.
 Alle Plattformen enthalten `BUILD-INFO.txt` mit dem vollständigen Quell-Commit;
 macOS verwendet dieselbe Version auch in den App-Metadaten.
 Die Linux-, Windows- und macOS-Workflows bauen nach Änderungen auf `main` sowie bei einem neuen Versionstag
 und prüfen die fertigen Pakete. Änderungsnotizen liegen unter
-`packaging/RELEASE-3.1.0.md`.
+`packaging/RELEASE-3.2.0.md`.
 
 ## Bauen unter Linux
 
@@ -57,6 +57,7 @@ entfernen.
 | `Entf` | Aktuellen Knoten löschen |
 | `Strg+S` | Speichern |
 | `Strg+Z` | Rückgängig |
+| `Strg+Umschalt+Z` | Wiederherstellen |
 | `F1` | Hilfe anzeigen |
 
 ## Wahrscheinlichkeiten platzieren
@@ -107,6 +108,65 @@ kennzeichnet das zugehörige Wahrscheinlichkeitsfeld.
 
 ## Regressionstest
 
+Unter Linux führt ein Befehl die sechs Funktionstestgruppen und die visuellen
+Vergleiche aus:
+
+```sh
+make test
+```
+
+Zusätzlich zu den Build-Abhängigkeiten werden Python 3, Pillow (`python3-pil`),
+`xvfb`, `xauth`, Fontconfig und DejaVu-Schriften benötigt. Der Lauf prüft
+Tastaturbedienung, Dateioperationen und Exporte,
+Bearbeitung und Undo/Redo, Layout, Parserfehler (mit AddressSanitizer und
+UndefinedBehaviorSanitizer) sowie Laden, Erweitern und Speichern eines Baums
+mit 5000 Ebenen sowie sieben Referenzbilder. Jede Gruppe hat ein Zeitlimit
+von 180 Sekunden. Auch nach
+einem Testfehler laufen die übrigen Gruppen weiter; `make test` liefert bei
+Fehlern einen Fehlerstatus. Protokolle und Zusammenfassung stehen unter
+`dist/test-logs/suite/`. Der Linux-Workflow führt die Suite auch für Pull
+Requests sowie bei den bisherigen Push- und Tag-Builds aus.
+
+GTK-/GLib-Warnungen machen einen Lauf ebenfalls ungültig; kritische Meldungen
+brechen den jeweiligen Prozess sofort ab. Die Tests verwenden eigene
+Benutzereinstellungen und Softwaregrafik ohne OpenGL-/Vulkan-Initialisierung.
+`make test-core` führt nur die sechs Funktionstestgruppen aus und benötigt
+keine mit den Referenzbildern übereinstimmende Renderumgebung.
+
+### Screenshotvergleiche
+
+`make test-visual` vergleicht Eingabefelder und fixierte Brüche in beiden
+Baumrichtungen, zwei PNG-Exporte und den Formdialog. Die Referenzen unter
+`testdaten/visual/reference/` wurden visuell geprüft. Die Fensteraufnahmen
+sind 1200 × 900 Pixel groß; der Formdialog verwendet seine natürliche Größe.
+Theme, Schrift, DPI, Sprache, Skalierung und Renderer sind fest eingestellt;
+Animationen und Cursorblinken sind für die Aufnahmen ausgeschaltet.
+
+GTK-, Pango-, Cairo-, FreeType- und Fontconfig-Versionen sowie die Prüfsumme
+der Schrift werden mit `environment.json` verglichen. Eine abweichende
+Umgebung führt zu einem Fehler, statt neue Bilder stillschweigend zu übernehmen.
+Die CI verwendet dafür einen eigenen Ubuntu-26.04-Container mit den in
+`packaging/install-visual-deps.sh` festgelegten Paketversionen. Wenn diese
+Versionen später nicht mehr verfügbar sind, müssen Umgebung und Referenzen
+gemeinsam nach Sichtprüfung aktualisiert werden.
+
+Der Bericht `dist/test-logs/visual/index.html` enthält Referenz, aktuelle
+Aufnahme und bei Abweichungen ein markiertes Differenzbild. Jede geänderte
+Bildgröße und jeder Pixel mit einer Farbabweichung über 8 von 255 lässt den
+Test fehlschlagen. Kleine Unterschiede bei der Kantenglättung werden toleriert.
+
+Bei einer gewollten Darstellungsänderung zunächst den Vergleichsbericht prüfen,
+dann mit `make visual-reference` die Referenzen ausdrücklich ersetzen und die
+neuen Bilder kontrollieren. Anschließend `make test-visual` unabhängig erneut
+ausführen. Referenzen und `environment.json` gehören gemeinsam ins Repository.
+Neue Szenarien werden in `visual_test.c` und der Szenenliste in
+`packaging/test-visual.py` ergänzt. Die sieben Bilder sind ein erster Satz;
+sie decken noch nicht alle Dialoge oder Windows/macOS ab.
+
+Plattformspezifische Pakettests bleiben in den jeweiligen Workflows.
+Der separate Fuzzer (`make parser-fuzz`) gehört wegen seiner offenen
+Laufzeit nicht zum regulären Prüflauf.
+
 Der automatische Interaktionstest prüft die vier Pfeiltasten, den Wechsel zum
 Wahrscheinlichkeitsfeld, dessen Zentrierung und die gezeichneten Zweige:
 
@@ -132,3 +192,19 @@ bisherigen Windows-Tests verhindert diese Einstellung den Absturz beim Löschen
 von Knoten. Normale Texteingabe und Compose-Sequenzen bleiben verfügbar; native
 IME-Komposition (z. B. für ostasiatische Eingabesysteme) ist damit eingeschränkt.
 Eine ausdrücklich gesetzte Umgebungsvariable hat Vorrang.
+
+## Berechnung und Änderungshistorie
+
+Brüche und Dezimalzahlen (mit Punkt oder Komma) dürfen gemeinsam in einem
+Pfad stehen. Reine Bruchpfade bleiben als Bruch erhalten; gemischte Pfade
+werden dezimal ausgegeben. Ungültige Wahrscheinlichkeiten werden im Eingabefeld
+markiert und für betroffene Pfade wird kein Ergebnis angezeigt.
+Die Baumrichtung wird mitgespeichert; ältere Dateien öffnen horizontal.
+
+Zusammenhängende Texteingaben im selben Feld werden bis zu einer Tipp-Pause
+von einer Sekunde gebündelt. Feldwechsel und andere Bearbeitungen beenden die
+Gruppe. Rückgängig und Wiederherstellen behalten bis zu 100 Zustände;
+eine neue Bearbeitung verwirft die Wiederherstellungsschritte.
+
+Regressionstest für Berechnung, Dateiausrichtung und Undo/Redo:
+`make editing-test && xvfb-run -a ./editing-test`.

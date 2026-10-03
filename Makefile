@@ -4,7 +4,7 @@ CFLAGS += -Wall -Wextra -Wno-deprecated-declarations -Wno-unused-parameter $(she
 LDLIBS += $(shell pkg-config --libs gtk4) -lm
 SANITIZER_FLAGS := -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer
 
-.PHONY: all clean security-parser-test parser-fuzz parser-fuzz-prepare bdg-testdata deep-test-file install-user uninstall-user
+.PHONY: all clean test test-core test-visual visual-reference security-parser-test parser-fuzz parser-fuzz-prepare bdg-testdata deep-test-file install-user uninstall-user
 
 APP_ID := arboretum
 MIME_TYPE := application-x-arboretum-bdg
@@ -12,15 +12,35 @@ USER_DATA_DIR ?= $(HOME)/.local/share
 
 all: arboretum
 
-layout-test: layout_test.c baumg.c baumg.h $(wildcard *.c)
+test: arboretum editing-test layout-test security-parser-test-bin deep-tree-generator bdg-testdata visual-test
+	xvfb-run -a -s "-screen 0 1280x1024x24 -dpi 96" python3 packaging/test-suite.py
+
+test-core: arboretum editing-test layout-test security-parser-test-bin deep-tree-generator bdg-testdata
+	xvfb-run -a python3 packaging/test-suite.py --core-only
+
+visual-test: visual_test.c baumg.c baumg.h gtk4_compat.h $(wildcard *.c)
+	$(CC) $(CFLAGS) visual_test.c -o $@ $(LDLIBS)
+
+test-visual: visual-test
+	xvfb-run -a -s "-screen 0 1280x1024x24 -dpi 96" python3 packaging/test-visual.py
+
+visual-reference: visual-test
+	xvfb-run -a -s "-screen 0 1280x1024x24 -dpi 96" python3 packaging/test-visual.py --update
+
+editing-test: editing_test.c baumg.c baumg.h gtk4_compat.h $(wildcard *.c)
+	$(CC) $(CFLAGS) editing_test.c -o $@ $(LDLIBS)
+
+layout-test: layout_test.c baumg.c baumg.h gtk4_compat.h $(wildcard *.c)
 	$(CC) $(CFLAGS) layout_test.c -o $@ $(LDLIBS)
 
 arboretum: baumg.c baumg.h gtk4_compat.h $(wildcard *.c)
 	$(CC) $(CFLAGS) baumg.c -o $@ $(LDLIBS)
 
-security-parser-test: security_parser_test.c bdg-testdata
-	$(CC) $(CFLAGS) $(SANITIZER_FLAGS) security_parser_test.c -o security-parser-test $(LDLIBS) $(SANITIZER_FLAGS)
-	ASAN_OPTIONS=detect_leaks=0 ./security-parser-test
+security-parser-test: security-parser-test-bin bdg-testdata
+	ASAN_OPTIONS=detect_leaks=0 ./security-parser-test-bin
+
+security-parser-test-bin: security_parser_test.c baumg.c baumg.h gtk4_compat.h $(wildcard *.c)
+	$(CC) $(CFLAGS) $(SANITIZER_FLAGS) security_parser_test.c -o $@ $(LDLIBS) $(SANITIZER_FLAGS)
 
 parser-fuzz: parser_fuzz.c
 	clang-21 $(CFLAGS) -O1 -g -fsanitize=fuzzer,address,undefined \
@@ -41,7 +61,7 @@ deep-test-file: deep-tree-generator
 	./deep-tree-generator /tmp/arboretum-deep-5000.bdg 5000
 
 clean:
-	$(RM) arboretum security-parser-test layout-test parser-fuzz deep-tree-generator bdg-testdata-generator
+	$(RM) arboretum security-parser-test security-parser-test-bin layout-test editing-test visual-test parser-fuzz deep-tree-generator bdg-testdata-generator
 
 install-user: arboretum arboretum.desktop arboretum-icon.png $(MIME_TYPE).xml
 	install -Dm644 arboretum.desktop $(USER_DATA_DIR)/applications/$(APP_ID).desktop

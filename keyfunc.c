@@ -36,6 +36,16 @@ static gboolean keyfunc(GtkEventControllerKey *controller, guint keyval,
   gboolean steuerung =
       (state & gtk_accelerator_get_default_mod_mask()) == GDK_CONTROL_MASK;
 
+  if ((keyval == GDK_KEY_z || keyval == GDK_KEY_Z) &&
+      (state & gtk_accelerator_get_default_mod_mask()) ==
+          (GDK_CONTROL_MASK | GDK_SHIFT_MASK)) {
+    wiederherstellen(widget, data);
+    return TRUE;
+  }
+  if (steuerung || keyval == GDK_KEY_Tab || keyval == GDK_KEY_Up ||
+      keyval == GDK_KEY_Down || keyval == GDK_KEY_Left || keyval == GDK_KEY_Right)
+    undo_gruppe_beenden();
+
   switch (keyval) {
   /* Navigation im Baum */
   case GDK_KEY_Down:
@@ -105,7 +115,6 @@ static gboolean keyfunc(GtkEventControllerKey *controller, guint keyval,
       speichernvor(NULL, NULL);
       break;
     }
-    tempspeichern();
     return FALSE;
 
   case GDK_KEY_a:
@@ -114,7 +123,6 @@ static gboolean keyfunc(GtkEventControllerKey *controller, guint keyval,
       exportdialog(NULL, data);
       break;
     }
-    tempspeichern();
     return FALSE;
 
   case GDK_KEY_e:
@@ -123,7 +131,6 @@ static gboolean keyfunc(GtkEventControllerKey *controller, guint keyval,
       ergebnisspalteanzeigen(data);
       break;
     }
-    tempspeichern();
     return FALSE;
 
   case GDK_KEY_r:
@@ -139,7 +146,6 @@ static gboolean keyfunc(GtkEventControllerKey *controller, guint keyval,
       }
       break;
     }
-    tempspeichern();
     return FALSE;
 
   case GDK_KEY_w:
@@ -148,7 +154,6 @@ static gboolean keyfunc(GtkEventControllerKey *controller, guint keyval,
       wskergebnisspalteanzeigen(data);
       break;
     }
-    tempspeichern();
     return FALSE;
 
   case GDK_KEY_minus:
@@ -156,7 +161,6 @@ static gboolean keyfunc(GtkEventControllerKey *controller, guint keyval,
       ueberstreichen();
       break;
     }
-    tempspeichern();
     return FALSE;
 
   case GDK_KEY_u:
@@ -165,7 +169,6 @@ static gboolean keyfunc(GtkEventControllerKey *controller, guint keyval,
       umwandeln(NULL, data);
       break;
     }
-    tempspeichern();
     return FALSE;
 
   case GDK_KEY_z:
@@ -174,13 +177,10 @@ static gboolean keyfunc(GtkEventControllerKey *controller, guint keyval,
       rueckgaengig(widget, data);
       break;
     }
-    tempspeichern();
     return FALSE;
 
   default:
-    /* Normale Texteingabe wird gespeichert und dann von GtkEntry verarbeitet.
-     */
-    tempspeichern();
+    /* GtkEditable-Signale erfassen auch Einfügen und Ausschneiden. */
     return FALSE;
   }
 

@@ -34,9 +34,10 @@ gboolean speichern(char *dateiname) {
       NennerErgebnisLabelHoehe, 31, schriftart, 31, padding, 31, paddingk, 31,
       genauigkeit, 31, kuerzen, 31, bruchou, 31, knotenrahmenabstand, 31,
       wskverschiebung, 31, knotenrahmendicke, 31);
-  g_string_append_printf(inhalt, "%d%c%d%c%d%c%d%c\n",
+  g_string_append_printf(inhalt, "%d%c%d%c%d%c%d%c%d%c\n",
                           letzte_wahrscheinlichkeit_automatisch, 31,
-                          wskseite, 31, wskmitteunten, 31, wskautomatik, 31);
+                          wskseite, 31, wskmitteunten, 31, wskautomatik, 31,
+                          baum_vertikal, 31);
   g_string_append_printf(inhalt, "%c\n", 30);
 
   for (i = 0; i <= maxzaehler; i++) {

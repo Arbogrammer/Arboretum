@@ -329,6 +329,7 @@ static void wsk_layout_groesse(gpointer data) {
 }
 
 static void wsk_bruchstrich(cairo_t *cr, GtkWidget *z, GtkWidget *n) {
+  if (!*gtk_label_get_text(GTK_LABEL(n))) return;
   double *zp = g_object_get_data(G_OBJECT(z), "arboretum-layout-position");
   double *np = g_object_get_data(G_OBJECT(n), "arboretum-layout-position");
   if (!zp || !np)

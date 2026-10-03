@@ -1,4 +1,3 @@
 void rueckgaengig(GtkWidget *widget, gpointer data) {
-  zurueck = 1;
-  templaden(data);
+  undo_wechseln(data, FALSE);
 }

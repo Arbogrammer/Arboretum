@@ -474,10 +474,12 @@ void templaden(gpointer data) {
   for (int i = 0; i <= maxzaehler; i++)
     if (strchr(gtk_entry_get_text(GTK_ENTRY(textfeldWahrscheinlichkeit[i])), '/'))
       bruch = 1;
+  wahrscheinlichkeit_alle_pruefen();
+  for (int i = 0; i <= maxzaehlererg; i++)
+    wskergebnisneuschreiben(textfeldErgebnisWahrscheinlichkeit[i]);
+  baumrichtung_synchronisieren();
   arboretum_refresh_entry_overlines();
-  positionsanpassungwsk(data);
-  if (baum_vertikal)
-    baumrichtung_aktualisieren(data);
+  baumrichtung_aktualisieren(data);
 
   knotenhintergrundfarbeaendern();
   knotenrandfarbeaendern();

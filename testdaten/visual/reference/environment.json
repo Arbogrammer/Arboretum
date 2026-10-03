@@ -1,0 +1,9 @@
+{
+  "gtk4": "4.22.4",
+  "pango": "1.57.0",
+  "cairo": "1.18.4",
+  "freetype2": "26.5.20",
+  "fontconfig": "2.17.1",
+  "font_sha256": "b4c632e3cdf9acc7f28758fb5a323c8524d7fc6660d46904d9b6cbe2809c419c",
+  "settings": "Adwaita;DejaVu Sans 10;96dpi;scale=1;cairo;x11;1200x900;C.UTF-8"
+}

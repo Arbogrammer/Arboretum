@@ -3,5 +3,9 @@
 /deep-tree-generator
 /parser-fuzz
 /security-parser-test
+/security-parser-test-bin
 /layout-test
 /dist/
+/editing-test
+/visual-test
+__pycache__/

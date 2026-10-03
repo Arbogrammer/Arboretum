@@ -49,7 +49,8 @@ static void formdialog(GtkWidget *button, gpointer data) {
   GtkWidget *ergebnistrenner = gtk_entry_new();
   gtk_entry_set_max_length(GTK_ENTRY(ergebnistrenner), 1);
   char ErgebnisTrennerString[2] = "";
-  ErgebnisTrennerString[0] = ErgebnisTrenner;
+  /* 127 is the file format's sentinel for no separator, not visible text. */
+  ErgebnisTrennerString[0] = ErgebnisTrenner == 127 ? '\0' : ErgebnisTrenner;
   gtk_entry_set_text(GTK_ENTRY(ergebnistrenner), ErgebnisTrennerString);
   GtkWidget *genau = gtk_spin_button_new_with_range(1, 20, 1);
   gtk_spin_button_set_value(GTK_SPIN_BUTTON(genau), genauigkeit);
@@ -291,6 +292,7 @@ static void formdialog(GtkWidget *button, gpointer data) {
       positionneu(KnotenAbstandTemp, data);
     }
     ErgebnisTrenner = gtk_entry_get_text(GTK_ENTRY(ergebnistrenner))[0];
+    if (!ErgebnisTrenner) ErgebnisTrenner = 127;
     int i = 0;
     for (i = 0; i <= maxzaehlererg; i++) {
       ergebnistextneuschreiben(textfeldErgebnis[i]);

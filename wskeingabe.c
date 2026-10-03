@@ -1,20 +1,4 @@
 static gboolean letzte_wahrscheinlichkeit_wird_gesetzt = FALSE;
-typedef struct {
-  GtkWidget *feld;
-  gchar *text;
-} AutomatischeWahrscheinlichkeit;
-
-static gboolean letzte_wahrscheinlichkeit_spaeter_setzen(gpointer daten) {
-  AutomatischeWahrscheinlichkeit *automatisch = daten;
-  letzte_wahrscheinlichkeit_wird_gesetzt = TRUE;
-  gtk_entry_set_text(GTK_ENTRY(automatisch->feld), automatisch->text);
-  letzte_wahrscheinlichkeit_wird_gesetzt = FALSE;
-  g_object_unref(automatisch->feld);
-  g_free(automatisch->text);
-  g_free(automatisch);
-  return G_SOURCE_REMOVE;
-}
-
 static gboolean wahrscheinlichkeit_als_dezimalzahl(const char *text,
                                                    double *wert) {
   char normalisiert[1000] = "";
@@ -23,10 +7,12 @@ static gboolean wahrscheinlichkeit_als_dezimalzahl(const char *text,
   char *komma = strchr(normalisiert, ',');
   if (komma)
     *komma = '.';
+  errno = 0;
   *wert = g_ascii_strtod(normalisiert, &ende);
+  if (ende == normalisiert) return FALSE;
   while (ende && g_ascii_isspace(*ende))
     ende++;
-  return normalisiert[0] && ende && *ende == '\0' && isfinite(*wert) &&
+  return errno != ERANGE && *ende == '\0' && isfinite(*wert) &&
          *wert >= 0.0 && *wert <= 1.0;
 }
 
@@ -37,13 +23,51 @@ static gboolean wahrscheinlichkeit_als_bruch(const char *text,
   const char *trenner = strchr(text, '/');
   if (!trenner || strchr(trenner + 1, '/'))
     return FALSE;
+  errno = 0;
   *zaehler = g_ascii_strtoll(text, &ende, 10);
-  if (ende != trenner || *zaehler < 0)
+  if (errno == ERANGE || ende == text || ende != trenner || *zaehler < 0)
     return FALSE;
+  errno = 0;
   *nenner = g_ascii_strtoll(trenner + 1, &ende, 10);
   while (ende && g_ascii_isspace(*ende))
     ende++;
-  return *nenner > 0 && ende && *ende == '\0' && *zaehler <= *nenner;
+  return errno != ERANGE && ende != trenner + 1 && *nenner > 0 &&
+         *ende == '\0' && *zaehler <= *nenner;
+}
+
+static gboolean wahrscheinlichkeit_lesen(const char *text, double *wert) {
+  if (!strchr(text, '/'))
+    return wahrscheinlichkeit_als_dezimalzahl(text, wert);
+  long long z, n;
+  if (!wahrscheinlichkeit_als_bruch(text, &z, &n))
+    return FALSE;
+  *wert = (double)z / n;
+  return TRUE;
+}
+
+static double wahrscheinlichkeit_einlesen(const char *text) {
+  double wert;
+  return wahrscheinlichkeit_lesen(text, &wert) ? wert : NAN;
+}
+
+static void wahrscheinlichkeit_alle_pruefen(void) {
+  bruch = 0;
+  for (int i = 0; i <= maxzaehler; i++) {
+    GtkWidget *feld = textfeldWahrscheinlichkeit[i];
+    const char *text = gtk_entry_get_text(GTK_ENTRY(feld));
+    double wert;
+    gboolean ungueltig = *text && !wahrscheinlichkeit_lesen(text, &wert);
+    if (ungueltig)
+      gtk_widget_add_css_class(feld, "error");
+    else
+      gtk_widget_remove_css_class(feld, "error");
+    /* Keep the text area symmetric: an entry icon shifts centered text.
+     * The error style and tooltip indicate invalid input without an icon. */
+    gtk_widget_set_tooltip_text(feld, ungueltig
+        ? "Wahrscheinlichkeit zwischen 0 und 1 eingeben, z. B. 0,5 oder 1/2."
+        : NULL);
+    bruch |= strchr(text, '/') != NULL;
+  }
 }
 
 static void unnoetige_nachkommastellen_entfernen(char *text) {
@@ -109,9 +133,14 @@ static void letzte_wahrscheinlichkeit_erganzen(GtkEditable *editable) {
     gboolean ist_bruch = strchr(text, '/') != NULL;
     if (bruchmodus < 0)
       bruchmodus = ist_bruch;
-    if (bruchmodus != ist_bruch)
-      return; /* Gemischte Darstellungen werden auch sonst nicht berechnet. */
-    if (bruchmodus) {
+    if (!ist_bruch)
+      bruchmodus = 0;
+    double wert;
+    if (!wahrscheinlichkeit_lesen(text, &wert))
+      return;
+    summe += wert;
+    komma |= strchr(text, ',') != NULL;
+    if (ist_bruch && bruchmodus) {
       long long zaehler = 0, nenner = 1;
       if (!wahrscheinlichkeit_als_bruch(text, &zaehler, &nenner))
         return;
@@ -131,12 +160,6 @@ static void letzte_wahrscheinlichkeit_erganzen(GtkEditable *editable) {
         return;
       bruchzaehler = alter_anteil + neuer_anteil;
       bruchnenner = gemeinsamer_nenner;
-    } else {
-      double wert = 0.0;
-      if (!wahrscheinlichkeit_als_dezimalzahl(text, &wert))
-        return;
-      summe += wert;
-      komma |= strchr(text, ',') != NULL;
     }
   }
   if ((bruchmodus && bruchzaehler > bruchnenner) ||
@@ -150,7 +173,7 @@ static void letzte_wahrscheinlichkeit_erganzen(GtkEditable *editable) {
   } else
     letzter_index = nachfolger(elternindex, anzahl - 1);
   GtkWidget *letztes_feld = textfeldWahrscheinlichkeit[letzter_index];
-  char resttext[G_ASCII_DTOSTR_BUF_SIZE] = "";
+  char resttext[128] = "";
   if (bruchmodus) {
     long long rest = bruchnenner - bruchzaehler;
     long long teiler = ggt(rest, bruchnenner);
@@ -171,15 +194,14 @@ static void letzte_wahrscheinlichkeit_erganzen(GtkEditable *editable) {
     unnoetige_nachkommastellen_entfernen(resttext);
   }
 
-  AutomatischeWahrscheinlichkeit *automatisch =
-      g_new(AutomatischeWahrscheinlichkeit, 1);
-  automatisch->feld = g_object_ref(letztes_feld);
-  automatisch->text = g_strdup(resttext);
-  g_idle_add(letzte_wahrscheinlichkeit_spaeter_setzen, automatisch);
+  letzte_wahrscheinlichkeit_wird_gesetzt = TRUE;
+  gtk_entry_set_text(GTK_ENTRY(letztes_feld), resttext);
+  letzte_wahrscheinlichkeit_wird_gesetzt = FALSE;
 }
 
 void wskeingabe(GtkEditable *editable, gpointer data) {
   dateiveraendert++;
+  wahrscheinlichkeit_alle_pruefen();
   /* Bei programmgesteuerten Änderungen (z. B. Restwahrscheinlichkeit) kann
    * der Fokus noch auf einem anderen Feld liegen. Maßgeblich ist daher das
    * Feld, das das Signal ausgelöst hat. */
@@ -187,15 +209,6 @@ void wskeingabe(GtkEditable *editable, gpointer data) {
       g_strdup(gtk_widget_get_name(GTK_WIDGET(editable)));
 
   int i = 0;
-
-  WahrscheinlichkeitTextBreite = 3;
-  for (i = 0; i <= maxzaehler; i++) {
-    if ((size_t)WahrscheinlichkeitTextBreite <
-        strlen(gtk_entry_get_text(GTK_ENTRY(textfeldWahrscheinlichkeit[i])))) {
-      WahrscheinlichkeitTextBreite =
-          strlen(gtk_entry_get_text(GTK_ENTRY(textfeldWahrscheinlichkeit[i])));
-    }
-  }
 
   for (i = 0; i <= maxzaehlererg; i++) {
     if (strlen(tempname) <
@@ -211,6 +224,5 @@ void wskeingabe(GtkEditable *editable, gpointer data) {
 
   arboretum_refresh_entry_overlines();
 
-  tempspeichern();
   eingabe_neuaufbau_planen(data);
 }

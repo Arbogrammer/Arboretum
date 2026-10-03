@@ -271,7 +271,8 @@ static gboolean bdg_struktur_pruefen(const char *daten, gsize laenge,
   guint kopffelder = 0;
   for (gsize i = 0; i < laenge && daten[i] != '\n'; i++)
     if ((unsigned char)daten[i] == 31) kopffelder++;
-  if (kopffelder != 62 && kopffelder != 63 && kopffelder != 66) {
+  if (kopffelder != 62 && kopffelder != 63 && kopffelder != 66 &&
+      kopffelder != 67) {
     *grund = "Unbekannte Anzahl von Darstellungseinstellungen.";
     return FALSE;
   }
@@ -403,7 +404,7 @@ void laden(gpointer data, char *dateiname) {
          bruchoustring[22] = "", knotenrahmenabstandstring[22] = "",
          wskverschiebungstring[22] = "", knotenrahmendickestring[22] = "",
          letztewskautomatischstring[22] = "", seitens[22] = "",
-         mittens[22] = "", automatiks[22] = "";
+         mittens[22] = "", automatiks[22] = "", richtungs[22] = "";
     while (dateiinhalt[j] != 10) {
       int k = 0;
       while (dateiinhalt[j] != 31) {
@@ -599,6 +600,7 @@ void laden(gpointer data, char *dateiname) {
         if (l == 63) seitens[k] = dateiinhalt[j];
         if (l == 64) mittens[k] = dateiinhalt[j];
         if (l == 65) automatiks[k] = dateiinhalt[j];
+        if (l == 66) richtungs[k] = dateiinhalt[j];
         k++;
         j++;
       }
@@ -673,6 +675,7 @@ void laden(gpointer data, char *dateiname) {
     wskseite = seitens[0] ? atoi(seitens) : 2;
     wskmitteunten = mittens[0] ? atoi(mittens) : FALSE;
     wskautomatik = automatiks[0] ? atoi(automatiks) : FALSE;
+    baum_vertikal = richtungs[0] ? atoi(richtungs) : FALSE;
     j++;
   }
 
@@ -890,6 +893,11 @@ void laden(gpointer data, char *dateiname) {
     }
   }
 
+  wahrscheinlichkeit_alle_pruefen();
+  for (i = 0; i <= maxzaehlererg; i++)
+    wskergebnisneuschreiben(textfeldErgebnisWahrscheinlichkeit[i]);
+  baumrichtung_synchronisieren();
+  baumrichtung_aktualisieren(data);
   positionsanpassungwsk(data);
   wskergebnisverschieben(NULL, NULL, data);
 
@@ -913,4 +921,5 @@ void laden(gpointer data, char *dateiname) {
   gtk_widget_queue_draw(da);
   g_free(dateiinhalt);
   g_strlcpy(aktuelledatei, dateiname, sizeof(aktuelledatei));
+  undo_gruppe_beenden();
 }

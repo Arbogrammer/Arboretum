@@ -73,8 +73,11 @@ static void modell_build(Modell *m, const char *n, const char *t, const char *e,
   modell_row(m->ws, x, "%d%c%sW%c%s%c\n", x, 31, n, 31, q, 31);
 }
 
-static int modell_textbreite(const char *text) {
-  return MAX(2, (int)g_utf8_strlen(text, -1));
+static int modell_textbreite(GtkWidget *feld) {
+  /* Zeichen sind in proportionalen Schriften unterschiedlich breit.
+   * Mit der tatsächlichen Schrift messen und Platz für den Cursor lassen. */
+  return MAX(2, textbreite_in_zeichen(
+                    feld, gtk_entry_get_text(GTK_ENTRY(feld))) + 1);
 }
 static void modell_wahrscheinlichkeitsfelder_anpassen(gpointer data);
 /* Das Laden erzeugt die Felder mit der gespeicherten Standardbreite. Die
@@ -83,20 +86,12 @@ static void modell_wahrscheinlichkeitsfelder_anpassen(gpointer data);
  */
 static void modell_feldgroessen_anpassen(gpointer data) {
   KnotenTextBreite = 2;
-  ErgebnisTextBreite = 2;
   for (int i = 0; i <= maxzaehler; i++)
     KnotenTextBreite =
         MAX(KnotenTextBreite,
-            modell_textbreite(gtk_entry_get_text(GTK_ENTRY(textfeld[i]))));
-  for (int i = 0; i <= maxzaehlererg; i++)
-    ErgebnisTextBreite = MAX(
-        ErgebnisTextBreite,
-        modell_textbreite(gtk_entry_get_text(GTK_ENTRY(textfeldErgebnis[i]))));
+            modell_textbreite(textfeld[i]));
   for (int i = 0; i <= maxzaehler; i++)
     gtk_entry_set_width_chars(GTK_ENTRY(textfeld[i]), KnotenTextBreite);
-  for (int i = 0; i <= maxzaehlererg; i++)
-    gtk_entry_set_width_chars(GTK_ENTRY(textfeldErgebnis[i]),
-                              ErgebnisTextBreite);
   groesseneu(NULL, NULL, data);
   positionsanpassungwsk(data);
   wskergebnisverschieben(NULL, NULL, data);
@@ -218,13 +213,11 @@ static void modell_wahrscheinlichkeitsfelder_anpassen(gpointer data) {
   for (int i = 0; i <= maxzaehler; i++)
     WahrscheinlichkeitTextBreite =
         MAX(WahrscheinlichkeitTextBreite,
-            modell_textbreite(
-                gtk_entry_get_text(GTK_ENTRY(textfeldWahrscheinlichkeit[i]))));
+            modell_textbreite(textfeldWahrscheinlichkeit[i]));
   for (int i = 0; i <= maxzaehlererg; i++)
     WahrscheinlichkeitErgebnisTextBreite =
         MAX(WahrscheinlichkeitErgebnisTextBreite,
-            modell_textbreite(gtk_entry_get_text(
-                GTK_ENTRY(textfeldErgebnisWahrscheinlichkeit[i]))));
+            modell_textbreite(textfeldErgebnisWahrscheinlichkeit[i]));
   for (int i = 0; i <= maxzaehler; i++)
     gtk_entry_set_width_chars(GTK_ENTRY(textfeldWahrscheinlichkeit[i]),
                               WahrscheinlichkeitTextBreite);

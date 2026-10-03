@@ -282,7 +282,13 @@ static void eingabefeld_bytebegrenzung(GtkEditable *editable, gpointer data) {
   g_free(gekuerzt);
 }
 
+static void undo_vor_einfuegen(GtkEditable *, const char *, int, int *, gpointer);
+static void undo_vor_loeschen(GtkEditable *, int, int, gpointer);
+
 static void eingabefeld_absichern(GtkWidget *entry) {
+  gtk_editable_set_enable_undo(GTK_EDITABLE(entry), FALSE);
+  g_signal_connect(entry, "insert-text", G_CALLBACK(undo_vor_einfuegen), NULL);
+  g_signal_connect(entry, "delete-text", G_CALLBACK(undo_vor_loeschen), NULL);
   gtk_entry_set_max_length(GTK_ENTRY(entry), MAX_EINGABE_BYTES);
   g_signal_connect(entry, "changed", G_CALLBACK(eingabefeld_bytebegrenzung),
                    NULL);
@@ -449,6 +455,7 @@ static gboolean startfeld_fokussieren(gpointer data) {
 }
 
 void baumfokus_merken(GObject *objekt, GParamSpec *eigenschaft, gpointer data) {
+  undo_gruppe_beenden();
   (void)objekt;
   (void)eigenschaft;
   (void)data;
@@ -932,7 +939,12 @@ int main(int argc, char *argv[]) {
   gesamtbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_window_set_title(GTK_WINDOW(window), Titel);
   gtk_window_set_icon_name(GTK_WINDOW(window), "arboretum");
-  gtk_window_set_default_size(GTK_WINDOW(window), 800, 600);
+#ifndef ARBORETUM_INITIAL_WINDOW_WIDTH
+#define ARBORETUM_INITIAL_WINDOW_WIDTH 800
+#define ARBORETUM_INITIAL_WINDOW_HEIGHT 600
+#endif
+  gtk_window_set_default_size(GTK_WINDOW(window), ARBORETUM_INITIAL_WINDOW_WIDTH,
+                             ARBORETUM_INITIAL_WINDOW_HEIGHT);
   gtk_window_maximize(GTK_WINDOW(window));
   g_signal_connect(window, "close-request", G_CALLBACK(beenden), NULL);
 
@@ -1014,6 +1026,9 @@ int main(int argc, char *argv[]) {
       menueleiste, "Rückgängig",
       "Macht die zuletzt vorgenommene Änderung rückgängig.",
       G_CALLBACK(rueckgaengig), layout);
+  werkzeugknopf_mit_hinweis(menueleiste, "Wiederherstellen",
+      "Stellt die rückgängig gemachte Änderung wieder her (Strg+Umschalt+Z).",
+      G_CALLBACK(wiederherstellen), layout);
 
   GtkWidget *darstellungsgruppe = werkzeuggruppe(menueleiste, "Darstellung");
   werkzeugknopf_mit_hinweis(
@@ -1152,6 +1167,7 @@ int main(int argc, char *argv[]) {
   g_main_loop_unref(arboretum_main_loop);
   arboretum_main_loop = NULL;
 
+  undo_leeren();
   if (arboretum_temp_verzeichnis) {
     GDir *undo_dir = g_dir_open(arboretum_temp_verzeichnis, 0, NULL);
     if (undo_dir) {

@@ -25,6 +25,8 @@ static int compare_widgets_wsk(const void *a, const void *b) {
 }
 
 void alleknotenneupositionieren(gpointer data) {
+  gboolean vorher_intern = undo_intern;
+  undo_intern = TRUE;
   qsort(textfeldErgebnis, maxzaehlererg + 1, sizeof(GtkWidget *),
         compare_widgets);
   qsort(textfeldErgebnisWahrscheinlichkeit, maxzaehlererg + 1,
@@ -72,4 +74,5 @@ void alleknotenneupositionieren(gpointer data) {
 
   tempspeichern();
   templaden(data);
+  undo_intern = vorher_intern;
 }
