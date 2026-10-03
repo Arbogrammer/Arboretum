@@ -155,6 +155,7 @@ typedef struct {
   guint attempts;
   gboolean initialized;
   gboolean finished;
+  gint64 next_action_at;
 } IoSaveDialogTest;
 
 /* Exercise the real chooser/response callback as well as the serializer. Only
@@ -174,6 +175,17 @@ static gboolean io_test_choose_save(gpointer data) {
       gtk_dialog_response(GTK_DIALOG(candidate), GTK_RESPONSE_CANCEL);
       return G_SOURCE_REMOVE;
     }
+    /* GTK 4.14 builds the path bar asynchronously. Changing the folder or
+     * closing the chooser immediately can cancel unfinished path buttons and
+     * hit gtk_box_remove() in GTK's cancellation callback. Pace automated
+     * actions like user input, without suppressing GTK diagnostics. */
+    if (!gtk_widget_get_mapped(GTK_WIDGET(candidate)))
+      continue;
+    gint64 now = g_get_monotonic_time();
+    if (!test->next_action_at)
+      test->next_action_at = now + G_TIME_SPAN_SECOND;
+    if (now < test->next_action_at)
+      return G_SOURCE_CONTINUE;
     g_autofree gchar *selected = gtk_file_chooser_get_filename(chooser);
     g_autofree gchar *expected =
         g_build_filename(test->directory, test->filename, NULL);
@@ -200,6 +212,7 @@ static gboolean io_test_choose_save(gpointer data) {
       }
       gtk_file_chooser_set_current_name(chooser, test->filename);
       test->initialized = TRUE;
+      test->next_action_at = now + G_TIME_SPAN_SECOND;
       return G_SOURCE_CONTINUE;
     }
   }
@@ -262,7 +275,7 @@ static gboolean io_smoketest(gpointer data) {
   ok &= io_test_startup_file(dir);
   io_test_drain();
   ok &= io_test_loaded_selection();
-  IoSaveDialogTest dialog_test = {dir, "Dialog-Ä.bdg", 0, FALSE, FALSE};
+  IoSaveDialogTest dialog_test = {dir, "Dialog-Ä.bdg", 0, FALSE, FALSE, 0};
   guint dialog_source = g_timeout_add(100, io_test_choose_save, &dialog_test);
   gboolean dialog_ok = speicherdialog(NULL, data);
   if (!dialog_test.finished)

@@ -14,7 +14,8 @@ for test in ("KEYBOARD", "IO"):
     for name in ("ARBORETUM_KEYBOARD_SMOKE_TEST", "ARBORETUM_IO_SMOKE_TEST"):
         env.pop(name, None)
     env.update({f"ARBORETUM_{test}_SMOKE_TEST": "1", "ARBORETUM_DIAGNOSTIC": "1",
-                "GSK_RENDERER": "cairo", "APPIMAGE_EXTRACT_AND_RUN": "1"})
+                "GSK_RENDERER": "cairo", "G_DEBUG": "fatal-criticals",
+                "APPIMAGE_EXTRACT_AND_RUN": "1"})
     with (logs / f"{test}.txt").open("w") as output:
         try:
             process = subprocess.Popen([executable], env=env, stdout=output,
