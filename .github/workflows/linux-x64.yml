@@ -20,13 +20,20 @@ jobs:
       - name: Install build and test dependencies
         run: sudo apt-get update && sudo apt-get install -y build-essential pkg-config libgtk-4-dev librsvg2-common curl xvfb xauth gdb
       - name: Run regression suite
-        run: make test-core
-      - name: Diagnose failed file dialog test
-        if: always()
         run: |
-          mkdir -p dist/test-logs/diagnostic-settings
-          xvfb-run -a env G_DEBUG=fatal-criticals GSETTINGS_BACKEND=memory GSK_RENDERER=cairo GDK_BACKEND=x11 GTK_A11Y=none ARBORETUM_IO_SMOKE_TEST=1 XDG_CONFIG_HOME="$PWD/dist/test-logs/diagnostic-settings" gdb -batch -ex run -ex 'thread apply all bt' --args ./arboretum > dist/test-logs/dialog-backtrace.txt 2>&1
-          cat dist/test-logs/dialog-backtrace.txt
+          sudo sysctl -w kernel.core_pattern="$PWD/dist/core.%p"
+          mkdir -p dist
+          ulimit -c unlimited
+          make test-core
+      - name: Diagnose failed regression tests
+        if: failure()
+        run: |
+          for core in dist/core.*; do
+            [ -f "$core" ] || continue
+            gdb -batch -ex 'thread apply all bt' ./arboretum "$core" > "$core.backtrace.txt" 2>&1
+            cat "$core.backtrace.txt"
+            rm "$core"
+          done
       - name: Build AppImage
         run: bash packaging/appimage/build-appimage.sh
       - name: Test packaged AppImage
