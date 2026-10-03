@@ -41,9 +41,20 @@ void wskergebnisneuschreiben(GtkWidget *widget) {
       return;
     }
     if (bruch) {
-      zaehler *= atoll(einzelwsk);
+      long long int faktor_zaehler = atoll(einzelwsk);
+      long long int produkt;
+      if (__builtin_mul_overflow(zaehler, faktor_zaehler, &produkt)) {
+        gtk_entry_set_text(GTK_ENTRY(widget), "");
+        return;
+      }
+      zaehler = produkt;
       if (strchr(einzelwsk, '/')) {
-        nenner *= atoll(strchr(einzelwsk, '/') + 1);
+        long long int faktor_nenner = atoll(strchr(einzelwsk, '/') + 1);
+        if (__builtin_mul_overflow(nenner, faktor_nenner, &produkt)) {
+          gtk_entry_set_text(GTK_ENTRY(widget), "");
+          return;
+        }
+        nenner = produkt;
       }
     } else {
       if (einzelwsk[0]) {

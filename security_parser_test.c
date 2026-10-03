@@ -51,6 +51,16 @@ static gboolean gueltig(GString *datei) {
   return bdg_struktur_pruefen(datei->str, datei->len, &grund);
 }
 
+static gsize kopffeld_start(const GString *datei, guint feld) {
+  gsize start = 0;
+  for (guint i = 0; i < feld; i++) {
+    const char *trenner = memchr(datei->str + start, 31, datei->len - start);
+    g_assert_nonnull(trenner);
+    start = (gsize)(trenner - datei->str) + 1;
+  }
+  return start;
+}
+
 static void test_minimaldatei(void) {
   g_autoptr(GString) datei = minimaldatei("0", "Äpfel Ω");
   g_assert_true(gueltig(datei));
@@ -65,6 +75,25 @@ static void test_layout_optionen(void) {
   g_assert_false(gueltig(datei));
   datei->str[pos + 2] = '2';
   datei->str[pos + 6] = '2';
+  g_assert_false(gueltig(datei));
+}
+
+static void test_einstellungsgrenzen(void) {
+  g_autoptr(GString) datei = minimaldatei("0", "Text");
+  /* The first header field is a layout margin.  A value that fits into the
+   * textual field but would later overflow layout calculations is rejected. */
+  g_string_insert(datei, 0, "2147483647");
+  g_string_erase(datei, 10, 1);
+  g_assert_false(gueltig(datei));
+}
+
+static void test_dezimalkomma_und_endlichkeit(void) {
+  g_autoptr(GString) datei = minimaldatei("0", "Text");
+  gsize start = kopffeld_start(datei, 19);
+  g_string_erase(datei, start, 1);
+  g_string_insert(datei, start, "0,5");
+  g_assert_true(gueltig(datei));
+  memcpy(datei->str + start, "nan", 3);
   g_assert_false(gueltig(datei));
 }
 
@@ -188,6 +217,9 @@ int main(int argc, char **argv) {
   g_test_init(&argc, &argv, NULL);
   g_test_add_func("/bdg/minimal", test_minimaldatei);
   g_test_add_func("/bdg/layout-optionen", test_layout_optionen);
+  g_test_add_func("/bdg/einstellungsgrenzen", test_einstellungsgrenzen);
+  g_test_add_func("/bdg/dezimalkomma-und-endlichkeit",
+                  test_dezimalkomma_und_endlichkeit);
   g_test_add_func("/bdg/textgrenze", test_textgrenze);
   g_test_add_func("/bdg/trenner-und-bytes", test_trenner_und_bytes);
   g_test_add_func("/bdg/indizes", test_indizes);

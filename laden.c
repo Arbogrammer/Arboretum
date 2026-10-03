@@ -27,6 +27,52 @@ static gboolean bdg_ganzzahl_pruefen(const char *start, gsize laenge,
   return TRUE;
 }
 
+static gboolean bdg_kommazahl_pruefen(const char *start, gsize laenge,
+                                      double minimum, double maximum) {
+  if (!laenge || laenge > 99)
+    return FALSE;
+  char puffer[100];
+  memcpy(puffer, start, laenge);
+  puffer[laenge] = 0;
+  /* Older files use the current locale when writing colors and padding, so
+   * accept both the canonical dot and a decimal comma. */
+  char *komma = strchr(puffer, ',');
+  if (komma) {
+    if (strchr(komma + 1, ','))
+      return FALSE;
+    *komma = '.';
+  }
+  char *ende = NULL;
+  errno = 0;
+  double wert = g_ascii_strtod(puffer, &ende);
+  return errno != ERANGE && ende != puffer && !*ende && isfinite(wert) &&
+         wert >= minimum && wert <= maximum;
+}
+
+/* Header values ultimately become widget dimensions and coordinates.  Keep
+ * them within a range in which the later integer layout arithmetic remains
+ * safe, including for the maximum supported tree depth. */
+static gboolean bdg_headerwert_pruefen(guint feld, const char *start,
+                                       gsize laenge) {
+  if (feld == 15)
+    return laenge == 1;
+  if (feld >= 19 && feld <= 38)
+    return bdg_kommazahl_pruefen(start, laenge, 0., 1.);
+  if (feld == 54)
+    return bdg_kommazahl_pruefen(start, laenge, 0., 10000.);
+  if (feld == 55)
+    return bdg_kommazahl_pruefen(start, laenge, 0., 10000.);
+  if (feld == 60)
+    return bdg_ganzzahl_pruefen(start, laenge, -10000, 10000, NULL);
+  if (feld == 16 || feld == 56 || feld == 61)
+    return bdg_ganzzahl_pruefen(start, laenge, 0, 10000, NULL);
+  if ((feld >= 39 && feld <= 42) || feld == 57 || feld == 58)
+    return bdg_ganzzahl_pruefen(start, laenge, 0, 1, NULL);
+  if (feld == 53)
+    return TRUE; /* UTF-8 is checked separately below. */
+  return bdg_ganzzahl_pruefen(start, laenge, 0, 10000, NULL);
+}
+
 static gboolean bdg_knotenname_pruefen(const char *start, gsize laenge,
                                        guint art) {
   if (art == 2) /* Ergebnisname endet auf -E. */
@@ -88,6 +134,10 @@ static gboolean bdg_zeile_pruefen(const char *daten, gsize laenge, gsize *pos,
       return FALSE;
     }
     gsize feldlaenge = *pos - start;
+    if (header && !bdg_headerwert_pruefen(feld, daten + start, feldlaenge)) {
+      *grund = "Eine Darstellungseinstellung liegt außerhalb des zulässigen Bereichs.";
+      return FALSE;
+    }
     if (header && feld >= 62 &&
         !bdg_ganzzahl_pruefen(daten + start, feldlaenge, 0,
                               feld == 63 ? 2 : 1, NULL)) {

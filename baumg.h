@@ -94,7 +94,7 @@ void hilfe(GtkWidget *widget, gpointer user_data);
 void urnenmodell_dialog(GtkWidget *widget, gpointer data);
 void binomialmodell_dialog(GtkWidget *widget, gpointer data);
 void pfadvorlage_dialog(GtkWidget *widget, gpointer data);
-int ggt(long long int x, long long int y);
+long long int ggt(long long int x, long long int y);
 static void knotenhintergrundfarbeaendern();
 static void knotenrandfarbeaendern();
 static void knotenranddickeaendern();
