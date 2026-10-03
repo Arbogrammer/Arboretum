@@ -74,7 +74,7 @@ static void modell_build(Modell *m, const char *n, const char *t, const char *e,
 }
 
 static int modell_textbreite(const char *text) {
-  return MAX(2, 2 * (int)g_utf8_strlen(text, -1));
+  return MAX(2, (int)g_utf8_strlen(text, -1));
 }
 static void modell_wahrscheinlichkeitsfelder_anpassen(gpointer data);
 /* Das Laden erzeugt die Felder mit der gespeicherten Standardbreite. Die

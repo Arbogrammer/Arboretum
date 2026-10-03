@@ -27,25 +27,11 @@ void ergebnistextneuschreiben(GtkWidget *widget) {
   int i = 0;
   ErgebnisTextBreite = 2;
   for (i = 0; i <= maxzaehlererg; i++) {
-    int laenge =
-        g_utf8_strlen(gtk_entry_get_text(GTK_ENTRY(textfeldErgebnis[i])), -1);
     const gchar *text = gtk_entry_get_text(GTK_ENTRY(textfeldErgebnis[i]));
-    gunichar unicode_char =
-        0x0305; // Unicode-Wert für den kombinierenden Überstrich
-    int count = 0;
+    int breite = textbreite_in_zeichen(textfeldErgebnis[i], text);
 
-    gchar *pos = (gchar *)text;
-    while (*pos != '\0') {
-      gunichar c = g_utf8_get_char(pos);
-      if (c == unicode_char) {
-        count++;
-      }
-      pos = g_utf8_next_char(pos);
-    }
-    laenge -= count;
-
-    if (2 * laenge > ErgebnisTextBreite) {
-      ErgebnisTextBreite = laenge * 2;
+    if (breite > ErgebnisTextBreite) {
+      ErgebnisTextBreite = breite;
     }
   }
 

@@ -2,10 +2,39 @@
  * Defer geometry updates until GTK has finished processing the edit. */
 static guint eingabe_neuaufbau_id = 0;
 
+/* GtkEntry legt seine Breite in durchschnittlichen Zeichen fest. Die reine
+ * Zeichenanzahl reicht daher bei breiten Buchstaben wie „G“ nicht aus. */
+static int textbreite_in_zeichen(GtkWidget *widget, const char *text) {
+  PangoLayout *layout = gtk_widget_create_pango_layout(widget, text);
+  PangoContext *context = gtk_widget_get_pango_context(widget);
+  PangoFontMetrics *metrics =
+      pango_context_get_metrics(context, NULL, pango_context_get_language(context));
+  int textbreite = 0;
+  /* GtkEntry bemisst width-chars anhand einer Ziffernbreite. Das entspricht
+   * seinem tatsächlichen Layout besser als die allgemeinere Pango-Näherung. */
+  int zeichenbreite = pango_font_metrics_get_approximate_digit_width(metrics);
+  int laenge = g_utf8_strlen(text, -1);
+
+  pango_layout_get_size(layout, &textbreite, NULL);
+
+  g_object_unref(layout);
+  pango_font_metrics_unref(metrics);
+
+  if (zeichenbreite <= 0)
+    return MAX(2, laenge);
+  return MAX(2, (textbreite + zeichenbreite - 1) / zeichenbreite);
+}
+
+static int knoten_textbreite_fuer_stufe(int stufe) {
+  return MAX(2, KnotenTextBreiteStufe[stufe]);
+}
+
 static gboolean eingabe_neuaufbauen(gpointer data) {
   eingabe_neuaufbau_id = 0;
   for (int i = 0; i <= maxzaehler; i++) {
-    gtk_entry_set_width_chars(GTK_ENTRY(textfeld[i]), KnotenTextBreite);
+    int stufe = zeichenzaehlen(gtk_widget_get_name(textfeld[i]), '-') - 1;
+    gtk_entry_set_width_chars(GTK_ENTRY(textfeld[i]),
+                              knoten_textbreite_fuer_stufe(stufe));
     gtk_entry_set_width_chars(GTK_ENTRY(textfeldWahrscheinlichkeit[i]),
                               WahrscheinlichkeitTextBreite);
   }
@@ -42,26 +71,16 @@ void buchstabeneingabe(GtkEditable *editable, gpointer data) {
 
   int i = 0;
   KnotenTextBreite = 2;
+  for (i = 0; i <= maxStufe; i++)
+    KnotenTextBreiteStufe[i] = 2;
 
   for (i = 0; i <= maxzaehler; i++) {
-    int laenge = g_utf8_strlen(gtk_entry_get_text(GTK_ENTRY(textfeld[i])), -1);
     const gchar *text = gtk_entry_get_text(GTK_ENTRY(textfeld[i]));
-    gunichar unicode_char =
-        0x0305; // Unicode-Wert für den kombinierenden Überstrich
-    int count = 0;
-
-    gchar *pos = (gchar *)text;
-    while (*pos != '\0') {
-      gunichar c = g_utf8_get_char(pos);
-      if (c == unicode_char) {
-        count++;
-      }
-      pos = g_utf8_next_char(pos);
-    }
-    laenge -= count; // Da die Überstriche keinen Platz brauchen, werden die aus
-                     // der Länge des Textes wieder abgezogen.
-    if (KnotenTextBreite < 2 * laenge) {
-      KnotenTextBreite = laenge * 2;
+    int breite = textbreite_in_zeichen(textfeld[i], text);
+    int stufe = zeichenzaehlen(gtk_widget_get_name(textfeld[i]), '-') - 1;
+    KnotenTextBreiteStufe[stufe] = MAX(KnotenTextBreiteStufe[stufe], breite);
+    if (KnotenTextBreite < breite) {
+      KnotenTextBreite = breite;
     }
   }
 

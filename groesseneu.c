@@ -1,9 +1,12 @@
 void groesseneu(GtkWidget *widget, GdkRectangle *ap, gpointer data) {
   int mh = 0, nh = 0, mw = 0, nw = 0;
   gtk_widget_get_preferred_height(textfeld[0], &mh, &nh);
-  gtk_widget_get_preferred_width(textfeld[0], &mw, &nw);
   KnotenHoehe = nh;
-  KnotenBreite = nw;
+  KnotenBreite = 0;
+  for (int i = 0; i <= maxzaehler; i++) {
+    gtk_widget_get_preferred_width(textfeld[i], &mw, &nw);
+    KnotenBreite = MAX(KnotenBreite, nw);
+  }
   gtk_widget_get_preferred_height(textfeldWahrscheinlichkeit[0], &mh, &nh);
   gtk_widget_get_preferred_width(textfeldWahrscheinlichkeit[0], &mw, &nw);
   WahrscheinlichkeitHoehe = nh;
@@ -20,9 +23,12 @@ void groesseneu(GtkWidget *widget, GdkRectangle *ap, gpointer data) {
   int i = 0;
   for (i = 0; i <= maxzaehler; i++) {
     int Stufetemp = zeichenzaehlen(gtk_widget_get_name(textfeld[i]), '-') - 1;
-    int x = baum_vertikal ? FensterRandLinks + RandLinks + y[i]
+    gtk_widget_get_preferred_width(textfeld[i], &mw, &nw);
+    int versatz = (KnotenBreite - nw) / 2;
+    int x = baum_vertikal ? FensterRandLinks + RandLinks + y[i] + versatz
                           : FensterRandLinks + RandLinks + StufenBreite +
-                                (StufenBreite + KnotenBreite) * Stufetemp;
+                                (StufenBreite + KnotenBreite) * Stufetemp +
+                                versatz;
     int yposition = baum_vertikal ? vertikale_stufe_y(Stufetemp)
                                   : FensterRandOben + RandOben + y[i];
     gtk_layout_move(GTK_LAYOUT(data), textfeld[i], x, yposition);

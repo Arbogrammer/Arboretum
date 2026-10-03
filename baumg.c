@@ -309,6 +309,8 @@ int ErgebnisBreite = 40;
 char ErgebnisTrenner = 127;
 int LinienDicke = 1;
 int KnotenTextBreite = 2;
+/* Eingabebreite je Stufe; Knoten derselben Stufe bleiben ausgerichtet. */
+int KnotenTextBreiteStufe[MAX_KNOTEN] = {0};
 int KnotenLabelBreite = 40;
 int klbmax = 40;
 int KnotenLabelHoehe = 29;

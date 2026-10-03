@@ -17,9 +17,12 @@ gboolean positionsanpassung(GtkWidget *widget, gpointer data) {
   int tempstufe = zeichenzaehlen(gtk_widget_get_name(widget), '-') - 1;
   y[tempzaehler] = (ytempo + ytempu) / 2;
   printf("Neuer y-Wert: %i\n", y[tempzaehler]);
-  int x = baum_vertikal ? FensterRandLinks + RandLinks + y[tempzaehler]
+  int mw = 0, nw = 0;
+  gtk_widget_get_preferred_width(widget, &mw, &nw);
+  int versatz = (KnotenBreite - nw) / 2;
+  int x = baum_vertikal ? FensterRandLinks + RandLinks + y[tempzaehler] + versatz
                         : FensterRandLinks + RandLinks + StufenBreite +
-                              (StufenBreite + KnotenBreite) * tempstufe;
+                              (StufenBreite + KnotenBreite) * tempstufe + versatz;
   int yposition = baum_vertikal ? vertikale_stufe_y(tempstufe)
                                 : FensterRandOben + RandOben + y[tempzaehler];
   gtk_layout_move(GTK_LAYOUT(data), widget, x, yposition);

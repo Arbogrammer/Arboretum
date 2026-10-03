@@ -76,7 +76,8 @@ gboolean rechts(GtkWidget *widget, gpointer data) {
     gtk_widget_set_name(textfeldErgebnis[zaehlererg], neues_ergebnis);
     gtk_widget_set_name(textfeldErgebnisWahrscheinlichkeit[zaehlererg],
                         nameergw);
-    gtk_entry_set_width_chars(GTK_ENTRY(textfeld[zaehler]), KnotenTextBreite);
+    gtk_entry_set_width_chars(GTK_ENTRY(textfeld[zaehler]),
+                              knoten_textbreite_fuer_stufe(Stufe));
     gtk_entry_set_width_chars(GTK_ENTRY(textfeldWahrscheinlichkeit[zaehler]),
                               WahrscheinlichkeitTextBreite);
     gtk_entry_set_alignment(GTK_ENTRY(textfeld[zaehler]), 0.5);

@@ -70,7 +70,8 @@ gboolean runter(GtkWidget *widget, gpointer data) {
     g_autofree gchar *name =
         g_strdup_printf("%s-%i", namensanfang, Knoten[Stufe]);
     gtk_widget_set_name(textfeld[zaehler], name);
-    gtk_entry_set_width_chars(GTK_ENTRY(textfeld[zaehler]), KnotenTextBreite);
+    gtk_entry_set_width_chars(GTK_ENTRY(textfeld[zaehler]),
+                              knoten_textbreite_fuer_stufe(Stufe));
     gtk_entry_set_alignment(GTK_ENTRY(textfeld[zaehler]), 0.5);
     g_signal_connect(textfeld[zaehler], "changed",
                      G_CALLBACK(buchstabeneingabe), data);

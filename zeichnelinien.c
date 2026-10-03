@@ -241,8 +241,15 @@ static void zeichnelinien(GtkDrawingArea *widget, cairo_t *cr, int width,
                           zweigfarbe.alpha);
     cairo_set_line_width(cr, LinienDicke);
     cairo_move_to(cr, RandLinks, RandOben + (y[0] + ytemp + KnotenHoehe) / 2);
-    cairo_line_to(cr, RandLinks + StufenBreite,
-                  RandOben + y[zaehlertemp] + KnotenHoehe / 2);
+    if (labelein) {
+      cairo_line_to(cr, RandLinks + StufenBreite,
+                    RandOben + y[zaehlertemp] + KnotenHoehe / 2);
+    } else {
+      GtkAllocation ziel;
+      gtk_widget_get_allocation(textfeld[zaehlertemp], &ziel);
+      cairo_line_to(cr, ziel.x - FensterRandLinks,
+                    ziel.y - FensterRandOben + ziel.height / 2);
+    }
     cairo_stroke(cr);
     i++;
     memset(knotenname, 0, sizeof(knotenname));
@@ -263,19 +270,22 @@ static void zeichnelinien(GtkDrawingArea *widget, cairo_t *cr, int width,
           cairo_set_source_rgba(cr, zweigfarbe.red, zweigfarbe.green,
                                 zweigfarbe.blue, zweigfarbe.alpha);
           cairo_set_line_width(cr, LinienDicke);
-          cairo_move_to(
-              cr,
-              RandLinks +
-                  (StufenBreite + ((labelein == 0) ? KnotenBreite : klbmax)) *
-                      tempstufe,
-              RandOben + y[i] + KnotenHoehe / 2);
-          cairo_line_to(
-              cr,
-              RandLinks +
-                  (StufenBreite + ((labelein == 0) ? KnotenBreite : klbmax)) *
-                      tempstufe +
-                  StufenBreite,
-              RandOben + y[nachfolger(i, j)] + KnotenHoehe / 2);
+          if (labelein) {
+            cairo_move_to(cr, RandLinks + (StufenBreite + klbmax) * tempstufe,
+                          RandOben + y[i] + KnotenHoehe / 2);
+            cairo_line_to(cr,
+                          RandLinks + (StufenBreite + klbmax) * tempstufe +
+                              StufenBreite,
+                          RandOben + y[nachfolger(i, j)] + KnotenHoehe / 2);
+          } else {
+            GtkAllocation quelle, ziel;
+            gtk_widget_get_allocation(textfeld[i], &quelle);
+            gtk_widget_get_allocation(textfeld[nachfolger(i, j)], &ziel);
+            cairo_move_to(cr, quelle.x - FensterRandLinks + quelle.width,
+                          quelle.y - FensterRandOben + quelle.height / 2);
+            cairo_line_to(cr, ziel.x - FensterRandLinks,
+                          ziel.y - FensterRandOben + ziel.height / 2);
+          }
           cairo_stroke(cr);
         }
       }
