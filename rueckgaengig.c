@@ -1,5 +1,4 @@
-void rueckgaengig(GtkWidget *widget, gpointer data)
-{
-  zurueck=1;
+void rueckgaengig(GtkWidget *widget, gpointer data) {
+  zurueck = 1;
   templaden(data);
 }

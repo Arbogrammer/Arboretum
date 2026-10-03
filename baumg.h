@@ -10,23 +10,24 @@
 /* Eingabe, Dateioperationen und Export */
 void buchstabeneingabe(GtkEditable *editable, gpointer data);
 void wskeingabe(GtkEditable *editable, gpointer data);
-static gboolean keyfunc (GtkEventControllerKey *controller, guint keyval,
-                         guint keycode, GdkModifierType state, gpointer data);
+static gboolean keyfunc(GtkEventControllerKey *controller, guint keyval,
+                        guint keycode, GdkModifierType state, gpointer data);
 void oeffnen(GtkWidget *widget, gpointer data);
 gboolean speicherdialog(GtkWidget *widget, gpointer data);
 void speichernvor(GtkWidget *widget, gpointer dateiname);
 gboolean speichern(char *dateiname);
-static void dateifehler(const char *vorgang, const char *pfad, const char *grund);
+static void dateifehler(const char *vorgang, const char *pfad,
+                        const char *grund);
 void tempspeichern();
 void reset(gpointer data);
 void templaden(gpointer data);
-void laden(gpointer data,char *dateiname);
-void exportdialog (GtkWidget *widget, gpointer data);
-gboolean exportpng (char *dateiname);
-gboolean exportsvg (char *dateiname);
-gboolean exportbmp (char *dateiname);
-gboolean exportjpg (char *dateiname);
-gboolean exportpdf (char *dateiname);
+void laden(gpointer data, char *dateiname);
+void exportdialog(GtkWidget *widget, gpointer data);
+gboolean exportpng(char *dateiname);
+gboolean exportsvg(char *dateiname);
+gboolean exportbmp(char *dateiname);
+gboolean exportjpg(char *dateiname);
+gboolean exportpdf(char *dateiname);
 void rueckgaengig(GtkWidget *widget, gpointer data);
 void loeschen(gpointer data);
 gboolean pos1(GtkWidget *widget, gpointer data);
@@ -46,51 +47,65 @@ int wskexistiert(const gchar *knotenname);
 int ergebniszaehlernummer(const gchar *ergebnisname);
 int weiterunten(char *stringoben, const gchar *stringunten);
 static void zeichnelinien(GtkDrawingArea *widget, cairo_t *cr, int width,
-                         int height, gpointer data);
+                          int height, gpointer data);
 int anzahlnachfolger(int i);
 int nachfolger(int i, int nachfolgernummer);
-// static gboolean zeichneknotenhintergrund(GtkWidget *widget, cairo_t *cr, gpointer data);
 gboolean beenden(GtkWidget *widget, gpointer data);
 void ergebnisspalteanzeigen(gpointer data);
 void wskergebnisspalteanzeigen(gpointer data);
 void ergebnistextneuschreiben(GtkWidget *widget);
 void neugroesse(GtkWidget *widget, GtkAllocation *allocation, void *data);
-static void hintergrundfarbewechseln (GtkWidget *button, gpointer data);
-static void dialogschliessen(GtkDialog *dialog,gint response_id,  gpointer user_data);
+static void hintergrundfarbewechseln(GtkWidget *button, gpointer data);
+static void dialogschliessen(GtkDialog *dialog, gint response_id,
+                             gpointer user_data);
 static void formdialog(GtkWidget *button, gpointer data);
 void xy(GtkWidget *widget, double x, double y, gpointer data);
-void positionneu(int KnotenAbstandVorher,gpointer data);
+void positionneu(int KnotenAbstandVorher, gpointer data);
 int anzahlknoteninstufe(int i);
 void positionsanpassungwsk(gpointer data);
-void wskergebnisverschieben(GtkWidget *widget, GtkAllocation *allocation, gpointer data);
+void wskergebnisverschieben(GtkWidget *widget, GtkAllocation *allocation,
+                            gpointer data);
 void wskergebnisneuschreiben(GtkWidget *widget);
 void umwandeln(GtkWidget *widget, gpointer data);
-//void wsklabelverschieben(GtkWidget *widget, GdkRectangle *allocation, gpointer *data);
 void labelverschieben(gpointer data);
-//void wsklabelverschiebentest(GtkWidget widget, gpointer data);
-void wsklabelgroesse(GtkWidget *widget, GdkRectangle *allocation, gpointer data);
+void wsklabelgroesse(GtkWidget *widget, GdkRectangle *allocation,
+                     gpointer data);
 void groesseneu(GtkWidget *widget, GdkRectangle *ap, gpointer data);
-static void zweigfarbewechseln (GtkWidget *button, gpointer data);
-static void knotenhintergrundfarbewechseln (GtkWidget *button, gpointer data);
-static void schriftfarbewechseln (GtkWidget *button, gpointer data);
-static void knotenrandfarbewechseln (GtkWidget *button, gpointer data);
-static void schriftartwechseln (GtkWidget *button, gpointer data);
-static void dialogzschliessen(GtkDialog *dialog,gint response_id,  gpointer user_data);
-static void dialogsschliessen(GtkDialog *dialog,gint response_id,  gpointer user_data);
-static void dialogsfschliessen(GtkDialog *dialog,gint response_id,  gpointer user_data);
-static void dialogkhfschliessen(GtkDialog *dialog,gint response_id,  gpointer user_data);
-static void dialogkrfschliessen(GtkDialog *dialog,gint response_id,  gpointer user_data);
-void schriftartanpassen(GtkFontChooser *self, gchar *fontname, gpointer user_data);
+static void zweigfarbewechseln(GtkWidget *button, gpointer data);
+static void knotenhintergrundfarbewechseln(GtkWidget *button, gpointer data);
+static void schriftfarbewechseln(GtkWidget *button, gpointer data);
+static void knotenrandfarbewechseln(GtkWidget *button, gpointer data);
+static void schriftartwechseln(GtkWidget *button, gpointer data);
+static void dialogzschliessen(GtkDialog *dialog, gint response_id,
+                              gpointer user_data);
+static void dialogsschliessen(GtkDialog *dialog, gint response_id,
+                              gpointer user_data);
+static void dialogsfschliessen(GtkDialog *dialog, gint response_id,
+                               gpointer user_data);
+static void dialogkhfschliessen(GtkDialog *dialog, gint response_id,
+                                gpointer user_data);
+static void dialogkrfschliessen(GtkDialog *dialog, gint response_id,
+                                gpointer user_data);
+void schriftartanpassen(GtkFontChooser *self, gchar *fontname,
+                        gpointer user_data);
 void hilfe(GtkWidget *widget, gpointer user_data);
+void urnenmodell_dialog(GtkWidget *widget, gpointer data);
+void binomialmodell_dialog(GtkWidget *widget, gpointer data);
+void pfadvorlage_dialog(GtkWidget *widget, gpointer data);
 int ggt(long long int x, long long int y);
-static void knotenhintergrundfarbeaendern ();
-static void knotenrandfarbeaendern ();
-static void knotenranddickeaendern ();
-static void schriftfarbeaendern ();
+static void knotenhintergrundfarbeaendern();
+static void knotenrandfarbeaendern();
+static void knotenranddickeaendern();
+static void schriftfarbeaendern();
 void knotenwskwechseln();
 char *ftstr(double zahl);
 void ueberstreichen();
 void alleknotenneupositionieren(gpointer data);
+void baumrichtung_aktualisieren(gpointer data);
+void baumrichtung_umschalten(GtkCheckButton *schalter, gpointer data);
+extern GtkCheckButton *baumrichtungsschalter;
+void baumfokus_merken(GObject *objekt, GParamSpec *eigenschaft, gpointer data);
+void baumfokus_wiederherstellen(void);
 
 /* Mathematische Hilfsfunktion. */
 #include <math.h>
@@ -136,7 +151,6 @@ void alleknotenneupositionieren(gpointer data);
 #include "zeichnelinien.c"
 #include "anzahlnachfolger.c"
 #include "nachfolger.c"
-//#include "zeichneknotenhintergrund.c"
 #include "beenden.c"
 #include "ergebnisspalteanzeigen.c"
 #include "wskergebnisspalteanzeigen.c"
@@ -153,7 +167,6 @@ void alleknotenneupositionieren(gpointer data);
 #include "wskergebnisneuschreiben.c"
 #include "umwandeln.c"
 #include "labelverschieben.c"
-//#include "wsklabelverschiebentest.c"
 #include "wsklabelgroesse.c"
 #include "groesseneu.c"
 #include "zweigfarbewechseln.c"
@@ -162,6 +175,8 @@ void alleknotenneupositionieren(gpointer data);
 #include "dialogsschliessen.c"
 #include "schriftartanpassen.c"
 #include "hilfe.c"
+#include "urnenmodell.c"
+#include "standardmodelle.c"
 #include "ggt.c"
 #include "knotenhintergrundfarbewechseln.c"
 #include "schriftfarbewechseln.c"
@@ -177,3 +192,4 @@ void alleknotenneupositionieren(gpointer data);
 #include "ftstr.c"
 #include "ueberstreichen.c"
 #include "alleknotenneupositionieren.c"
+#include "baumrichtung.c"

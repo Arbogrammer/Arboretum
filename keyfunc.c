@@ -6,8 +6,7 @@
  * Eingabefeld weiter, damit dort beispielsweise Buchstaben erscheinen.
  */
 static gboolean eingabefeld_verarbeitet_pfeiltaste(guint keyval,
-                                                    GdkModifierType state)
-{
+                                                   GdkModifierType state) {
   GtkWidget *fokus = gtk_window_get_focus(GTK_WINDOW(window));
   if (!fokus || !GTK_IS_EDITABLE(fokus))
     return FALSE;
@@ -19,7 +18,8 @@ static gboolean eingabefeld_verarbeitet_pfeiltaste(guint keyval,
 
   GtkEditable *editable = GTK_EDITABLE(fokus);
   int auswahl_start, auswahl_ende;
-  if (gtk_editable_get_selection_bounds(editable, &auswahl_start, &auswahl_ende))
+  if (gtk_editable_get_selection_bounds(editable, &auswahl_start,
+                                        &auswahl_ende))
     return TRUE;
 
   int position = gtk_editable_get_position(editable);
@@ -30,136 +30,158 @@ static gboolean eingabefeld_verarbeitet_pfeiltaste(guint keyval,
 }
 
 static gboolean keyfunc(GtkEventControllerKey *controller, guint keyval,
-                        guint keycode, GdkModifierType state, gpointer data)
-{
+                        guint keycode, GdkModifierType state, gpointer data) {
   GtkWidget *widget =
       gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(controller));
   gboolean steuerung =
       (state & gtk_accelerator_get_default_mod_mask()) == GDK_CONTROL_MASK;
 
-  switch (keyval)
-  {
-    /* Navigation im Baum */
-    case GDK_KEY_Down:
-      runter(widget, data);
-      break;
-    case GDK_KEY_Right:
-      if (eingabefeld_verarbeitet_pfeiltaste(keyval, state))
-        return FALSE;
+  switch (keyval) {
+  /* Navigation im Baum */
+  case GDK_KEY_Down:
+    /* In der vertikalen Ansicht liegt das erste Kind unter dem Knoten. */
+    if (baum_vertikal)
       rechts(widget, data);
-      break;
-    case GDK_KEY_Up:
-      hoch(widget, data);
-      break;
-    case GDK_KEY_Left:
-      if (eingabefeld_verarbeitet_pfeiltaste(keyval, state))
-        return FALSE;
+    else
+      runter(widget, data);
+    break;
+  case GDK_KEY_Right:
+    if (eingabefeld_verarbeitet_pfeiltaste(keyval, state))
+      return FALSE;
+    /* Rechts bedeutet vertikal: nächster Knoten derselben Ebene. */
+    if (baum_vertikal)
+      runter(widget, data);
+    else
+      rechts(widget, data);
+    break;
+  case GDK_KEY_Up:
+    if (baum_vertikal)
       links(widget, data);
+    else
+      hoch(widget, data);
+    break;
+  case GDK_KEY_Left:
+    if (eingabefeld_verarbeitet_pfeiltaste(keyval, state))
+      return FALSE;
+    if (baum_vertikal)
+      hoch(widget, data);
+    else
+      links(widget, data);
+    break;
+  case GDK_KEY_Home:
+    pos1(widget, data);
+    break;
+  case GDK_KEY_Tab:
+    knotenwskwechseln();
+    break;
+
+  /* Bearbeiten und Dateioperationen */
+  case GDK_KEY_Delete:
+    if (steuerung)
+      reset(data);
+    else
+      loeschen(data);
+    break;
+  case GDK_KEY_Insert:
+    oeffnen(NULL, data);
+    break;
+  case GDK_KEY_F1:
+    hilfe(NULL, NULL);
+    break;
+
+  /* Reine Umschalttasten verändern den Baum nicht. */
+  case GDK_KEY_Shift_L:
+  case GDK_KEY_Shift_R:
+  case GDK_KEY_Control_L:
+  case GDK_KEY_Control_R:
+  case GDK_KEY_Caps_Lock:
+  case GDK_KEY_ISO_Level3_Shift:
+    break;
+
+  /* Tastenkürzel mit Strg. Ohne Strg geht das Zeichen ans Eingabefeld. */
+  case GDK_KEY_s:
+  case GDK_KEY_S:
+    if (steuerung) {
+      speichernvor(NULL, NULL);
       break;
-    case GDK_KEY_Home:
-      pos1(widget, data);
+    }
+    tempspeichern();
+    return FALSE;
+
+  case GDK_KEY_a:
+  case GDK_KEY_A:
+    if (steuerung) {
+      exportdialog(NULL, data);
       break;
-    case GDK_KEY_Tab:
-      knotenwskwechseln();
+    }
+    tempspeichern();
+    return FALSE;
+
+  case GDK_KEY_e:
+  case GDK_KEY_E:
+    if (steuerung) {
+      ergebnisspalteanzeigen(data);
       break;
+    }
+    tempspeichern();
+    return FALSE;
 
-    /* Bearbeiten und Dateioperationen */
-    case GDK_KEY_Delete:
-      if (steuerung)
-        reset(data);
-      else
-        loeschen(data);
+  case GDK_KEY_r:
+  case GDK_KEY_R:
+    if (steuerung) {
+      /* Der Schalter bleibt dabei synchron, und sein "toggled"-Signal
+       * übernimmt die komplette Neuanordnung. */
+      if (baumrichtungsschalter)
+        gtk_check_button_set_active(baumrichtungsschalter, !baum_vertikal);
+      else {
+        baum_vertikal = !baum_vertikal;
+        baumrichtung_aktualisieren(data);
+      }
       break;
-    case GDK_KEY_Insert:
-      oeffnen(NULL, data);
+    }
+    tempspeichern();
+    return FALSE;
+
+  case GDK_KEY_w:
+  case GDK_KEY_W:
+    if (steuerung) {
+      wskergebnisspalteanzeigen(data);
       break;
-    case GDK_KEY_F1:
-      hilfe(NULL, NULL);
+    }
+    tempspeichern();
+    return FALSE;
+
+  case GDK_KEY_minus:
+    if (steuerung) {
+      ueberstreichen();
       break;
+    }
+    tempspeichern();
+    return FALSE;
 
-    /* Reine Umschalttasten verändern den Baum nicht. */
-    case GDK_KEY_Shift_L:
-    case GDK_KEY_Shift_R:
-    case GDK_KEY_Control_L:
-    case GDK_KEY_Control_R:
-    case GDK_KEY_Caps_Lock:
-    case GDK_KEY_ISO_Level3_Shift:
+  case GDK_KEY_u:
+  case GDK_KEY_U:
+    if (steuerung) {
+      umwandeln(NULL, data);
       break;
+    }
+    tempspeichern();
+    return FALSE;
 
-    /* Tastenkürzel mit Strg. Ohne Strg geht das Zeichen ans Eingabefeld. */
-    case GDK_KEY_s:
-    case GDK_KEY_S:
-      if (steuerung)
-      {
-        speichernvor(NULL, NULL);
-        break;
-      }
-      tempspeichern();
-      return FALSE;
+  case GDK_KEY_z:
+  case GDK_KEY_Z:
+    if (steuerung) {
+      rueckgaengig(widget, data);
+      break;
+    }
+    tempspeichern();
+    return FALSE;
 
-    case GDK_KEY_a:
-    case GDK_KEY_A:
-      if (steuerung)
-      {
-        exportdialog(NULL, data);
-        break;
-      }
-      tempspeichern();
-      return FALSE;
-
-    case GDK_KEY_e:
-    case GDK_KEY_E:
-      if (steuerung)
-      {
-        ergebnisspalteanzeigen(data);
-        break;
-      }
-      tempspeichern();
-      return FALSE;
-
-    case GDK_KEY_w:
-    case GDK_KEY_W:
-      if (steuerung)
-      {
-        wskergebnisspalteanzeigen(data);
-        break;
-      }
-      tempspeichern();
-      return FALSE;
-
-    case GDK_KEY_minus:
-      if (steuerung)
-      {
-        ueberstreichen();
-        break;
-      }
-      tempspeichern();
-      return FALSE;
-
-    case GDK_KEY_u:
-    case GDK_KEY_U:
-      if (steuerung)
-      {
-        umwandeln(NULL, data);
-        break;
-      }
-      tempspeichern();
-      return FALSE;
-
-    case GDK_KEY_z:
-    case GDK_KEY_Z:
-      if (steuerung)
-      {
-        rueckgaengig(widget, data);
-        break;
-      }
-      tempspeichern();
-      return FALSE;
-
-    default:
-      /* Normale Texteingabe wird gespeichert und dann von GtkEntry verarbeitet. */
-      tempspeichern();
-      return FALSE;
+  default:
+    /* Normale Texteingabe wird gespeichert und dann von GtkEntry verarbeitet.
+     */
+    tempspeichern();
+    return FALSE;
   }
 
   return TRUE;

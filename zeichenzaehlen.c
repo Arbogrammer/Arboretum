@@ -1,11 +1,9 @@
-int zeichenzaehlen(const gchar *string, int zeichen)
-{
+int zeichenzaehlen(const gchar *string, int zeichen) {
   int anzahl = 0;
-  const char *adresse = strchr(string,zeichen);
-  while(adresse != NULL)
-  {
+  const char *adresse = strchr(string, zeichen);
+  while (adresse != NULL) {
     anzahl++;
-    adresse = strchr(adresse+2,zeichen);
+    adresse = strchr(adresse + 2, zeichen);
   }
   return anzahl;
 }

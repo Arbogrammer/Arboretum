@@ -1,4 +1,1 @@
-gboolean exportsvg(char *dateiname)
-{
-  return export_datei(dateiname, "svg");
-}
+gboolean exportsvg(char *dateiname) { return export_datei(dateiname, "svg"); }

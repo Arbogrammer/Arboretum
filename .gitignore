@@ -1,2 +1,6 @@
 /arboretum
+/bdg-testdata-generator
+/deep-tree-generator
+/parser-fuzz
+/security-parser-test
 /dist/

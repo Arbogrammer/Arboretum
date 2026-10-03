@@ -59,6 +59,14 @@ entfernen.
 | `Strg+Z` | Rückgängig |
 | `F1` | Hilfe anzeigen |
 
+## Abkürzungen
+
+Über **Abkürzungen → Urnenmodell** lässt sich ein vollständiger
+Wahrscheinlichkeitsbaum für eine Urnenziehung erzeugen. Bezeichnungen und
+Anzahlen werden jeweils kommasepariert eingegeben, etwa `B, G, W` und
+`2, 3, 1`. Zur Auswahl stehen Ziehen ohne Zurücklegen, mit Zurücklegen und
+mit Dazulegen.
+
 ## Aufbau des Quellcodes
 
 Arboretum ist historisch als ein gemeinsames C-Übersetzungsmodul aufgebaut.

@@ -1,29 +1,27 @@
-gboolean positionsanpassung(GtkWidget *widget, gpointer data)
-{
+gboolean positionsanpassung(GtkWidget *widget, gpointer data) {
   int tempzaehler = knotenexistiert(gtk_widget_get_name(widget));
   int knotenzaehler = 0;
-  char tempname[10000] = "", knotennummer[22]="";
-  sprintf(knotennummer,"-%i",knotenzaehler);
-  strcpy(tempname,gtk_widget_get_name(widget));
-  strcat(tempname,knotennummer);
-  int ytempo = (knotenexistiert(tempname))?y[knotenexistiert(tempname)]:y[tempzaehler];
+  const char *basisname = gtk_widget_get_name(widget);
+  g_autofree gchar *tempname =
+      g_strdup_printf("%s-%i", basisname, knotenzaehler);
+  int ytempo = (knotenexistiert(tempname)) ? y[knotenexistiert(tempname)]
+                                           : y[tempzaehler];
   int ytempu = ytempo;
-  while(knotenexistiert(tempname) > -1)
-  {
-    ytempu = (knotenexistiert(tempname))?y[knotenexistiert(tempname)]:y[tempzaehler];
+  while (knotenexistiert(tempname) > -1) {
+    ytempu = (knotenexistiert(tempname)) ? y[knotenexistiert(tempname)]
+                                         : y[tempzaehler];
     knotenzaehler += 1;
-    memset(tempname,0,10000);
-    memset(knotennummer,0,22);
-    strcpy(tempname,gtk_widget_get_name(widget));
-    sprintf(knotennummer,"-%i",knotenzaehler);
-    strcat(tempname,knotennummer);
+    g_free(g_steal_pointer(&tempname));
+    tempname = g_strdup_printf("%s-%i", basisname, knotenzaehler);
   }
-  int tempstufe=zeichenzaehlen(gtk_widget_get_name(widget),'-')-1;
+  int tempstufe = zeichenzaehlen(gtk_widget_get_name(widget), '-') - 1;
   y[tempzaehler] = (ytempo + ytempu) / 2;
-  printf("Neuer y-Wert: %i\n",y[tempzaehler]);
-  gtk_layout_move(GTK_LAYOUT(data),widget,FensterRandLinks+RandLinks+StufenBreite+(StufenBreite+KnotenBreite)*tempstufe,FensterRandOben+RandOben+y[tempzaehler]);
+  printf("Neuer y-Wert: %i\n", y[tempzaehler]);
+  int x = baum_vertikal ? FensterRandLinks + RandLinks + y[tempzaehler]
+                        : FensterRandLinks + RandLinks + StufenBreite +
+                              (StufenBreite + KnotenBreite) * tempstufe;
+  int yposition = baum_vertikal ? vertikale_stufe_y(tempstufe)
+                                : FensterRandOben + RandOben + y[tempzaehler];
+  gtk_layout_move(GTK_LAYOUT(data), widget, x, yposition);
   return TRUE;
-//      printf("ErgebnisBreite = %i\nHALLOPOS: DABREITE = %i\n",ErgebnisBreite,RandLinks+RandRechts+(maxStufe+1)*StufenBreite+(maxStufe+1)*KnotenBreite+((ergebnisseanzeigen>0)?(ErgebnisAbstand+ErgebnisBreite):0));
-//      GROESSEDRAWINGAREA
-//      GROESSELAYOUTD
 }

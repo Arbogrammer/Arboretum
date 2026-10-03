@@ -6,16 +6,14 @@
  * unterdrücken. */
 static gboolean arboretum_layout_geplant = FALSE;
 
-static gboolean arboretum_layout_aktualisieren(gpointer data)
-{
+static gboolean arboretum_layout_aktualisieren(gpointer data) {
   /* Positionen dürfen in GTK4 nicht während des Zeichnens verändert werden.
    * Diese Funktion läuft deshalb kurz danach als sogenannter Idle-Callback. */
   arboretum_layout_geplant = FALSE;
 
-  if(labelein)
+  if (labelein)
     labelverschieben(data);
-  else
-  {
+  else {
     /* Measure first: GTK 4 does not synchronously allocate widgets when the
      * window is presented, unlike the old GTK 3 show-all path. */
     groesseneu(NULL, NULL, data);
@@ -32,22 +30,20 @@ static gboolean arboretum_layout_aktualisieren(gpointer data)
 }
 
 static void zeichnelinien(GtkDrawingArea *widget, cairo_t *cr, int width,
-                         int height, gpointer data)
-{
+                          int height, gpointer data) {
   /* Cairo zeichnet nur die grafischen Bestandteile (Hintergrund, Rahmen und
    * Zweige). Die Eingabefelder selbst sind normale GTK-Widgets darüber. */
-  if(data && arboretum_layout_dirty && !arboretum_layout_geplant)
-  {
+  if (data && arboretum_layout_dirty && !arboretum_layout_geplant) {
     arboretum_layout_geplant = TRUE;
-    g_idle_add_full(G_PRIORITY_DEFAULT_IDLE,
-                    arboretum_layout_aktualisieren, data, NULL);
+    g_idle_add_full(G_PRIORITY_DEFAULT_IDLE, arboretum_layout_aktualisieren,
+                    data, NULL);
   }
 
   /* Auf dem Bildschirm darf eine transparente Cairo-Zeichenfläche nicht als
    * schwarzer Puffer sichtbar werden. Exporte (widget == NULL) behalten ihre
-   * echte Transparenz; im Programmfenster wird sie über Weiß zusammengesetzt. */
-  if(widget)
-  {
+   * echte Transparenz; im Programmfenster wird sie über Weiß zusammengesetzt.
+   */
+  if (widget) {
     cairo_set_source_rgb(cr, 1, 1, 1);
     cairo_paint(cr);
   }
@@ -55,67 +51,95 @@ static void zeichnelinien(GtkDrawingArea *widget, cairo_t *cr, int width,
                         hintergrundfarbe.blue, hintergrundfarbe.alpha);
   cairo_paint(cr);
 
-  if(labelein)
-  {
-    int i=0;
-    for(i=0;i<=maxzaehler;i++)
-    {
+  if (labelein) {
+    int i = 0;
+    for (i = 0; i <= maxzaehler; i++) {
       GtkAllocation alloc;
-      gtk_widget_get_allocation(knotenlabel[i],&alloc);
-      cairo_set_source_rgba(cr,knotenhintergrundfarbe.red,knotenhintergrundfarbe.green,knotenhintergrundfarbe.blue,knotenhintergrundfarbe.alpha);
-      cairo_rectangle(cr,alloc.x-FensterRandLinks-knotenrahmenabstand,alloc.y-FensterRandOben-knotenrahmenabstand,alloc.width+2*knotenrahmenabstand,alloc.height+2*knotenrahmenabstand);
+      gtk_widget_get_allocation(knotenlabel[i], &alloc);
+      cairo_set_source_rgba(
+          cr, knotenhintergrundfarbe.red, knotenhintergrundfarbe.green,
+          knotenhintergrundfarbe.blue, knotenhintergrundfarbe.alpha);
+      cairo_rectangle(cr, alloc.x - FensterRandLinks - knotenrahmenabstand,
+                      alloc.y - FensterRandOben - knotenrahmenabstand,
+                      alloc.width + 2 * knotenrahmenabstand,
+                      alloc.height + 2 * knotenrahmenabstand);
       cairo_fill(cr);
-      cairo_set_source_rgba(cr,knotenrandfarbe.red,knotenrandfarbe.green,knotenrandfarbe.blue,knotenrandfarbe.alpha);
-      cairo_rectangle(cr,alloc.x-FensterRandLinks-knotenrahmenabstand,alloc.y-FensterRandOben-knotenrahmenabstand,alloc.width+2*knotenrahmenabstand,alloc.height+2*knotenrahmenabstand);
+      cairo_set_source_rgba(cr, knotenrandfarbe.red, knotenrandfarbe.green,
+                            knotenrandfarbe.blue, knotenrandfarbe.alpha);
+      cairo_rectangle(cr, alloc.x - FensterRandLinks - knotenrahmenabstand,
+                      alloc.y - FensterRandOben - knotenrahmenabstand,
+                      alloc.width + 2 * knotenrahmenabstand,
+                      alloc.height + 2 * knotenrahmenabstand);
       cairo_set_line_width(cr, LinienDicke);
       cairo_stroke(cr);
     }
-    if(ergebnisseanzeigen)
-    {
-      for(i=0;i<=maxzaehlererg;i++)
-      {
+    if (ergebnisseanzeigen) {
+      for (i = 0; i <= maxzaehlererg; i++) {
         GtkAllocation alloc;
-        gtk_widget_get_allocation(ergebnislabel[i],&alloc);
-        cairo_set_source_rgba(cr,knotenhintergrundfarbe.red,knotenhintergrundfarbe.green,knotenhintergrundfarbe.blue,knotenhintergrundfarbe.alpha);
-        cairo_rectangle(cr,alloc.x-FensterRandLinks-knotenrahmenabstand,alloc.y-FensterRandOben-knotenrahmenabstand,alloc.width+2*knotenrahmenabstand,alloc.height+2*knotenrahmenabstand);
+        gtk_widget_get_allocation(ergebnislabel[i], &alloc);
+        cairo_set_source_rgba(
+            cr, knotenhintergrundfarbe.red, knotenhintergrundfarbe.green,
+            knotenhintergrundfarbe.blue, knotenhintergrundfarbe.alpha);
+        cairo_rectangle(cr, alloc.x - FensterRandLinks - knotenrahmenabstand,
+                        alloc.y - FensterRandOben - knotenrahmenabstand,
+                        alloc.width + 2 * knotenrahmenabstand,
+                        alloc.height + 2 * knotenrahmenabstand);
         cairo_fill(cr);
-        cairo_set_source_rgba(cr,knotenrandfarbe.red,knotenrandfarbe.green,knotenrandfarbe.blue,knotenrandfarbe.alpha);
-        cairo_rectangle(cr,alloc.x-FensterRandLinks-knotenrahmenabstand,alloc.y-FensterRandOben-knotenrahmenabstand,alloc.width+2*knotenrahmenabstand,alloc.height+2*knotenrahmenabstand);
+        cairo_set_source_rgba(cr, knotenrandfarbe.red, knotenrandfarbe.green,
+                              knotenrandfarbe.blue, knotenrandfarbe.alpha);
+        cairo_rectangle(cr, alloc.x - FensterRandLinks - knotenrahmenabstand,
+                        alloc.y - FensterRandOben - knotenrahmenabstand,
+                        alloc.width + 2 * knotenrahmenabstand,
+                        alloc.height + 2 * knotenrahmenabstand);
         cairo_set_line_width(cr, LinienDicke);
         cairo_stroke(cr);
       }
     }
-    if(ergebnissewskanzeigen)
-    {
-      for(i=0;i<=maxzaehlererg;i++)
-      {
-        if(bruchou && bruch)
-        {
+    if (ergebnissewskanzeigen) {
+      for (i = 0; i <= maxzaehlererg; i++) {
+        if (bruchou && bruch) {
           GtkAllocation allocz;
           GtkAllocation allocn;
-          gtk_widget_get_allocation(ergebniszaehlerlabel[i],&allocz);
-          gtk_widget_get_allocation(ergebnisnennerlabel[i],&allocn);
-          int bruchhoehe = allocz.height+allocn.height;
-          int bruchbreite = ((allocz.width>allocn.width)?allocz.width:allocn.width);
-          int bruchx = ((allocz.x<allocn.x)?allocz.x:allocn.x);
+          gtk_widget_get_allocation(ergebniszaehlerlabel[i], &allocz);
+          gtk_widget_get_allocation(ergebnisnennerlabel[i], &allocn);
+          int bruchhoehe = allocz.height + allocn.height;
+          int bruchbreite =
+              ((allocz.width > allocn.width) ? allocz.width : allocn.width);
+          int bruchx = ((allocz.x < allocn.x) ? allocz.x : allocn.x);
           int bruchy = allocz.y;
-          cairo_set_source_rgba(cr,knotenhintergrundfarbe.red,knotenhintergrundfarbe.green,knotenhintergrundfarbe.blue,knotenhintergrundfarbe.alpha);
-          cairo_rectangle(cr,bruchx-FensterRandLinks-knotenrahmenabstand,bruchy-FensterRandOben-knotenrahmenabstand,bruchbreite+2*knotenrahmenabstand,bruchhoehe+2*knotenrahmenabstand);
+          cairo_set_source_rgba(
+              cr, knotenhintergrundfarbe.red, knotenhintergrundfarbe.green,
+              knotenhintergrundfarbe.blue, knotenhintergrundfarbe.alpha);
+          cairo_rectangle(cr, bruchx - FensterRandLinks - knotenrahmenabstand,
+                          bruchy - FensterRandOben - knotenrahmenabstand,
+                          bruchbreite + 2 * knotenrahmenabstand,
+                          bruchhoehe + 2 * knotenrahmenabstand);
           cairo_fill(cr);
-          cairo_set_source_rgba(cr,knotenrandfarbe.red,knotenrandfarbe.green,knotenrandfarbe.blue,knotenrandfarbe.alpha);
-          cairo_rectangle(cr,bruchx-FensterRandLinks-knotenrahmenabstand,bruchy-FensterRandOben-knotenrahmenabstand,bruchbreite+2*knotenrahmenabstand,bruchhoehe+2*knotenrahmenabstand);
+          cairo_set_source_rgba(cr, knotenrandfarbe.red, knotenrandfarbe.green,
+                                knotenrandfarbe.blue, knotenrandfarbe.alpha);
+          cairo_rectangle(cr, bruchx - FensterRandLinks - knotenrahmenabstand,
+                          bruchy - FensterRandOben - knotenrahmenabstand,
+                          bruchbreite + 2 * knotenrahmenabstand,
+                          bruchhoehe + 2 * knotenrahmenabstand);
           cairo_set_line_width(cr, LinienDicke);
           cairo_stroke(cr);
-        }
-        else
-        {
+        } else {
           GtkAllocation alloc;
-          gtk_widget_get_allocation(ergebniswsklabel[i],&alloc);
-          cairo_set_source_rgba(cr,knotenhintergrundfarbe.red,knotenhintergrundfarbe.green,knotenhintergrundfarbe.blue,knotenhintergrundfarbe.alpha);
-          cairo_rectangle(cr,alloc.x-FensterRandLinks-knotenrahmenabstand,alloc.y-FensterRandOben-knotenrahmenabstand,alloc.width+2*knotenrahmenabstand,alloc.height+2*knotenrahmenabstand);
+          gtk_widget_get_allocation(ergebniswsklabel[i], &alloc);
+          cairo_set_source_rgba(
+              cr, knotenhintergrundfarbe.red, knotenhintergrundfarbe.green,
+              knotenhintergrundfarbe.blue, knotenhintergrundfarbe.alpha);
+          cairo_rectangle(cr, alloc.x - FensterRandLinks - knotenrahmenabstand,
+                          alloc.y - FensterRandOben - knotenrahmenabstand,
+                          alloc.width + 2 * knotenrahmenabstand,
+                          alloc.height + 2 * knotenrahmenabstand);
           cairo_fill(cr);
-          cairo_set_source_rgba(cr,knotenrandfarbe.red,knotenrandfarbe.green,knotenrandfarbe.blue,knotenrandfarbe.alpha);
-          cairo_rectangle(cr,alloc.x-FensterRandLinks-knotenrahmenabstand,alloc.y-FensterRandOben-knotenrahmenabstand,alloc.width+2*knotenrahmenabstand,alloc.height+2*knotenrahmenabstand);
+          cairo_set_source_rgba(cr, knotenrandfarbe.red, knotenrandfarbe.green,
+                                knotenrandfarbe.blue, knotenrandfarbe.alpha);
+          cairo_rectangle(cr, alloc.x - FensterRandLinks - knotenrahmenabstand,
+                          alloc.y - FensterRandOben - knotenrahmenabstand,
+                          alloc.width + 2 * knotenrahmenabstand,
+                          alloc.height + 2 * knotenrahmenabstand);
           cairo_set_line_width(cr, LinienDicke);
           cairo_stroke(cr);
         }
@@ -123,171 +147,267 @@ static void zeichnelinien(GtkDrawingArea *widget, cairo_t *cr, int width,
     }
   }
 
-
-  int i=0;
+  int i = 0;
   klbmax = 0;
-  if(labelein)
-  {
-    for(i=0;i<=maxzaehler;i++)
-    {
-      if(klbmax < gtk_widget_get_allocated_width(knotenlabel[i]))
-      {
+  if (labelein) {
+    for (i = 0; i <= maxzaehler; i++) {
+      if (klbmax < gtk_widget_get_allocated_width(knotenlabel[i])) {
         klbmax = gtk_widget_get_allocated_width(knotenlabel[i]);
       }
     }
   }
-  klbmax += 2*paddingk;
+  klbmax += 2 * paddingk;
 
+  if (baum_vertikal) {
+    /* Die erste Stufe hängt an einer virtuellen Wurzel oberhalb des Baums. */
+    char unterster_name[22] = "";
+    sprintf(unterster_name, "-%i", anzahlknoteninstufe(0) - 1);
+    int unten_index = knotenexistiert(unterster_name);
+    int virtuelle_wurzel_x =
+        (y[0] + (unten_index >= 0 ? y[unten_index] : y[0]) + KnotenBreite) / 2;
+    for (i = 0; i <= maxzaehler; i++) {
+      if (!textfeld[i])
+        continue;
+      int stufe = zeichenzaehlen(gtk_widget_get_name(textfeld[i]), '-') - 1;
+      if (stufe == 0) {
+        GtkAllocation ziel;
+        if (labelein)
+          gtk_widget_get_allocation(knotenlabel[i], &ziel);
+        else {
+          ziel.x = FensterRandLinks + RandLinks + y[i];
+          ziel.y = vertikale_stufe_y(0);
+          ziel.width = KnotenBreite;
+          ziel.height = KnotenHoehe;
+        }
+        cairo_set_source_rgba(cr, zweigfarbe.red, zweigfarbe.green,
+                              zweigfarbe.blue, zweigfarbe.alpha);
+        cairo_set_line_width(cr, LinienDicke);
+        cairo_move_to(cr, RandLinks + virtuelle_wurzel_x, RandOben);
+        cairo_line_to(cr, ziel.x - FensterRandLinks + ziel.width / 2,
+                      ziel.y - FensterRandOben);
+        cairo_stroke(cr);
+        continue;
+      }
+      int parent = knotenexistiert(gtk_widget_get_name(*vorgaenger[i]));
+      if (parent < 0)
+        continue;
+      int parentstufe =
+          zeichenzaehlen(gtk_widget_get_name(textfeld[parent]), '-') - 1;
+      GtkAllocation oben, unten;
+      if (labelein) {
+        gtk_widget_get_allocation(knotenlabel[parent], &oben);
+        gtk_widget_get_allocation(knotenlabel[i], &unten);
+      } else {
+        oben.x = FensterRandLinks + RandLinks + y[parent];
+        oben.y = vertikale_stufe_y(parentstufe);
+        oben.width = KnotenBreite;
+        oben.height = KnotenHoehe;
+        unten.x = FensterRandLinks + RandLinks + y[i];
+        unten.y = vertikale_stufe_y(stufe);
+        unten.width = KnotenBreite;
+        unten.height = KnotenHoehe;
+      }
+      cairo_set_source_rgba(cr, zweigfarbe.red, zweigfarbe.green,
+                            zweigfarbe.blue, zweigfarbe.alpha);
+      cairo_set_line_width(cr, LinienDicke);
+      cairo_move_to(cr, oben.x - FensterRandLinks + oben.width / 2,
+                    oben.y - FensterRandOben + oben.height);
+      cairo_line_to(cr, unten.x - FensterRandLinks + unten.width / 2,
+                    unten.y - FensterRandOben);
+      cairo_stroke(cr);
+    }
+    if (data == NULL)
+      return;
+    return;
+  }
 
-  
-  
-  i=0;
-  char knotenname[10000] = "";
-  sprintf(knotenname,"-%i",i);
+  i = 0;
+  char knotenname[22] = "";
+  sprintf(knotenname, "-%i", i);
   int zaehlertemp = knotenexistiert(knotenname);
   char unten[22] = "";
   int knotennummer = 0, j = 0;
-  for(j=0;j<=maxzaehler;j++)
-  {
-    if(textfeld[j])
-    {
-      if(zeichenzaehlen(gtk_widget_get_name(textfeld[j]),'-') == 1)
-      {
-        knotennummer +=1;
+  for (j = 0; j <= maxzaehler; j++) {
+    if (textfeld[j]) {
+      if (zeichenzaehlen(gtk_widget_get_name(textfeld[j]), '-') == 1) {
+        knotennummer += 1;
       }
     }
   }
-  sprintf(unten,"-%i",knotennummer-1);
+  sprintf(unten, "-%i", knotennummer - 1);
   int ytemp = y[knotenexistiert(unten)];
-  while(zaehlertemp > -1)
-  {
-    cairo_set_source_rgba(cr,zweigfarbe.red,zweigfarbe.green,zweigfarbe.blue,zweigfarbe.alpha);
+  while (zaehlertemp > -1) {
+    cairo_set_source_rgba(cr, zweigfarbe.red, zweigfarbe.green, zweigfarbe.blue,
+                          zweigfarbe.alpha);
     cairo_set_line_width(cr, LinienDicke);
-    cairo_move_to(cr, RandLinks,RandOben+(y[0]+ytemp+KnotenHoehe)/2);
-    cairo_line_to(cr, RandLinks+StufenBreite,RandOben+y[zaehlertemp]+KnotenHoehe/2);
+    cairo_move_to(cr, RandLinks, RandOben + (y[0] + ytemp + KnotenHoehe) / 2);
+    cairo_line_to(cr, RandLinks + StufenBreite,
+                  RandOben + y[zaehlertemp] + KnotenHoehe / 2);
     cairo_stroke(cr);
     i++;
-    memset(knotenname,0,10000);
-    sprintf(knotenname,"-%i",i);
+    memset(knotenname, 0, sizeof(knotenname));
+    sprintf(knotenname, "-%i", i);
     zaehlertemp = knotenexistiert(knotenname);
   }
 
-  for(i=0; i <= maxzaehler; i++)
-  {
-    if(textfeld[i])
-    {
-      int tempstufe = zeichenzaehlen(gtk_widget_get_name(textfeld[i]),'-');
-      if(labelein)
-      {
-        KnotenLabelBreite = gtk_widget_get_allocated_width(knotenlabel[i])+2*paddingk;
+  for (i = 0; i <= maxzaehler; i++) {
+    if (textfeld[i]) {
+      int tempstufe = zeichenzaehlen(gtk_widget_get_name(textfeld[i]), '-');
+      if (labelein) {
+        KnotenLabelBreite =
+            gtk_widget_get_allocated_width(knotenlabel[i]) + 2 * paddingk;
       }
-      if(tempstufe <= maxStufe)
-      {
-        int j=0;
-        for(j=0; j<anzahlnachfolger(i); j++)
-        {
-          cairo_set_source_rgba(cr,zweigfarbe.red,zweigfarbe.green,zweigfarbe.blue,zweigfarbe.alpha);
+      if (tempstufe <= maxStufe) {
+        int j = 0;
+        for (j = 0; j < anzahlnachfolger(i); j++) {
+          cairo_set_source_rgba(cr, zweigfarbe.red, zweigfarbe.green,
+                                zweigfarbe.blue, zweigfarbe.alpha);
           cairo_set_line_width(cr, LinienDicke);
-          cairo_move_to(cr, RandLinks+(StufenBreite+((labelein==0)?KnotenBreite:klbmax))*tempstufe,RandOben+y[i]+KnotenHoehe/2);
-          cairo_line_to(cr, RandLinks+(StufenBreite+((labelein==0)?KnotenBreite:klbmax))*tempstufe+StufenBreite,RandOben+y[nachfolger(i,j)]+KnotenHoehe/2);
+          cairo_move_to(
+              cr,
+              RandLinks +
+                  (StufenBreite + ((labelein == 0) ? KnotenBreite : klbmax)) *
+                      tempstufe,
+              RandOben + y[i] + KnotenHoehe / 2);
+          cairo_line_to(
+              cr,
+              RandLinks +
+                  (StufenBreite + ((labelein == 0) ? KnotenBreite : klbmax)) *
+                      tempstufe +
+                  StufenBreite,
+              RandOben + y[nachfolger(i, j)] + KnotenHoehe / 2);
           cairo_stroke(cr);
         }
       }
     }
   }
-  
-  
-    if(bruchou && bruch && labelein)
-    {
-      for(i=0;i<=maxzaehler;i++)
-      {
-        GtkAllocation apz;
-        GtkAllocation apn;
-        gtk_widget_get_allocation(zaehlerlabel[i], &apz);
-        gtk_widget_get_allocation(nennerlabel[i], &apn);
-        char unten[22] = "";
-        sprintf(unten,"-%i",anzahlknoteninstufe(0)-1);
-        int yunten = y[knotenexistiert(unten)];
-        int Stufetemp = zeichenzaehlen(gtk_widget_get_name(textfeld[i]),'-')-1;
-        int xA = Stufetemp*(StufenBreite+klbmax);
-        int xB = Stufetemp*(StufenBreite+klbmax)+StufenBreite;
-        int yA = (Stufetemp==0)?(y[0]+yunten+KnotenHoehe)/2:y[knotenexistiert(gtk_widget_get_name(*vorgaenger[i]))]+KnotenHoehe/2;
-        int yB = y[i]+KnotenHoehe/2;
-        int bZ = apz.width;
-//        int hZ = apz.height;
-        int bN = apn.width;
-        int hN = apn.height;
-//        double Laenge=sqrt(pow(xA-xB,2)+pow(yA-yB,2));
-        int xwahrscheinlichkeitZ = RandLinks+0.5*xA+0.5*xB-0.5*bZ;
-//        int ywahrscheinlichkeitZ = RandOben+0.5*yA+0.5*yB-0.5*bN*abs(yA-yB)/StufenBreite-hN-hZ;
-        int xwahrscheinlichkeitN = RandLinks+0.5*xA+0.5*xB-0.5*bN;
-        int ywahrscheinlichkeitN = RandOben+0.5*yA+0.5*yB-0.5*bN*abs(yA-yB)/StufenBreite-hN;
 
-        cairo_set_source_rgba(cr,schriftfarbe.red,schriftfarbe.green,schriftfarbe.blue,schriftfarbe.alpha);
-        cairo_set_line_width(cr, 1);
-        cairo_move_to(cr, ((xwahrscheinlichkeitN>xwahrscheinlichkeitZ)?xwahrscheinlichkeitZ:xwahrscheinlichkeitN)+wskverschiebung,ywahrscheinlichkeitN+(double)wskverschiebung*(yB-yA)/(xB-xA));
-        cairo_line_to(cr, ((xwahrscheinlichkeitN>xwahrscheinlichkeitZ)?xwahrscheinlichkeitZ:xwahrscheinlichkeitN)+((bN>bZ)?bN:bZ)+wskverschiebung,ywahrscheinlichkeitN+(double)wskverschiebung*(yB-yA)/(xB-xA));
-        cairo_stroke(cr);        
+  if (bruchou && bruch && labelein) {
+    for (i = 0; i <= maxzaehler; i++) {
+      GtkAllocation apz;
+      GtkAllocation apn;
+      gtk_widget_get_allocation(zaehlerlabel[i], &apz);
+      gtk_widget_get_allocation(nennerlabel[i], &apn);
+      char unten[22] = "";
+      sprintf(unten, "-%i", anzahlknoteninstufe(0) - 1);
+      int yunten = y[knotenexistiert(unten)];
+      int Stufetemp = zeichenzaehlen(gtk_widget_get_name(textfeld[i]), '-') - 1;
+      int xA = Stufetemp * (StufenBreite + klbmax);
+      int xB = Stufetemp * (StufenBreite + klbmax) + StufenBreite;
+      int yA = (Stufetemp == 0)
+                   ? (y[0] + yunten + KnotenHoehe) / 2
+                   : y[knotenexistiert(gtk_widget_get_name(*vorgaenger[i]))] +
+                         KnotenHoehe / 2;
+      int yB = y[i] + KnotenHoehe / 2;
+      int bZ = apz.width;
+      int bN = apn.width;
+      int hN = apn.height;
+      int xwahrscheinlichkeitZ = RandLinks + 0.5 * xA + 0.5 * xB - 0.5 * bZ;
+      int xwahrscheinlichkeitN = RandLinks + 0.5 * xA + 0.5 * xB - 0.5 * bN;
+      int ywahrscheinlichkeitN = RandOben + 0.5 * yA + 0.5 * yB -
+                                 0.5 * bN * abs(yA - yB) / StufenBreite - hN;
+
+      cairo_set_source_rgba(cr, schriftfarbe.red, schriftfarbe.green,
+                            schriftfarbe.blue, schriftfarbe.alpha);
+      cairo_set_line_width(cr, 1);
+      cairo_move_to(cr,
+                    ((xwahrscheinlichkeitN > xwahrscheinlichkeitZ)
+                         ? xwahrscheinlichkeitZ
+                         : xwahrscheinlichkeitN) +
+                        wskverschiebung,
+                    ywahrscheinlichkeitN +
+                        (double)wskverschiebung * (yB - yA) / (xB - xA));
+      cairo_line_to(cr,
+                    ((xwahrscheinlichkeitN > xwahrscheinlichkeitZ)
+                         ? xwahrscheinlichkeitZ
+                         : xwahrscheinlichkeitN) +
+                        ((bN > bZ) ? bN : bZ) + wskverschiebung,
+                    ywahrscheinlichkeitN +
+                        (double)wskverschiebung * (yB - yA) / (xB - xA));
+      cairo_stroke(cr);
+    }
+  }
+
+  if (bruchou && bruch && labelein) {
+    int welbmax = 0;
+    for (j = 0; j <= maxzaehlererg; j++) {
+      int mw = 0;
+      gtk_widget_get_preferred_width(ergebniszaehlerlabel[j], &mw,
+                                     &ZaehlerErgebnisLabelBreite);
+      gtk_widget_get_preferred_width(ergebnisnennerlabel[j], &mw,
+                                     &NennerErgebnisLabelBreite);
+      gtk_widget_get_preferred_height(ergebniszaehlerlabel[j], &mw,
+                                      &ZaehlerErgebnisLabelHoehe);
+      gtk_widget_get_preferred_height(ergebnisnennerlabel[j], &mw,
+                                      &NennerErgebnisLabelHoehe);
+      if (welbmax < ZaehlerErgebnisLabelBreite) {
+        welbmax = ZaehlerErgebnisLabelBreite;
+      }
+      if (welbmax < NennerErgebnisLabelBreite) {
+        welbmax = NennerErgebnisLabelBreite;
       }
     }
-  
-    if(bruchou && bruch && labelein)
-    {
-      int welbmax=0;
-      for(j=0;j<=maxzaehlererg;j++)
-      {
-        int mw = 0;
-        gtk_widget_get_preferred_width(ergebniszaehlerlabel[j], &mw, &ZaehlerErgebnisLabelBreite);
-        gtk_widget_get_preferred_width(ergebnisnennerlabel[j], &mw, &NennerErgebnisLabelBreite);
-        gtk_widget_get_preferred_height(ergebniszaehlerlabel[j], &mw, &ZaehlerErgebnisLabelHoehe);
-        gtk_widget_get_preferred_height(ergebnisnennerlabel[j], &mw, &NennerErgebnisLabelHoehe);
-        if(welbmax<ZaehlerErgebnisLabelBreite)
-        {
-          welbmax=ZaehlerErgebnisLabelBreite;
-        }
-        if(welbmax<NennerErgebnisLabelBreite)
-        {
-          welbmax=NennerErgebnisLabelBreite;
-        }
-      }
-      for(i=0;i<=maxzaehlererg;i++)
-      {
-        GtkAllocation apz;
-        GtkAllocation apn;
-        gtk_widget_get_allocation(ergebniszaehlerlabel[i], &apz);
-        gtk_widget_get_allocation(ergebnisnennerlabel[i], &apn);
-        int bZ = apz.width;
-//        int hZ = apz.height;
-        int bN = apn.width;
-//        int hN = apn.height;
-        int bZN = ((bZ>bN)?bZ:bN);
-        cairo_set_source_rgba(cr,schriftfarbe.red,schriftfarbe.green,schriftfarbe.blue,schriftfarbe.alpha);
-        cairo_set_line_width(cr, 1);
-        cairo_move_to(cr, RandLinks+(maxStufe+1)*StufenBreite+(maxStufe+1)*klbmax+ErgebnisAbstand+((ergebnisseanzeigen)?ErgebnisAbstand+ErgebnisLabelBreite:0)+(welbmax-bZN)/2+2*knotenrahmenabstand,RandOben+yerg[i]+KnotenHoehe/2-KnotenLabelHoehe/2+ZaehlerErgebnisLabelHoehe/2);
-        cairo_line_to(cr, RandLinks+(maxStufe+1)*StufenBreite+(maxStufe+1)*klbmax+ErgebnisAbstand+((ergebnisseanzeigen)?ErgebnisAbstand+ErgebnisLabelBreite:0)+welbmax-(welbmax-bZN)/2+2*knotenrahmenabstand,RandOben+yerg[i]+KnotenHoehe/2-KnotenLabelHoehe/2+ZaehlerErgebnisLabelHoehe/2);
-        cairo_stroke(cr);        
-      }
+    for (i = 0; i <= maxzaehlererg; i++) {
+      GtkAllocation apz;
+      GtkAllocation apn;
+      gtk_widget_get_allocation(ergebniszaehlerlabel[i], &apz);
+      gtk_widget_get_allocation(ergebnisnennerlabel[i], &apn);
+      int bZ = apz.width;
+      int bN = apn.width;
+      int bZN = ((bZ > bN) ? bZ : bN);
+      cairo_set_source_rgba(cr, schriftfarbe.red, schriftfarbe.green,
+                            schriftfarbe.blue, schriftfarbe.alpha);
+      cairo_set_line_width(cr, 1);
+      cairo_move_to(cr,
+                    RandLinks + (maxStufe + 1) * StufenBreite +
+                        (maxStufe + 1) * klbmax + ErgebnisAbstand +
+                        ((ergebnisseanzeigen)
+                             ? ErgebnisAbstand + ErgebnisLabelBreite
+                             : 0) +
+                        (welbmax - bZN) / 2 + 2 * knotenrahmenabstand,
+                    RandOben + yerg[i] + KnotenHoehe / 2 -
+                        KnotenLabelHoehe / 2 + ZaehlerErgebnisLabelHoehe / 2);
+      cairo_line_to(cr,
+                    RandLinks + (maxStufe + 1) * StufenBreite +
+                        (maxStufe + 1) * klbmax + ErgebnisAbstand +
+                        ((ergebnisseanzeigen)
+                             ? ErgebnisAbstand + ErgebnisLabelBreite
+                             : 0) +
+                        welbmax - (welbmax - bZN) / 2 + 2 * knotenrahmenabstand,
+                    RandOben + yerg[i] + KnotenHoehe / 2 -
+                        KnotenLabelHoehe / 2 + ZaehlerErgebnisLabelHoehe / 2);
+      cairo_stroke(cr);
     }
-  
-  
-  
-  if(data == NULL) return;
-  if(scrh)
-  {
-    gtk_adjustment_set_value(gtk_scrolled_window_get_hadjustment(GTK_SCROLLED_WINDOW(scrollwindow)),gtk_adjustment_get_upper(gtk_scrolled_window_get_hadjustment(GTK_SCROLLED_WINDOW(scrollwindow))));
-    scrh=0;
+  }
+
+  if (data == NULL)
+    return;
+  if (scrh) {
+    gtk_adjustment_set_value(
+        gtk_scrolled_window_get_hadjustment(GTK_SCROLLED_WINDOW(scrollwindow)),
+        gtk_adjustment_get_upper(gtk_scrolled_window_get_hadjustment(
+            GTK_SCROLLED_WINDOW(scrollwindow))));
+    scrh = 0;
   }
   GtkWidget *focus = gtk_window_get_focus(GTK_WINDOW(window));
-  if(focus)
-  {
+  if (focus) {
     const gchar *focusname = gtk_widget_get_name(focus);
     int fokusindex = strchr(focusname, 'W') ? wskexistiert(focusname)
-                                           : knotenexistiert(focusname);
-    if(fokusindex >= 0 &&
-       (y[fokusindex] + KnotenHoehe + KnotenAbstand + RandOben - gtk_adjustment_get_value(gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scrollwindow))) > gtk_widget_get_allocated_height(scrollwindow) || y[fokusindex] < gtk_adjustment_get_value(gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scrollwindow)))))
-    {
-      gtk_adjustment_set_value(gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scrollwindow)),y[fokusindex]-gtk_widget_get_allocated_height(scrollwindow)+KnotenHoehe+KnotenAbstand+RandOben);
-      scrv=0;
+                                            : knotenexistiert(focusname);
+    if (fokusindex >= 0 &&
+        (y[fokusindex] + KnotenHoehe + KnotenAbstand + RandOben -
+                 gtk_adjustment_get_value(gtk_scrolled_window_get_vadjustment(
+                     GTK_SCROLLED_WINDOW(scrollwindow))) >
+             gtk_widget_get_allocated_height(scrollwindow) ||
+         y[fokusindex] <
+             gtk_adjustment_get_value(gtk_scrolled_window_get_vadjustment(
+                 GTK_SCROLLED_WINDOW(scrollwindow))))) {
+      gtk_adjustment_set_value(
+          gtk_scrolled_window_get_vadjustment(
+              GTK_SCROLLED_WINDOW(scrollwindow)),
+          y[fokusindex] - gtk_widget_get_allocated_height(scrollwindow) +
+              KnotenHoehe + KnotenAbstand + RandOben);
+      scrv = 0;
     }
   }
 }

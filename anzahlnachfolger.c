@@ -1,20 +1,12 @@
-int anzahlnachfolger(int i)
-{
-  char tempname[10000] = "", temptempname[10000] = "";
-  strcpy(tempname, gtk_widget_get_name(textfeld[i]));
-  strcpy(temptempname, tempname);
-  char nachfolgerstring[22] = "";
+int anzahlnachfolger(int i) {
   int knotenzaehler = 0;
-  sprintf(nachfolgerstring,"-%i",knotenzaehler);
-  strcat(tempname,nachfolgerstring);
-  while(knotenexistiert(tempname) > -1)
-  {
+  const char *basisname = gtk_widget_get_name(textfeld[i]);
+  g_autofree gchar *tempname =
+      g_strdup_printf("%s-%i", basisname, knotenzaehler);
+  while (knotenexistiert(tempname) > -1) {
     knotenzaehler += 1;
-    memset(nachfolgerstring,0,22);
-    sprintf(nachfolgerstring,"-%i",knotenzaehler);
-    memset(tempname,0,10000);
-    strcat(tempname,temptempname);
-    strcat(tempname,nachfolgerstring);
+    g_free(g_steal_pointer(&tempname));
+    tempname = g_strdup_printf("%s-%i", basisname, knotenzaehler);
   }
   return knotenzaehler;
 }

@@ -1,6 +1,5 @@
-void reset(gpointer data)
-{
+void reset(gpointer data) {
   dateinummerierung = 2;
-  zurueck=1;
+  zurueck = 1;
   templaden(data);
 }

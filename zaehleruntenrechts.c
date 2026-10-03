@@ -1,38 +1,25 @@
-int zaehleruntenrechts(int zaehlerlinks)
-{
+int zaehleruntenrechts(int zaehlerlinks) {
   int knotenzaehler = 0;
-  char tempname[10000] = "", knotennummer[22]="", ergebnis[10000] = "";
-  sprintf(knotennummer,"-%i",knotenzaehler);
-  strcpy(tempname,gtk_widget_get_name(textfeld[zaehlerlinks]));
-  strcat(tempname,knotennummer);
-  char tempnamelang[10000] = "";
-  strcpy(tempnamelang,gtk_widget_get_name(textfeld[zaehlerlinks]));
-  if(knotenexistiert(tempname) == -1)
-  {
+  g_autoptr(GString) tempnamelang =
+      g_string_new(gtk_widget_get_name(textfeld[zaehlerlinks]));
+  g_autofree gchar *tempname =
+      g_strdup_printf("%s-%i", tempnamelang->str, knotenzaehler);
+  g_autofree gchar *ergebnis = NULL;
+  if (knotenexistiert(tempname) == -1) {
     return zaehlerlinks;
   }
-//  printf("tempname: %s\n",tempname);
-  while(knotenexistiert(tempnamelang) > -1)
-  {
-    while(knotenexistiert(tempname) > -1)
-    {
-      strcpy(ergebnis,tempname);
+  while (knotenexistiert(tempnamelang->str) > -1) {
+    while (knotenexistiert(tempname) > -1) {
+      g_free(g_steal_pointer(&ergebnis));
+      ergebnis = g_strdup(tempname);
       knotenzaehler += 1;
-      memset(tempname,0,10000);
-      memset(knotennummer,0,22);
-      strcpy(tempname,tempnamelang);
-      sprintf(knotennummer,"-%i",knotenzaehler);
-      strcat(tempname,knotennummer);
-//      printf("tempname: %s\ntempnamelang: %s\n\n",tempname,tempnamelang);
+      g_free(g_steal_pointer(&tempname));
+      tempname = g_strdup_printf("%s-%i", tempnamelang->str, knotenzaehler);
     }
-    sprintf(knotennummer,"-%i",knotenzaehler-1);
-    strcat(tempnamelang,knotennummer);
-//    printf("tempname: %s\ntempnamelang: %s\n\n",tempname,tempnamelang);
+    g_string_append_printf(tempnamelang, "-%i", knotenzaehler - 1);
     knotenzaehler = 0;
-    memset(tempname,0,10000);
-    memset(knotennummer,0,22);
-    strcpy(tempname,tempnamelang);
+    g_free(g_steal_pointer(&tempname));
+    tempname = g_strdup(tempnamelang->str);
   }
-//  printf("Letzter Knoten unten rechts: %s\n",ergebnis);
   return knotenexistiert(ergebnis);
 }
