@@ -22,7 +22,7 @@ jobs:
       - name: Run regression suite
         run: make test-core
       - name: Diagnose failed file dialog test
-        if: failure()
+        if: always()
         run: |
           mkdir -p dist/test-logs/diagnostic-settings
           xvfb-run -a env G_DEBUG=fatal-criticals GSETTINGS_BACKEND=memory GSK_RENDERER=cairo GDK_BACKEND=x11 GTK_A11Y=none ARBORETUM_IO_SMOKE_TEST=1 XDG_CONFIG_HOME="$PWD/dist/test-logs/diagnostic-settings" gdb -batch -ex run -ex 'thread apply all bt' --args ./arboretum > dist/test-logs/dialog-backtrace.txt 2>&1
