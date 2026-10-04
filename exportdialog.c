@@ -53,10 +53,16 @@ void exportdialog(GtkWidget *widget, gpointer data) {
       exportbmp(dateiname);
     } else if (klein != NULL && g_str_has_suffix(klein, ".pdf")) {
       exportpdf(dateiname);
+    } else if (klein != NULL && g_str_has_suffix(klein, ".docx")) {
+      exportdocx(dateiname);
+    } else if (klein != NULL && g_str_has_suffix(klein, ".odt")) {
+      exportodt(dateiname);
+    } else if (klein != NULL && g_str_has_suffix(klein, ".tex")) {
+      exporttex(dateiname);
     } else
       dateifehler("Export", dateiname,
                   dateiname
-                      ? "Bitte .png, .jpg, .bmp, .svg oder .pdf verwenden."
+                      ? "Bitte .png, .jpg, .bmp, .svg, .pdf, .odt, .docx oder .tex verwenden."
                       : "Der Dateidialog hat keinen lokalen Pfad geliefert.");
 
     g_free(dateiname);

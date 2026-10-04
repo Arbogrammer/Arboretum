@@ -6,12 +6,12 @@ Baumdiagrammen.
 ## Releases
 
 `VERSION` enthält die Paketversion. Release-Pakete werden aus dem passenden
-Tag (z. B. `v3.2.0`) neu gebaut, nicht aus älteren Downloads zusammengesetzt.
+Tag (z. B. `v3.3.0`) neu gebaut, nicht aus älteren Downloads zusammengesetzt.
 Alle Plattformen enthalten `BUILD-INFO.txt` mit dem vollständigen Quell-Commit;
 macOS verwendet dieselbe Version auch in den App-Metadaten.
 Die Linux-, Windows- und macOS-Workflows bauen nach Änderungen auf `main` sowie bei einem neuen Versionstag
 und prüfen die fertigen Pakete. Änderungsnotizen liegen unter
-`packaging/RELEASE-3.2.0.md`.
+`packaging/RELEASE-3.3.0.md`.
 
 ## Bauen unter Linux
 
@@ -99,7 +99,7 @@ Wichtige Dateigruppen:
 - `zeichnelinien.c`: Zeichnen der Zweige mit Cairo
 - `positionsanpassung*.c`: Berechnung der Widgetpositionen
 - `laden.c`, `speichern.c`: `.bdg`-Dateiformat
-- `export*.c`: Grafik- und PDF-Export
+- `export*.c`: Grafik-, PDF-, LaTeX-, ODT- und DOCX-Export
 - `gtk4_compat.h`: übersichtliche Brücke zwischen alter GTK3- und neuer GTK4-API
 
 Widgetnamen bilden zugleich die Baumstruktur ab. `-0-1` bezeichnet
@@ -108,7 +108,7 @@ kennzeichnet das zugehörige Wahrscheinlichkeitsfeld.
 
 ## Regressionstest
 
-Unter Linux führt ein Befehl die sechs Funktionstestgruppen und die visuellen
+Unter Linux führt ein Befehl die acht Funktionstestgruppen und die visuellen
 Vergleiche aus:
 
 ```sh
@@ -130,7 +130,7 @@ Requests sowie bei den bisherigen Push- und Tag-Builds aus.
 GTK-/GLib-Warnungen machen einen Lauf ebenfalls ungültig; kritische Meldungen
 brechen den jeweiligen Prozess sofort ab. Die Tests verwenden eigene
 Benutzereinstellungen und Softwaregrafik ohne OpenGL-/Vulkan-Initialisierung.
-`make test-core` führt nur die sechs Funktionstestgruppen aus und benötigt
+`make test-core` führt nur die acht Funktionstestgruppen aus und benötigt
 keine mit den Referenzbildern übereinstimmende Renderumgebung.
 
 ### Screenshotvergleiche
@@ -174,7 +174,7 @@ Wahrscheinlichkeitsfeld, dessen Zentrierung und die gezeichneten Zweige:
 ARBORETUM_KEYBOARD_SMOKE_TEST=1 ./arboretum
 ```
 
-Speichern, erneutes Laden, Schreibfehler und alle fünf Exportformate lassen
+Speichern, erneutes Laden, Schreibfehler und alle Exportformate lassen
 sich zusätzlich testen:
 
 ```sh
@@ -208,3 +208,83 @@ eine neue Bearbeitung verwirft die Wiederherstellungsschritte.
 
 Regressionstest für Berechnung, Dateiausrichtung und Undo/Redo:
 `make editing-test && xvfb-run -a ./editing-test`.
+
+## LaTeX-Export
+
+Unter **Datei → Exportieren** einen Dateinamen mit `.tex` wählen. Der Export
+schreibt ein eigenständiges TikZ-Dokument für **LuaLaTeX oder XeLaTeX**.
+Benötigt werden `standalone`, TikZ, `fontspec` und `amsmath`:
+
+```sh
+lualatex Baumdiagramm.tex
+```
+
+Der `tikzpicture`-Block lässt sich mit den Farbdefinitionen und passenden
+Paketen auch in eigene Dokumente übernehmen. Texte bleiben bearbeitbar;
+LaTeX-Sonderzeichen werden als normaler Text behandelt. Brüche und
+überstrichene Gegenereignisse werden als LaTeX-Ausdrücke ausgegeben.
+Asymmetrische Bäume, beide Richtungen, Beschriftungspositionen, Farben und
+sichtbare Ergebnisspalten verwenden die vorhandene Arboretum-Geometrie.
+
+Der Export verwendet DejaVu Sans, ersatzweise Latin Modern Sans, und übernimmt
+die eingestellte Schriftgröße und Fettschrift. Schriftmaße und Bruchhöhen
+können von der Bildschirmdarstellung abweichen; bei sehr engen Abständen
+sollte das erzeugte PDF kontrolliert werden. Arboretum selbst benötigt keine
+LaTeX-Installation zum Exportieren.
+
+## Bearbeitbarer Writer-Export (ODT)
+
+Unter **Datei → Exportieren** einen Dateinamen mit `.odt` wählen, zum Beispiel
+`Baumdiagramm.odt`. Das Dokument enthält native Writer-Zeichenobjekte: Linien
+für die Zweige, editierbare Texte für Knoten, Wahrscheinlichkeiten und Ergebnisse
+sowie einzelne Bruchstriche. Schriftart, Überstriche, Farben, Rahmen und die
+horizontale bzw. vertikale Anordnung werden übernommen.
+
+Der Baum ist gruppiert. In LibreOffice Writer die Gruppe betreten oder über das
+Kontextmenü die Gruppierung aufheben, um einzelne Linien zu verschieben und
+Beschriftungen zu ändern. Linien und Texte sind eigenständige Objekte; spätere
+Änderungen in Writer berechnen den Baum oder seine Wahrscheinlichkeiten nicht neu.
+Die Seitengröße passt sich dem Diagramm an. Sehr große Bäume werden proportional
+auf höchstens 55 cm Seitenlänge verkleinert. Schriftmaße können je nach Writer-
+Version und installierten Schriften geringfügig abweichen.
+
+Die Umsetzung orientiert sich am nativen ODT-Export des Terminalprogramms
+https://github.com/Arbogrammer/baum. Zum Export sind weder LibreOffice noch ein
+externes ZIP-Programm erforderlich.
+
+Der IO-Test erzeugt ODT-Beispiele für beide Baumrichtungen, Dezimalzahlen,
+Brüche, Überstriche, Sonderzeichen und ausgeblendete Beschriftungen. `make test`
+prüft zusätzlich ZIP-Struktur, XML und native Zeichenobjekte. Ein optionaler
+LibreOffice-Roundtrip lässt sich mit dem im IO-Test ausgegebenen Ordner ausführen:
+
+```sh
+python3 packaging/test-odt.py /tmp/Arboretum-IO-XXXXXX --libreoffice
+```
+
+## Bearbeitbarer Word-Export (DOCX)
+
+Unter **Datei → Exportieren** einen Dateinamen mit `.docx` wählen, zum Beispiel
+`Baumdiagramm.docx`. Der Export enthält eine Gruppe aus bearbeitbaren Linien,
+Textfeldern und Rahmen. Brüche bestehen wie beim ODT-Export aus Zähler,
+Bruchstrich und Nenner. Gedrehte Zweigbeschriftungen, Unicode, Überstriche,
+Schriftart, Farben und beide Baumrichtungen werden übernommen.
+
+Zum Bearbeiten einzelner Elemente die Gruppe auswählen und die Gruppierung
+aufheben; anschließend den gewünschten Text oder die Linie auswählen. Änderungen
+im Office-Dokument berechnen keine Wahrscheinlichkeiten neu. Große Diagramme
+werden proportional auf höchstens 55 cm Seitenlänge verkleinert; Schriftgrößen
+werden auf die im Word-Format verfügbaren halben Punkte gerundet.
+
+Das DOCX verwendet native klassische Word-Zeichenobjekte (VML im OOXML-
+Transitional-Format). Damit bleiben auch beliebig gedrehte Beschriftungen in
+LibreOffice bearbeitbar. Es werden keine Bilder eingebettet. Word, LibreOffice
+oder externe ZIP-Programme sind zum Export nicht erforderlich.
+
+Die automatischen Tests prüfen das DOCX-Paket, die editierbaren Objekte und deren
+Geometrie gegen die ODT-Ausgabe. Öffnen, Speichern und Darstellung wurden mit
+LibreOffice geprüft; ein direkter Microsoft-Word-Test steht noch aus.
+Optionaler Test mit einer vorhandenen LibreOffice-Installation:
+
+```sh
+python3 packaging/test-docx.py /tmp/Arboretum-IO-XXXXXX --soffice /pfad/zu/soffice
+```

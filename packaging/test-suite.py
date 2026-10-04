@@ -63,6 +63,12 @@ def main():
     for name in ("KEYBOARD", "IO"):
         results.append((name, run(name, ["./arboretum"],
                         {f"ARBORETUM_{name}_SMOKE_TEST": "1"})))
+    io_log = (LOGS / "IO.txt").read_text(errors="replace")
+    odt_dir = re.search(r"IO-Test Ausgabeordner: (.+)", io_log)
+    results.append(("ODT", bool(odt_dir) and run("ODT",
+                    [sys.executable, "packaging/test-odt.py", odt_dir.group(1)])))
+    results.append(("DOCX", bool(odt_dir) and run("DOCX",
+                    [sys.executable, "packaging/test-docx.py", odt_dir.group(1)])))
     for name, binary in (("EDITING", "editing-test"), ("LAYOUT", "layout-test"),
                          ("PARSER", "security-parser-test-bin")):
         results.append((name, run(name, [f"./{binary}"])))

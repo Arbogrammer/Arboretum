@@ -112,7 +112,9 @@ void hilfe(GtkWidget *widget, gpointer user_data) {
       "Exportieren\n"
       "  1. Datei > Exportieren wählen (alternativ Strg+A).\n"
       "  2. Durch die Dateiendung das Format festlegen: .png, .svg, .pdf, .bmp "
-      "oder .jpg.\n"
+      "oder .jpg sowie .odt (Writer), .docx (Word) und .tex (LaTeX/TikZ).\n"
+      "     .odt/.docx: bearbeitbare Linien und Texte; Gruppierung zum Bearbeiten aufheben.\n"
+      "     .tex-Dateien mit LuaLaTeX oder XeLaTeX kompilieren.\n"
       "     Ohne Dateiendung wird das Diagramm als SVG exportiert.\n"
       "  Der Export ist sowohl beim Bearbeiten als auch in der fixierten "
       "Ansicht verfügbar.\n",

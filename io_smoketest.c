@@ -348,13 +348,17 @@ static gboolean io_smoketest(gpointer data) {
     }
     arboretum_layout_aktualisieren(data);
     io_test_drain();
-    const char *formats[] = {"svg", "png", "jpeg", "bmp", "pdf"};
+    const char *formats[] = {"svg", "png", "jpeg", "bmp", "pdf", "tex", "odt", "docx"};
     for (guint i = 0; i < G_N_ELEMENTS(formats); i++) {
       g_autofree gchar *name =
           g_strdup_printf("Bild-Ä-%d.%s", scene, formats[i]);
       g_autofree gchar *image_path = g_build_filename(dir, name, NULL);
       g_printerr("IO-Test START %s\n", name);
-      gboolean exported = export_datei(image_path, formats[i]);
+      gboolean exported = !strcmp(formats[i], "tex")
+                              ? exporttex(image_path)
+                              : !strcmp(formats[i], "odt") ? exportodt(image_path)
+                              : !strcmp(formats[i], "docx") ? exportdocx(image_path)
+                              : export_datei(image_path, formats[i]);
       g_autofree gchar *contents = NULL;
       gsize length = 0;
       exported = exported &&
@@ -374,6 +378,27 @@ static gboolean io_smoketest(gpointer data) {
                  exported ? "ok" : "FEHLER", length);
       ok &= exported;
     }
+    /* Compile these artifacts separately with LuaLaTeX when available. */
+    for (int vertical = 0; vertical < 2; vertical++) {
+      baum_vertikal = vertical;
+      labelverschieben(data);
+      g_autofree char *tex_path =
+          g_strdup_printf("%s/TikZ-%d-%d.tex", dir, scene, vertical);
+      ok &= exporttex(tex_path);
+      g_autofree char *odt_path = g_strdup_printf("%s/Writer-%d-%d.odt", dir, scene, vertical);
+      ok &= exportodt(odt_path);
+      g_autofree char *docx_path = g_strdup_printf("%s/Word-%d-%d.docx", dir, scene, vertical);
+      ok &= exportdocx(docx_path);
+      g_autofree char *tex = NULL;
+      ok &= g_file_get_contents(tex_path, &tex, NULL, NULL);
+      if (tex) {
+        ok &= strstr(tex, "\\begin{tikzpicture}") != NULL;
+        ok &= strstr(tex, "\\end{document}") != NULL;
+        if (scene == 0) ok &= strstr(tex, "\\overline") != NULL;
+        if (scene == 2) ok &= strstr(tex, "\\dfrac") != NULL;
+      }
+    }
+    baum_vertikal = 0;
     g_printerr(
         "IO-Test START erwarteter Exportfehler (Ordner fehlt absichtlich)\n");
     gboolean failed_export_ok = !export_datei(bad, "png");
@@ -383,6 +408,38 @@ static gboolean io_smoketest(gpointer data) {
     umwandeln(NULL, data);
     io_test_drain();
   }
+  /* Unequal depth/child count, literal TeX syntax and Unicode. */
+  gtk_widget_grab_focus(textfeld[0]);
+  runter(NULL, data);
+  gtk_widget_grab_focus(textfeld[0]);
+  rechts(NULL, data);
+  gtk_editable_set_text(GTK_EDITABLE(textfeld[0]),
+                        "Ä Ω & % $ # _ { } ~ ^ \\input{evil}");
+  io_test_drain();
+  umwandeln(NULL, data);
+  labelverschieben(data);
+  g_autofree char *asym = g_build_filename(dir, "TikZ-asymmetrisch.tex", NULL);
+  ok &= exporttex(asym);
+  g_autofree char *odt_asym = g_build_filename(dir, "Writer-asymmetrisch.odt", NULL);
+  ok &= exportodt(odt_asym);
+  g_autofree char *docx_asym = g_build_filename(dir, "Word-asymmetrisch.docx", NULL);
+  ok &= exportdocx(docx_asym);
+  g_autofree char *escaped = tex_text("&%$#_{}~^\\");
+  ok &= !strcmp(escaped,
+      "\\&\\%\\$\\#\\_\\{\\}\\textasciitilde{}\\textasciicircum{}\\textbackslash{}");
+  wskanzeigen = ergebnisseanzeigen = ergebnissewskanzeigen = 0;
+  g_autofree char *hidden = g_build_filename(dir, "TikZ-ohne-Beschriftung.tex", NULL);
+  ok &= exporttex(hidden);
+  g_autofree char *hidden_text = NULL;
+  ok &= g_file_get_contents(hidden, &hidden_text, NULL, NULL);
+  if (hidden_text) ok &= strstr(hidden_text, "\\dfrac") == NULL;
+  g_autofree char *odt_hidden = g_build_filename(dir, "Writer-ohne-Beschriftung.odt", NULL);
+  ok &= exportodt(odt_hidden);
+  g_autofree char *docx_hidden = g_build_filename(dir, "Word-ohne-Beschriftung.docx", NULL);
+  ok &= exportdocx(docx_hidden);
+  ok &= !exportdocx(bad);
+  ok &= !exportodt(bad);
+  ok &= !exporttex(bad);
   g_printerr("IO-Test: %s\n", ok ? "ok" : "FEHLER");
   arboretum_exit_status = ok ? 0 : 1;
   g_main_loop_quit(arboretum_main_loop);

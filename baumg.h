@@ -28,6 +28,9 @@ gboolean exportsvg(char *dateiname);
 gboolean exportbmp(char *dateiname);
 gboolean exportjpg(char *dateiname);
 gboolean exportpdf(char *dateiname);
+gboolean exporttex(char *dateiname);
+gboolean exportodt(char *dateiname);
+gboolean exportdocx(char *dateiname);
 static void undo_leeren(void);
 static void undo_gruppe_beenden(void);
 static void undo_snapshot_merken(const char *pfad);
@@ -139,6 +142,10 @@ void baumfokus_wiederherstellen(void);
 #include "exportjpg.c"
 #include "exportbmp.c"
 #include "exportpdf.c"
+#include "exporttex.c"
+#include "exportzip.c"
+#include "exportodt.c"
+#include "exportdocx.c"
 #include "rueckgaengig.c"
 #include "loeschen.c"
 #include "pos1.c"
