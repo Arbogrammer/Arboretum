@@ -18,18 +18,18 @@ static gboolean arboretum_scroll_aktualisieren(gpointer unused) {
     int fokusindex = strchr(focusname, 'W') ? wskexistiert(focusname)
                                             : knotenexistiert(focusname);
     if (fokusindex >= 0 &&
-        (y[fokusindex] + KnotenHoehe + KnotenAbstand + RandOben -
+        (eingabe_y_position(y[fokusindex]) + KnotenHoehe + KnotenAbstand + LayoutRandOben -
                  gtk_adjustment_get_value(gtk_scrolled_window_get_vadjustment(
                      GTK_SCROLLED_WINDOW(scrollwindow))) >
              gtk_widget_get_allocated_height(scrollwindow) ||
-         y[fokusindex] <
+         eingabe_y_position(y[fokusindex]) <
              gtk_adjustment_get_value(gtk_scrolled_window_get_vadjustment(
                  GTK_SCROLLED_WINDOW(scrollwindow))))) {
       gtk_adjustment_set_value(
           gtk_scrolled_window_get_vadjustment(
               GTK_SCROLLED_WINDOW(scrollwindow)),
-          y[fokusindex] - gtk_widget_get_allocated_height(scrollwindow) +
-              KnotenHoehe + KnotenAbstand + RandOben);
+          eingabe_y_position(y[fokusindex]) - gtk_widget_get_allocated_height(scrollwindow) +
+              KnotenHoehe + KnotenAbstand + LayoutRandOben);
       scrv = 0;
     }
   }
@@ -195,7 +195,7 @@ static void zeichnelinien(GtkDrawingArea *widget, cairo_t *cr, int width,
   char unten[22];
   sprintf(unten, "-%i", anzahlknoteninstufe(0) - 1);
   int last = knotenexistiert(unten);
-  double root = (y[0] + y[last >= 0 ? last : 0] +
+  double root = (eingabe_y_position(y[0]) + eingabe_y_position(y[last >= 0 ? last : 0]) +
                  (baum_vertikal ? KnotenBreite : KnotenHoehe)) / 2.;
   cairo_set_source_rgba(cr, zweigfarbe.red, zweigfarbe.green,
                        zweigfarbe.blue, zweigfarbe.alpha);
@@ -204,8 +204,8 @@ static void zeichnelinien(GtkDrawingArea *widget, cairo_t *cr, int width,
     GtkAllocation ziel, quelle;
     gtk_widget_get_allocation(textfeld[i], &ziel);
     int stage = zeichenzaehlen(gtk_widget_get_name(textfeld[i]), '-') - 1;
-    double x1 = RandLinks + (baum_vertikal ? root : 0);
-    double y1 = RandOben + (baum_vertikal ? 0 : root);
+    double x1 = LayoutRandLinks + (baum_vertikal ? root : 0);
+    double y1 = LayoutRandOben + (baum_vertikal ? 0 : root);
     if (stage > 0) {
       int parent = knotenexistiert(gtk_widget_get_name(*vorgaenger[i]));
       if (parent < 0) continue;

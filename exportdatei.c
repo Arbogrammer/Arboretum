@@ -72,6 +72,8 @@ static gboolean export_datei(const char *dateiname, const char *format) {
     } else
       export_label(cr, wahrscheinlichkeitlabel[i]);
   }
+  for (int k = 0; k < 2; k++)
+    export_label(cr, ueberschrift_label[k]);
   for (int i = 0; i <= maxzaehlererg; i++) {
     if (ergebnisseanzeigen)
       export_label(cr, ergebnislabel[i]);

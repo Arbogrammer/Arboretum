@@ -19,8 +19,11 @@ suite = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(suite)
 REFERENCE = ROOT / "testdaten/visual/reference"
 OUTPUT = ROOT / "dist/test-logs/visual"
-SCENES = ["entries-horizontal", "entries-vertical", "fractions-horizontal",
-          "fractions-vertical", "export-horizontal", "export-vertical", "form-dialog"]
+SCENES = ["mixed-horizontal-inline", "mixed-horizontal-stacked",
+          "mixed-vertical-inline", "mixed-vertical-stacked", "entries-horizontal", "entries-vertical", "fractions-horizontal",
+          "fractions-vertical", "export-horizontal", "export-vertical", "form-dialog",
+          "headings-entries-horizontal", "headings-entries-vertical",
+          "headings-export-horizontal", "headings-export-vertical", "headings-dialog"]
 
 
 def environment():

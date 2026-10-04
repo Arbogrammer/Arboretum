@@ -6,12 +6,12 @@ Baumdiagrammen.
 ## Releases
 
 `VERSION` enthält die Paketversion. Release-Pakete werden aus dem passenden
-Tag (z. B. `v3.3.0`) neu gebaut, nicht aus älteren Downloads zusammengesetzt.
+Tag (z. B. `v4.0.0`) neu gebaut, nicht aus älteren Downloads zusammengesetzt.
 Alle Plattformen enthalten `BUILD-INFO.txt` mit dem vollständigen Quell-Commit;
 macOS verwendet dieselbe Version auch in den App-Metadaten.
 Die Linux-, Windows- und macOS-Workflows bauen nach Änderungen auf `main` sowie bei einem neuen Versionstag
 und prüfen die fertigen Pakete. Änderungsnotizen liegen unter
-`packaging/RELEASE-3.3.0.md`.
+`packaging/RELEASE-4.0.0.md`.
 
 ## Bauen unter Linux
 
@@ -120,7 +120,7 @@ Zusätzlich zu den Build-Abhängigkeiten werden Python 3, Pillow (`python3-pil`)
 Tastaturbedienung, Dateioperationen und Exporte,
 Bearbeitung und Undo/Redo, Layout, Parserfehler (mit AddressSanitizer und
 UndefinedBehaviorSanitizer) sowie Laden, Erweitern und Speichern eines Baums
-mit 5000 Ebenen sowie sieben Referenzbilder. Jede Gruppe hat ein Zeitlimit
+mit 5000 Ebenen sowie 16 Referenzbilder. Jede Gruppe hat ein Zeitlimit
 von 180 Sekunden. Auch nach
 einem Testfehler laufen die übrigen Gruppen weiter; `make test` liefert bei
 Fehlern einen Fehlerstatus. Protokolle und Zusammenfassung stehen unter
@@ -136,7 +136,7 @@ keine mit den Referenzbildern übereinstimmende Renderumgebung.
 ### Screenshotvergleiche
 
 `make test-visual` vergleicht Eingabefelder und fixierte Brüche in beiden
-Baumrichtungen, zwei PNG-Exporte und den Formdialog. Die Referenzen unter
+Baumrichtungen, gemischte Bruch-/Dezimalfelder, Ergebnisüberschriften, PNG-Exporte und Dialoge. Die Referenzen unter
 `testdaten/visual/reference/` wurden visuell geprüft. Die Fensteraufnahmen
 sind 1200 × 900 Pixel groß; der Formdialog verwendet seine natürliche Größe.
 Theme, Schrift, DPI, Sprache, Skalierung und Renderer sind fest eingestellt;
@@ -160,7 +160,7 @@ dann mit `make visual-reference` die Referenzen ausdrücklich ersetzen und die
 neuen Bilder kontrollieren. Anschließend `make test-visual` unabhängig erneut
 ausführen. Referenzen und `environment.json` gehören gemeinsam ins Repository.
 Neue Szenarien werden in `visual_test.c` und der Szenenliste in
-`packaging/test-visual.py` ergänzt. Die sieben Bilder sind ein erster Satz;
+`packaging/test-visual.py` ergänzt. Die 16 Bilder sind ein erster Satz;
 sie decken noch nicht alle Dialoge oder Windows/macOS ab.
 
 Plattformspezifische Pakettests bleiben in den jeweiligen Workflows.
@@ -199,6 +199,18 @@ Brüche und Dezimalzahlen (mit Punkt oder Komma) dürfen gemeinsam in einem
 Pfad stehen. Reine Bruchpfade bleiben als Bruch erhalten; gemischte Pfade
 werden dezimal ausgegeben. Ungültige Wahrscheinlichkeiten werden im Eingabefeld
 markiert und für betroffene Pfade wird kein Ergebnis angezeigt.
+Die Option „Bruchdarstellung vertikal“ unter Darstellung → Form gilt auch
+beim Bearbeiten. Ein `/` stellt Zähler und Nenner untereinander dar und setzt
+den Cursor in den Nenner. ↑/↓ wechseln zwischen den Teilen; Rückschritt im
+leeren Nenner kehrt zur einzeiligen Eingabe zurück. Strg+A markiert den ganzen
+Wert zum Ersetzen, Kopieren oder Ausschneiden. Eingefügte Werte wie `1/2`
+werden ebenfalls erkannt. Dezimalzahlen behalten ihre kompakte Höhe.
+Bei ausgeschalteter Option bleiben Brüche einzeilig als `1/2` sichtbar.
+Zusätzlicher Platz für Brüche wird nur in der Bearbeitungsansicht berechnet;
+die gespeicherten Werte und Baumpositionen bleiben erhalten. Exportieren ist
+über Datei → Exportieren oder Strg+Umschalt+A erreichbar; Strg+A gehört beim
+Bearbeiten zur Textauswahl.
+
 Die Baumrichtung wird mitgespeichert; ältere Dateien öffnen horizontal.
 
 Zusammenhängende Texteingaben im selben Feld werden bis zu einer Tipp-Pause
@@ -288,3 +300,18 @@ Optionaler Test mit einer vorhandenen LibreOffice-Installation:
 ```sh
 python3 packaging/test-docx.py /tmp/Arboretum-IO-XXXXXX --soffice /pfad/zu/soffice
 ```
+
+## Ergebnisüberschriften
+
+Unter **Darstellung → Ergebnisüberschriften** stehen **Keine**, **ω | P(ω)**,
+**ω | P({ω})**, **{ω} | P({ω})** und **Eigene …** zur Auswahl. Eigene
+Überschriften dürfen jeweils bis zu 160 Zeichen lang sein; ein leeres Feld
+blendet die jeweilige Überschrift aus.
+
+Die Überschriften stehen bei waagerechten Bäumen über den Ergebnisspalten,
+bei senkrechten Bäumen links neben den Ergebniszeilen. Sie folgen der
+Sichtbarkeit der zugehörigen Ergebnisse und erscheinen auch in allen
+Exportformaten. Auswahl und eigene Texte werden in der BDG-Datei gespeichert
+und unterstützen Rückgängig/Wiederherstellen. Alte Dateien öffnen sich ohne
+Überschriften; neu gespeicherte Dateien mit Überschriften benötigen eine
+Arboretum-Version, die diese zusätzlichen Einstellungen unterstützt.

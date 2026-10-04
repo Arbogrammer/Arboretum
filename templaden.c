@@ -9,6 +9,7 @@ static double tempzahl_laden(const char *text) {
 }
 
 static void tempdarstellung_laden(char *zeile) {
+  zeile[strcspn(zeile, "\r\n")] = 0;
   gchar **werte = g_strsplit(zeile, "\x1f", 0);
   int n = g_strv_length(werte);
   if (n >= 45) {
@@ -69,6 +70,11 @@ static void tempdarstellung_laden(char *zeile) {
     wskseite = CLAMP(wskseite, 0, 2);
     wskmitteunten = v < n ? atoi(werte[v++]) != 0 : FALSE;
     wskautomatik = v < n ? atoi(werte[v++]) != 0 : FALSE;
+    ueberschrift_modus = v < n ? atoi(werte[v++]) : 0;
+    ueberschrift_modus = CLAMP(ueberschrift_modus, 0, 4);
+    for (int k = 0; k < 2; k++)
+      g_strlcpy(ueberschrift_eigen[k], v < n ? werte[v++] : "",
+                sizeof(ueberschrift_eigen[k]));
   }
   g_strfreev(werte);
 }
@@ -227,11 +233,11 @@ void templaden(gpointer data) {
   dateinummerierung = naechste_dateinummer;
 
   gtk_widget_set_size_request(
-      da, RandLinks + RandRechts + StufenBreite + KnotenBreite,
-      RandOben + KnotenHoehe + RandUnten);
+      da, LayoutRandLinks + RandRechts + StufenBreite + KnotenBreite,
+      LayoutRandOben + KnotenHoehe + RandUnten);
   gtk_layout_set_size(GTK_LAYOUT(data),
-                      RandLinks + RandRechts + StufenBreite + KnotenBreite,
-                      RandOben + KnotenHoehe + RandUnten);
+                      LayoutRandLinks + RandRechts + StufenBreite + KnotenBreite,
+                      LayoutRandOben + KnotenHoehe + RandUnten);
 
   int j = 0;
   ymax = 0;
@@ -284,9 +290,9 @@ void templaden(gpointer data) {
     gtk_entry_set_alignment(GTK_ENTRY(textfeld[tempzaehler]), 0.5);
     gtk_entry_set_text(GTK_ENTRY(textfeld[tempzaehler]), text);
     gtk_layout_put(GTK_LAYOUT(data), textfeld[tempzaehler],
-                   FensterRandLinks + RandLinks + StufenBreite +
+                   FensterRandLinks + LayoutRandLinks + StufenBreite +
                        (StufenBreite + KnotenBreite) * Stufe,
-                   FensterRandOben + RandOben + y[tempzaehler]);
+                   FensterRandOben + LayoutRandOben + y[tempzaehler]);
     g_signal_connect(textfeld[tempzaehler], "changed",
                      G_CALLBACK(buchstabeneingabe), data);
     gtk_widget_show_all(textfeld[tempzaehler]);
@@ -351,10 +357,10 @@ void templaden(gpointer data) {
     gtk_entry_set_alignment(GTK_ENTRY(textfeldErgebnis[tempzaehler]), 0.5);
     gtk_entry_set_text(GTK_ENTRY(textfeldErgebnis[tempzaehler]), text);
     gtk_layout_put(GTK_LAYOUT(data), textfeldErgebnis[tempzaehler],
-                   FensterRandLinks + RandLinks +
+                   FensterRandLinks + LayoutRandLinks +
                        (maxStufe + 1) * StufenBreite +
                        (maxStufe + 1) * KnotenBreite + ErgebnisAbstand,
-                   FensterRandOben + RandOben + yerg[tempzaehler]);
+                   FensterRandOben + LayoutRandOben + yerg[tempzaehler]);
 
     gtk_widget_show_all(textfeldErgebnis[tempzaehler]);
     zaehlererg = tempzaehler;
@@ -390,7 +396,7 @@ void templaden(gpointer data) {
       free(dateiinhalt);
       return;
     }
-    textfeldWahrscheinlichkeit[tempzaehler] = gtk_entry_new();
+    textfeldWahrscheinlichkeit[tempzaehler] = bruchfeld_neu();
     eingabefeld_absichern(textfeldWahrscheinlichkeit[tempzaehler]);
     gtk_widget_set_name(textfeldWahrscheinlichkeit[tempzaehler], name);
     gtk_entry_set_width_chars(
@@ -444,7 +450,7 @@ void templaden(gpointer data) {
       free(dateiinhalt);
       return;
     }
-    textfeldErgebnisWahrscheinlichkeit[tempzaehler] = gtk_entry_new();
+    textfeldErgebnisWahrscheinlichkeit[tempzaehler] = bruchfeld_neu();
     eingabefeld_absichern(textfeldErgebnisWahrscheinlichkeit[tempzaehler]);
     gtk_widget_set_name(textfeldErgebnisWahrscheinlichkeit[tempzaehler], name);
     gtk_entry_set_width_chars(
@@ -456,10 +462,10 @@ void templaden(gpointer data) {
         GTK_ENTRY(textfeldErgebnisWahrscheinlichkeit[tempzaehler]), text);
     gtk_layout_put(
         GTK_LAYOUT(data), textfeldErgebnisWahrscheinlichkeit[tempzaehler],
-        FensterRandLinks + RandLinks + (maxStufe + 1) * StufenBreite +
+        FensterRandLinks + LayoutRandLinks + (maxStufe + 1) * StufenBreite +
             (maxStufe + 1) * KnotenBreite + ErgebnisAbstand * 2 +
             ErgebnisBreite,
-        FensterRandOben + RandOben + yerg[tempzaehler]);
+        FensterRandOben + LayoutRandOben + yerg[tempzaehler]);
 
     gtk_widget_show_all(textfeldErgebnisWahrscheinlichkeit[tempzaehler]);
     zaehlererg = tempzaehler;

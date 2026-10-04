@@ -43,6 +43,22 @@ static gboolean layout_test(gpointer data) {
   g_assert_cmpint(maxzaehler, ==, 11);
   int original[12];
   memcpy(original, y, sizeof original);
+  /* Tall editing fields get room without changing saved node positions. */
+  bruchou = TRUE;
+  baumrichtung_aktualisieren(data);
+  io_test_drain();
+  for (int i = 0; i <= maxzaehler; i++) {
+    g_assert_cmpint(y[i], ==, original[i]);
+    GtkAllocation a;
+    gtk_widget_get_allocation(textfeldWahrscheinlichkeit[i], &a);
+    for (int j = i + 1; j <= maxzaehler; j++) {
+      if (zeichenzaehlen(gtk_widget_get_name(textfeld[i]), '-') !=
+          zeichenzaehlen(gtk_widget_get_name(textfeld[j]), '-')) continue;
+      GtkAllocation b;
+      gtk_widget_get_allocation(textfeldWahrscheinlichkeit[j], &b);
+      g_assert_true(a.y + a.height <= b.y || b.y + b.height <= a.y);
+    }
+  }
   StufenBreite = 150;
   for (int vertical = 0; vertical < 2; vertical++) {
     baum_vertikal = vertical;

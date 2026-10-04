@@ -68,7 +68,7 @@ gboolean rechts(GtkWidget *widget, gpointer data) {
     textfeld[zaehler] = gtk_entry_new();
     eingabefeld_absichern(textfeld[zaehler]);
     gtk_widget_set_name(textfeld[zaehler], neuname);
-    textfeldWahrscheinlichkeit[zaehler] = gtk_entry_new();
+    textfeldWahrscheinlichkeit[zaehler] = bruchfeld_neu();
     eingabefeld_absichern(textfeldWahrscheinlichkeit[zaehler]);
     gtk_widget_set_name(textfeldWahrscheinlichkeit[zaehler], neunamew);
     g_autofree gchar *neues_ergebnis = g_strdup_printf("%s-E", neuname);
@@ -89,18 +89,18 @@ gboolean rechts(GtkWidget *widget, gpointer data) {
                      G_CALLBACK(wskeingabe), data);
     y[zaehler] = y[tempzaehler];
     gtk_layout_put(GTK_LAYOUT(data), textfeld[zaehler],
-                   FensterRandLinks + RandLinks + StufenBreite +
+                   FensterRandLinks + LayoutRandLinks + StufenBreite +
                        (StufenBreite + KnotenBreite) * Stufe,
-                   FensterRandOben + RandOben + y[zaehler]);
+                   FensterRandOben + LayoutRandOben + y[zaehler]);
     gtk_layout_put(
         GTK_LAYOUT(data), textfeldWahrscheinlichkeit[zaehler],
-        ((FensterRandLinks + RandLinks + StufenBreite +
+        ((FensterRandLinks + LayoutRandLinks + StufenBreite +
           (StufenBreite + KnotenBreite) * Stufe) +
-         (FensterRandLinks + RandLinks + StufenBreite +
+         (FensterRandLinks + LayoutRandLinks + StufenBreite +
           (StufenBreite + KnotenBreite) * (Stufe - 1) + KnotenBreite)) /
                 2 -
             WahrscheinlichkeitBreite / 2,
-        FensterRandOben + RandOben + y[zaehler]);
+        FensterRandOben + LayoutRandOben + y[zaehler]);
     /* Vor dem ersten Frame die vertikale Zielposition setzen. */
     if (baum_vertikal)
       baumrichtung_aktualisieren(data);
@@ -112,18 +112,18 @@ gboolean rechts(GtkWidget *widget, gpointer data) {
     int i = 0;
     for (i = 0; i <= maxzaehlererg; i++) {
       gtk_layout_move(GTK_LAYOUT(data), textfeldErgebnis[i],
-                      FensterRandLinks + RandLinks +
+                      FensterRandLinks + LayoutRandLinks +
                           (maxStufe + 1) * StufenBreite +
                           (maxStufe + 1) * KnotenBreite + ErgebnisAbstand,
-                      FensterRandOben + RandOben + yerg[i]);
+                      FensterRandOben + LayoutRandOben + yerg[i]);
       gtk_entry_set_width_chars(GTK_ENTRY(textfeldErgebnis[i]),
                                 ErgebnisTextBreite);
       gtk_layout_move(
           GTK_LAYOUT(data), textfeldErgebnisWahrscheinlichkeit[i],
-          FensterRandLinks + RandLinks + (maxStufe + 1) * StufenBreite +
+          FensterRandLinks + LayoutRandLinks + (maxStufe + 1) * StufenBreite +
               (maxStufe + 1) * KnotenBreite + ErgebnisAbstand +
               ((ergebnisseanzeigen) ? ErgebnisAbstand + ErgebnisBreite : 0),
-          FensterRandOben + RandOben + yerg[i]);
+          FensterRandOben + LayoutRandOben + yerg[i]);
     }
 
     if (knotenhintergrundfarbewurdegeaendert) {

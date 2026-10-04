@@ -1,6 +1,7 @@
 void labelverschieben(gpointer data) {
   if (!labelein)
     return;
+  ueberschrift_vorbereiten(data);
   int w, h;
   klbmax = 0;
   for (int i = 0; i <= maxzaehler; i++) {
@@ -22,6 +23,10 @@ void labelverschieben(gpointer data) {
       wsk_messen(ergebniswsklabel[i], &w, &h);
     WahrscheinlichkeitErgebnisLabelBreite =
         MAX(WahrscheinlichkeitErgebnisLabelBreite, w);
+  }
+  if (!baum_vertikal) {
+    ErgebnisLabelBreite = MAX(ErgebnisLabelBreite, ueberschrift_breite[0]);
+    WahrscheinlichkeitErgebnisLabelBreite = MAX(WahrscheinlichkeitErgebnisLabelBreite, ueberschrift_breite[1]);
   }
   wsk_layout_berechnen();
   wsklayout_width = wsklayout_height = 1;
@@ -68,12 +73,12 @@ void labelverschieben(gpointer data) {
     g_autofree char *leafname = g_strndup(name, strrchr(name, '-') - name);
     int leaf = knotenexistiert(leafname);
     double pos = leaf >= 0 ? wsklayout[leaf].position : yerg[i];
-    double x = FensterRandLinks + RandLinks +
+    double x = FensterRandLinks + LayoutRandLinks +
                (maxStufe + 1) * (StufenBreite + klbmax) + ErgebnisAbstand;
-    double yy = FensterRandOben + RandOben + pos + KnotenHoehe / 2.;
+    double yy = FensterRandOben + LayoutRandOben + pos + KnotenHoehe / 2.;
     wsk_messen(ergebnislabel[i], &w, &h);
     if (baum_vertikal) {
-      x = FensterRandLinks + RandLinks + pos + KnotenBreite / 2.;
+      x = FensterRandLinks + LayoutRandLinks + pos + KnotenBreite / 2.;
       yy = wsk_stufe_y(maxStufe) +
            MAX(KnotenHoehe, KnotenLabelHoehe + 2 * paddingk) + ErgebnisAbstand +
            h / 2.;
@@ -105,6 +110,7 @@ void labelverschieben(gpointer data) {
       }
     }
   }
+  ueberschrift_positionieren(data);
   wsk_layout_groesse(data);
   if (wsklayout_hinweis) {
     gtk_widget_set_visible(wsklayout_hinweis,

@@ -16,7 +16,9 @@ static gboolean eingabefeld_verarbeitet_pfeiltaste(guint keyval,
   if (state & gtk_accelerator_get_default_mod_mask())
     return TRUE;
 
-  GtkEditable *editable = GTK_EDITABLE(fokus);
+  ArboretumFractionEntry *fraction = bruchfeld(fokus);
+  GtkWidget *part = fraction ? bruchfeld_teil(fraction) : NULL;
+  GtkEditable *editable = GTK_EDITABLE(part ? part : fokus);
   int auswahl_start, auswahl_ende;
   if (gtk_editable_get_selection_bounds(editable, &auswahl_start,
                                         &auswahl_ende))
@@ -33,6 +35,16 @@ static gboolean keyfunc(GtkEventControllerKey *controller, guint keyval,
                         guint keycode, GdkModifierType state, gpointer data) {
   GtkWidget *widget =
       gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(controller));
+  if ((keyval == GDK_KEY_a || keyval == GDK_KEY_A) &&
+      (state & gtk_accelerator_get_default_mod_mask()) ==
+          (GDK_CONTROL_MASK | GDK_SHIFT_MASK)) {
+    exportdialog(NULL, data);
+    return TRUE;
+  }
+  if (bruchfeld_taste(keyval, state)) return TRUE;
+  ArboretumFractionEntry *fraction = bruchfeld(gtk_window_get_focus(GTK_WINDOW(window)));
+  if (fraction && fraction->vertical && !(state & GDK_CONTROL_MASK) &&
+      (keyval == GDK_KEY_Delete || keyval == GDK_KEY_Home || keyval == GDK_KEY_End)) return FALSE;
   gboolean steuerung =
       (state & gtk_accelerator_get_default_mod_mask()) == GDK_CONTROL_MASK;
 
@@ -120,6 +132,8 @@ static gboolean keyfunc(GtkEventControllerKey *controller, guint keyval,
   case GDK_KEY_a:
   case GDK_KEY_A:
     if (steuerung) {
+      GtkWidget *focus = gtk_window_get_focus(GTK_WINDOW(window));
+      if (!labelein && focus && GTK_IS_EDITABLE(focus)) return FALSE;
       exportdialog(NULL, data);
       break;
     }

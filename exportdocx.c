@@ -169,6 +169,8 @@ gboolean exportdocx(char *dateiname) {
       else docx_label(&doc, wahrscheinlichkeitlabel[i], FALSE, &wsklayout[i]);
     }
   }
+  for (int k = 0; k < 2; k++)
+    docx_label(&doc, ueberschrift_label[k], FALSE, NULL);
   for (int i = 0; i <= maxzaehlererg; i++) {
     if (ergebnisseanzeigen) docx_label(&doc, ergebnislabel[i], TRUE, NULL);
     if (ergebnissewskanzeigen) {

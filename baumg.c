@@ -20,25 +20,28 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#define LayoutRandLinks (RandLinks + ueberschrift_rand_links)
+#define LayoutRandOben (RandOben + ueberschrift_rand_oben)
+
 #define GROESSELAYOUT                                                          \
   if (baum_vertikal) {                                                         \
     gtk_layout_set_size(GTK_LAYOUT(layout), baum_breite(), baum_hoehe());      \
   } else if (labelein == 0) {                                                  \
     gtk_layout_set_size(                                                       \
         GTK_LAYOUT(layout),                                                    \
-        FensterRandLinks + FensterRandRechts + RandLinks + RandRechts +        \
+        FensterRandLinks + FensterRandRechts + LayoutRandLinks + RandRechts +        \
             (maxStufe + 1) * StufenBreite + (maxStufe + 1) * KnotenBreite +    \
             ((ergebnisseanzeigen > 0) ? (ErgebnisAbstand + ErgebnisBreite)     \
                                       : 0) +                                   \
             ((ergebnissewskanzeigen > 0)                                       \
                  ? (ErgebnisAbstand + WahrscheinlichkeitErgebnisBreite)        \
                  : 0),                                                         \
-        FensterRandOben + FensterRandUnten + ymax + KnotenHoehe + RandUnten +  \
-            RandOben);                                                         \
+        FensterRandOben + FensterRandUnten + eingabe_y_position(ymax) + MAX(KnotenHoehe, WahrscheinlichkeitErgebnisHoehe) + RandUnten +  \
+            LayoutRandOben);                                                         \
   } else {                                                                     \
     gtk_layout_set_size(                                                       \
         GTK_LAYOUT(layout),                                                    \
-        FensterRandLinks + FensterRandRechts + RandLinks + RandRechts +        \
+        FensterRandLinks + FensterRandRechts + LayoutRandLinks + RandRechts +        \
             (maxStufe + 1) * StufenBreite +                                    \
             (maxStufe + 1) * (klbmax + 2 * knotenrahmenabstand) -              \
             knotenrahmenabstand +                                              \
@@ -49,7 +52,7 @@
                  ? (ErgebnisAbstand + WahrscheinlichkeitErgebnisLabelBreite)   \
                  : 0),                                                         \
         FensterRandOben + FensterRandUnten + ymax + KnotenLabelHoehe +         \
-            RandUnten + RandOben);                                             \
+            RandUnten + LayoutRandOben);                                             \
   }
 #define GROESSELAYOUTD                                                         \
   if (baum_vertikal) {                                                         \
@@ -57,19 +60,19 @@
   } else if (labelein == 0) {                                                  \
     gtk_layout_set_size(                                                       \
         GTK_LAYOUT(data),                                                      \
-        FensterRandLinks + FensterRandRechts + RandLinks + RandRechts +        \
+        FensterRandLinks + FensterRandRechts + LayoutRandLinks + RandRechts +        \
             (maxStufe + 1) * StufenBreite + (maxStufe + 1) * KnotenBreite +    \
             ((ergebnisseanzeigen > 0) ? (ErgebnisAbstand + ErgebnisBreite)     \
                                       : 0) +                                   \
             ((ergebnissewskanzeigen > 0)                                       \
                  ? (ErgebnisAbstand + WahrscheinlichkeitErgebnisBreite)        \
                  : 0),                                                         \
-        FensterRandOben + FensterRandUnten + ymax + KnotenHoehe + RandUnten +  \
-            RandOben);                                                         \
+        FensterRandOben + FensterRandUnten + eingabe_y_position(ymax) + MAX(KnotenHoehe, WahrscheinlichkeitErgebnisHoehe) + RandUnten +  \
+            LayoutRandOben);                                                         \
   } else {                                                                     \
     gtk_layout_set_size(                                                       \
         GTK_LAYOUT(data),                                                      \
-        FensterRandLinks + FensterRandRechts + RandLinks + RandRechts +        \
+        FensterRandLinks + FensterRandRechts + LayoutRandLinks + RandRechts +        \
             (maxStufe + 1) * StufenBreite +                                    \
             (maxStufe + 1) * (klbmax + 2 * knotenrahmenabstand) -              \
             knotenrahmenabstand +                                              \
@@ -80,7 +83,7 @@
                  ? (ErgebnisAbstand + WahrscheinlichkeitErgebnisLabelBreite)   \
                  : 0),                                                         \
         FensterRandOben + FensterRandUnten + ymax + KnotenLabelHoehe +         \
-            RandUnten + RandOben);                                             \
+            RandUnten + LayoutRandOben);                                             \
   }
 #define GROESSEDRAWINGAREA                                                     \
   if (baum_vertikal) {                                                         \
@@ -90,18 +93,18 @@
   } else if (labelein == 0) {                                                  \
     gtk_widget_set_size_request(                                               \
         da,                                                                    \
-        RandLinks + RandRechts + (maxStufe + 1) * StufenBreite +               \
+        LayoutRandLinks + RandRechts + (maxStufe + 1) * StufenBreite +               \
             (maxStufe + 1) * KnotenBreite +                                    \
             ((ergebnisseanzeigen > 0) ? (ErgebnisAbstand + ErgebnisBreite)     \
                                       : 0) +                                   \
             ((ergebnissewskanzeigen > 0)                                       \
                  ? (ErgebnisAbstand + WahrscheinlichkeitErgebnisBreite)        \
                  : 0),                                                         \
-        ymax + KnotenHoehe + RandUnten + RandOben);                            \
+        eingabe_y_position(ymax) + MAX(KnotenHoehe, WahrscheinlichkeitErgebnisHoehe) + RandUnten + LayoutRandOben);                            \
   } else {                                                                     \
     gtk_widget_set_size_request(                                               \
         da,                                                                    \
-        RandLinks + RandRechts + (maxStufe + 1) * StufenBreite +               \
+        LayoutRandLinks + RandRechts + (maxStufe + 1) * StufenBreite +               \
             (maxStufe + 1) * (klbmax + 2 * knotenrahmenabstand) -              \
             knotenrahmenabstand +                                              \
             ((ergebnisseanzeigen > 0)                                          \
@@ -111,8 +114,9 @@
                  ? (ErgebnisAbstand + WahrscheinlichkeitErgebnisLabelBreite)   \
                  : 0),                                                         \
         ymax + KnotenHoehe / 2 - KnotenLabelHoehe / 2 + KnotenLabelHoehe +     \
-            RandUnten + RandOben);                                             \
+            RandUnten + LayoutRandOben);                                             \
   }
+static int eingabe_y_position(int position);
 static int baum_breite(void);
 static int baum_hoehe(void);
 static int vertikale_stufe_y(int stufe);
@@ -347,10 +351,23 @@ gboolean wskmitteunten = FALSE;
 gboolean wskautomatik = FALSE;
 gboolean baum_vertikal = FALSE; /* FALSE erhält die bisherige Ansicht. */
 GtkCheckButton *baumrichtungsschalter = NULL;
+static int ueberschrift_modus = 0;
+static char ueberschrift_eigen[2][641] = {{0}};
+static GtkWidget *ueberschrift_label[2] = {NULL, NULL};
+static int ueberschrift_breite[2], ueberschrift_hoehe[2];
+static int ueberschrift_rand_links = 0, ueberschrift_rand_oben = 0;
+
+/* Additional edit-view spacing is never written back into document positions. */
+static double eingabe_y_faktor = 1.0;
+static int eingabe_y_rand = 0;
+static int eingabe_y_position(int position) {
+  return labelein || baum_vertikal ? position
+      : (int)ceil(position * eingabe_y_faktor) + eingabe_y_rand;
+}
 
 static int baum_breite(void) {
   if (!baum_vertikal)
-    return FensterRandLinks + FensterRandRechts + RandLinks + RandRechts +
+    return FensterRandLinks + FensterRandRechts + LayoutRandLinks + RandRechts +
            (maxStufe + 1) * StufenBreite + (maxStufe + 1) * KnotenBreite +
            ((ergebnisseanzeigen) ? (ErgebnisAbstand + ErgebnisBreite) : 0) +
            ((ergebnissewskanzeigen)
@@ -367,24 +384,25 @@ static int baum_breite(void) {
     rechte_breite =
         MAX(rechte_breite, labelein ? WahrscheinlichkeitErgebnisLabelBreite
                                     : WahrscheinlichkeitErgebnisBreite);
-  return FensterRandLinks + FensterRandRechts + RandLinks + RandRechts + ymax +
+  return FensterRandLinks + FensterRandRechts + LayoutRandLinks + RandRechts + ymax +
          rechte_breite;
 }
 
 static int baum_hoehe(void) {
   if (!baum_vertikal)
-    return FensterRandOben + FensterRandUnten + ymax + KnotenHoehe + RandUnten +
-           RandOben;
+    return FensterRandOben + FensterRandUnten + eingabe_y_position(ymax) + MAX(KnotenHoehe, WahrscheinlichkeitErgebnisHoehe) + RandUnten +
+           LayoutRandOben;
   int ergebniszeilen =
       (ergebnisseanzeigen ? 1 : 0) + (ergebnissewskanzeigen ? 1 : 0);
-  return FensterRandOben + FensterRandUnten + RandOben + RandUnten +
+  return FensterRandOben + FensterRandUnten + LayoutRandOben + RandUnten +
          StufenBreite + maxStufe * (StufenBreite + KnotenHoehe) + KnotenHoehe +
-         ergebniszeilen * (ErgebnisAbstand + KnotenHoehe);
+         ergebniszeilen * (ErgebnisAbstand + KnotenHoehe) +
+         (!labelein && ergebnissewskanzeigen ? MAX(0, WahrscheinlichkeitErgebnisHoehe - KnotenHoehe) : 0);
 }
 
 /* Die erste sichtbare Stufe beginnt erst nach der virtuellen Wurzel. */
 static int vertikale_stufe_y(int stufe) {
-  return FensterRandOben + RandOben + StufenBreite +
+  return FensterRandOben + LayoutRandOben + StufenBreite +
          stufe * (StufenBreite + KnotenHoehe);
 }
 int knotenrahmenabstand =
@@ -593,7 +611,7 @@ static gboolean pfeiltasten_smoketest(gpointer data) {
   arboretum_layout_aktualisieren(layout);
   graphene_rect_t probability_bounds = GRAPHENE_RECT_INIT(0, 0, 0, 0);
   double probability_center = 0;
-  double expected_center = FensterRandLinks + RandLinks + StufenBreite / 2.0;
+  double expected_center = FensterRandLinks + LayoutRandLinks + StufenBreite / 2.0;
   gboolean probability_position_ok = FALSE;
   for (int frame = 0; frame < 15 && !probability_position_ok; frame++) {
     io_test_drain();
@@ -985,7 +1003,7 @@ int main(int argc, char *argv[]) {
   gtk_entry_set_width_chars(GTK_ENTRY(textfeldErgebnis[0]), 3 * (Stufe + 1));
   gtk_entry_set_alignment(GTK_ENTRY(textfeldErgebnis[0]), 0.5);
 
-  textfeldWahrscheinlichkeit[0] = gtk_entry_new();
+  textfeldWahrscheinlichkeit[0] = bruchfeld_neu();
   eingabefeld_absichern(textfeldWahrscheinlichkeit[0]);
   gtk_widget_set_name(textfeldWahrscheinlichkeit[0], "-0W");
   gtk_entry_set_width_chars(GTK_ENTRY(textfeldWahrscheinlichkeit[0]),
@@ -994,7 +1012,7 @@ int main(int argc, char *argv[]) {
   g_signal_connect(textfeldWahrscheinlichkeit[0], "changed",
                    G_CALLBACK(wskeingabe), layout);
 
-  textfeldErgebnisWahrscheinlichkeit[0] = gtk_entry_new();
+  textfeldErgebnisWahrscheinlichkeit[0] = bruchfeld_neu();
   eingabefeld_absichern(textfeldErgebnisWahrscheinlichkeit[0]);
   gtk_widget_set_name(textfeldErgebnisWahrscheinlichkeit[0], "-0-EW");
   gtk_entry_set_width_chars(GTK_ENTRY(textfeldErgebnisWahrscheinlichkeit[0]),
@@ -1046,6 +1064,9 @@ int main(int argc, char *argv[]) {
   werkzeugknopf_mit_hinweis(darstellungsgruppe, "Wahrscheinlichkeit",
                             "Blendet die Wahrscheinlichkeiten ein oder aus.",
                             G_CALLBACK(wskergebnisspalteanzeigen), layout);
+  werkzeugknopf_mit_hinweis(darstellungsgruppe, "Ergebnisüberschriften",
+      "Wählt Überschriften für Fenster und Export.",
+      G_CALLBACK(ueberschrift_dialog), layout);
   GtkWidget *baumrichtung =
       gtk_check_button_new_with_label("Von oben nach unten");
   baumrichtungsschalter = GTK_CHECK_BUTTON(baumrichtung);
@@ -1082,20 +1103,20 @@ int main(int argc, char *argv[]) {
 
   gtk_layout_put(GTK_LAYOUT(layout), da, FensterRandLinks, FensterRandOben);
   gtk_layout_put(GTK_LAYOUT(layout), textfeld[0],
-                 FensterRandLinks + RandLinks + StufenBreite,
-                 FensterRandOben + RandOben + y[0]);
+                 FensterRandLinks + LayoutRandLinks + StufenBreite,
+                 FensterRandOben + LayoutRandOben + y[0]);
   gtk_layout_put(GTK_LAYOUT(layout), textfeldErgebnis[0],
-                 FensterRandLinks + RandLinks + StufenBreite + KnotenBreite +
+                 FensterRandLinks + LayoutRandLinks + StufenBreite + KnotenBreite +
                      ErgebnisAbstand,
-                 FensterRandOben + RandOben + yerg[0]);
+                 FensterRandOben + LayoutRandOben + yerg[0]);
   gtk_layout_put(GTK_LAYOUT(layout), textfeldWahrscheinlichkeit[0],
-                 FensterRandLinks + RandLinks + StufenBreite / 2 -
+                 FensterRandLinks + LayoutRandLinks + StufenBreite / 2 -
                      WahrscheinlichkeitBreite / 2,
-                 FensterRandOben + RandOben + y[0]);
+                 FensterRandOben + LayoutRandOben + y[0]);
   gtk_layout_put(GTK_LAYOUT(layout), textfeldErgebnisWahrscheinlichkeit[0],
-                 FensterRandLinks + RandLinks + StufenBreite + KnotenBreite +
+                 FensterRandLinks + LayoutRandLinks + StufenBreite + KnotenBreite +
                      ErgebnisAbstand * 2 + ErgebnisBreite,
-                 FensterRandOben + RandOben + yerg[0]);
+                 FensterRandOben + LayoutRandOben + yerg[0]);
   gtk_layout_put(GTK_LAYOUT(layout), wahrscheinlichkeitlabel[0], 0, 0);
   gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scrollwindow), layout);
   gtk_box_append(GTK_BOX(gesamtbox), menuescroll);

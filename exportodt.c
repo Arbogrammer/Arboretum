@@ -184,6 +184,8 @@ gboolean exportodt(char *dateiname) {
       else odt_label(out, wahrscheinlichkeitlabel[i], FALSE, &wsklayout[i], unit);
     }
   }
+  for (int k = 0; k < 2; k++)
+    odt_label(out, ueberschrift_label[k], FALSE, NULL, unit);
   for (int i = 0; i <= maxzaehlererg; i++) {
     if (ergebnisseanzeigen) odt_label(out, ergebnislabel[i], TRUE, NULL, unit);
     if (ergebnissewskanzeigen) {

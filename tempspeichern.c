@@ -84,7 +84,7 @@ void tempspeichern() {
               "c%d%c%d%c%d%c"
               "%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c"
               "%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c"
-              "%d%c%d%c%d%c%d%c%d%c%s%c%d%c%d%c%d%c%d%c%d\n",
+              "%d%c%d%c%d%c%d%c%d%c%s%c%d%c%d%c%d%c%d%c%d%c%d%c%s%c%s\n",
               RandLinks, 31, RandRechts, 31, RandOben, 31, RandUnten, 31,
               StufenBreite, 31, KnotenAbstand, 31, ErgebnisAbstand, 31,
               LinienDicke, 31, KnotenTextBreite, 31,
@@ -104,7 +104,8 @@ void tempspeichern() {
               31, schriftfarbewurdegeaendert, 31, schriftartwurdegewechselt, 31,
               schriftart, 31, baum_vertikal, 31,
               letzte_wahrscheinlichkeit_automatisch, 31, wskseite, 31,
-              wskmitteunten, 31, wskautomatik) < 0)
+              wskmitteunten, 31, wskautomatik, 31, ueberschrift_modus, 31,
+              ueberschrift_eigen[0], 31, ueberschrift_eigen[1]) < 0)
     schreibfehler = 1;
 
   if (fflush(datei) != 0)

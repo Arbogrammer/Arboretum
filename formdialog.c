@@ -146,7 +146,7 @@ static void formdialog(GtkWidget *button, gpointer data) {
       padk, "Mindestabstand zwischen Knotenbeschriftung und Zweig (Pixel).");
   gtk_widget_set_tooltip_text(
       bruchdarstellungvertikal,
-      "Zeigt Zähler und Nenner eines Bruchs untereinander an.");
+      "Zeigt Zähler und Nenner beim Bearbeiten und in der fixierten Ansicht untereinander an.");
   gtk_widget_set_tooltip_text(kuerzenauswahl,
                               "Kürzt berechnete Brüche automatisch.");
   gtk_widget_set_tooltip_text(

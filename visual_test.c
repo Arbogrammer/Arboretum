@@ -34,7 +34,7 @@ static gboolean visual_form(gpointer unused) {
   for (guint i = 0; i < g_list_model_get_n_items(windows); i++) {
     g_autoptr(GtkWindow) candidate = g_list_model_get_item(windows, i);
     if (GTK_IS_DIALOG(candidate) && gtk_widget_get_mapped(GTK_WIDGET(candidate))) {
-      visual_capture(GTK_WIDGET(candidate), "form-dialog");
+      visual_capture(GTK_WIDGET(candidate), unused ? (const char *)unused : "form-dialog");
       gtk_dialog_response(GTK_DIALOG(candidate), GTK_RESPONSE_CANCEL);
       return G_SOURCE_REMOVE;
     }
@@ -44,6 +44,10 @@ static gboolean visual_form(gpointer unused) {
 
 static gboolean visual_run(gpointer unused) {
   gpointer layout = gtk_widget_get_parent(textfeld[0]);
+  /* A font chooser's initial selection depends on installed fonts. Pin both
+   * label and entry fonts, not only GtkSettings, for repeatable captures. */
+  g_strlcpy(schriftart, "DejaVu Sans 10", sizeof(schriftart));
+  schriftartanpassen(NULL, NULL, NULL);
   gtk_window_unmaximize(GTK_WINDOW(window));
   const char *modes[] = {"ohne", "mit", "dazulegen", NULL};
   GtkWidget *fields[] = {gtk_entry_new(), gtk_entry_new(),
@@ -93,8 +97,43 @@ static gboolean visual_run(gpointer unused) {
     g_assert_true(exportpng(export_path));
     umwandeln(NULL, layout);
   }
+  /* Same tree with mixed decimal/fraction fields and both editor modes. */
+  gboolean auto_rest = letzte_wahrscheinlichkeit_automatisch;
+  letzte_wahrscheinlichkeit_automatisch = FALSE;
+  gtk_entry_set_text(GTK_ENTRY(textfeldWahrscheinlichkeit[0]), "0,4");
+  gtk_entry_set_text(GTK_ENTRY(textfeldWahrscheinlichkeit[1]), "1/");
+  for (int vertical = 0; vertical < 2; vertical++) {
+    baum_vertikal = vertical;
+    for (int stacked = 0; stacked < 2; stacked++) {
+      bruchou = stacked;
+      baumrichtung_aktualisieren(layout);
+      gtk_window_set_focus(GTK_WINDOW(window), NULL);
+      g_autofree char *name = g_strdup_printf("mixed-%s-%s",
+          vertical ? "vertical" : "horizontal", stacked ? "stacked" : "inline");
+      visual_capture(window, name);
+    }
+  }
+  gtk_entry_set_text(GTK_ENTRY(textfeldWahrscheinlichkeit[0]), "2/5");
+  gtk_entry_set_text(GTK_ENTRY(textfeldWahrscheinlichkeit[1]), "1/4");
+  letzte_wahrscheinlichkeit_automatisch = auto_rest;
+  baumrichtung_aktualisieren(layout);
   g_timeout_add(200, visual_form, NULL);
   formdialog(NULL, layout);
+  ueberschrift_modus = 3;
+  for (int vertical = 0; vertical < 2; vertical++) {
+    baum_vertikal = vertical;
+    baumrichtung_aktualisieren(layout);
+    g_autofree char *name = g_strdup_printf("headings-entries-%s", vertical ? "vertical" : "horizontal");
+    visual_capture(window, name);
+    umwandeln(NULL, layout);
+    io_test_drain();
+    g_autofree char *out = g_strdup_printf("%s/headings-export-%s.png", visual_output, vertical ? "vertical" : "horizontal");
+    g_assert_true(exportpng(out));
+    umwandeln(NULL, layout);
+  }
+  ueberschrift_modus = 4;
+  g_timeout_add(200, visual_form, "headings-dialog");
+  ueberschrift_dialog(NULL, layout);
   g_main_loop_quit(arboretum_main_loop);
   return G_SOURCE_REMOVE;
 }

@@ -148,6 +148,8 @@ gboolean exporttex(char *dateiname) {
       }
     }
   }
+  for (int k = 0; k < 2; k++)
+    tex_label(out, ueberschrift_label[k], FALSE);
   for (int i = 0; i <= maxzaehlererg; i++) {
     if (ergebnisseanzeigen) tex_label(out, ergebnislabel[i], TRUE);
     if (ergebnissewskanzeigen) {

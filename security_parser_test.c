@@ -78,6 +78,30 @@ static void test_layout_optionen(void) {
   g_assert_false(gueltig(datei));
 }
 
+static void test_ueberschriften(void) {
+  g_autoptr(GString) datei = minimaldatei("0", "Text");
+  gsize pos = strchr(datei->str, '\n') - datei->str;
+  g_string_insert(datei, pos, "1\0372\0370\0370\0370\0374\037ω & <Ergebnis>\037P({ω})\037");
+  g_assert_true(gueltig(datei));
+  gsize modus = kopffeld_start(datei, 67);
+  datei->str[modus] = '5';
+  g_assert_false(gueltig(datei));
+  datei->str[modus] = '4';
+  gsize text = kopffeld_start(datei, 68);
+  char original = datei->str[text];
+  datei->str[text] = '\xff';
+  g_assert_false(gueltig(datei));
+  datei->str[text] = original;
+  gsize ende = kopffeld_start(datei, 69) - 1;
+  g_string_erase(datei, text, ende - text);
+  g_assert_true(gueltig(datei)); /* An empty custom heading is allowed. */
+  g_autofree char *maximal = g_strnfill(640, 'x');
+  g_string_insert(datei, text, maximal);
+  g_assert_true(gueltig(datei));
+  g_string_insert_c(datei, text, 'x');
+  g_assert_false(gueltig(datei));
+}
+
 static void test_einstellungsgrenzen(void) {
   g_autoptr(GString) datei = minimaldatei("0", "Text");
   /* The first header field is a layout margin.  A value that fits into the
@@ -217,6 +241,7 @@ int main(int argc, char **argv) {
   g_test_init(&argc, &argv, NULL);
   g_test_add_func("/bdg/minimal", test_minimaldatei);
   g_test_add_func("/bdg/layout-optionen", test_layout_optionen);
+  g_test_add_func("/bdg/ueberschriften", test_ueberschriften);
   g_test_add_func("/bdg/einstellungsgrenzen", test_einstellungsgrenzen);
   g_test_add_func("/bdg/dezimalkomma-und-endlichkeit",
                   test_dezimalkomma_und_endlichkeit);

@@ -117,12 +117,18 @@ extern GtkCheckButton *baumrichtungsschalter;
 void baumfokus_merken(GObject *objekt, GParamSpec *eigenschaft, gpointer data);
 void baumfokus_wiederherstellen(void);
 
+static void ueberschrift_vorbereiten(gpointer data);
+static void ueberschrift_positionieren(gpointer data);
+static void ueberschrift_dialog(GtkWidget *button, gpointer data);
+
 /* Mathematische Hilfsfunktion. */
 #include <math.h>
 
 /* Implementierungen: Alle folgenden Dateien bilden zusammen ein Programm. */
+#include "brucheingabe.c"
 #include "overlineformat.c"
 #include "wahrscheinlichkeitslayout.c"
+#include "ergebnisueberschriften.c"
 #include "buchstabeneingabe.c"
 #include "wskeingabe.c"
 #include "undo.c"

@@ -77,7 +77,7 @@ gboolean runter(GtkWidget *widget, gpointer data) {
                      G_CALLBACK(buchstabeneingabe), data);
 
     textfeldErgebnis[zaehlererg] = gtk_entry_new();
-    textfeldErgebnisWahrscheinlichkeit[zaehlererg] = gtk_entry_new();
+    textfeldErgebnisWahrscheinlichkeit[zaehlererg] = bruchfeld_neu();
     eingabefeld_absichern(textfeldErgebnis[zaehlererg]);
     eingabefeld_absichern(textfeldErgebnisWahrscheinlichkeit[zaehlererg]);
     g_autofree gchar *nameerg = g_strdup_printf("%s-E", name);
@@ -94,7 +94,7 @@ gboolean runter(GtkWidget *widget, gpointer data) {
     gtk_entry_set_alignment(
         GTK_ENTRY(textfeldErgebnisWahrscheinlichkeit[zaehlererg]), 0.5);
 
-    textfeldWahrscheinlichkeit[zaehler] = gtk_entry_new();
+    textfeldWahrscheinlichkeit[zaehler] = bruchfeld_neu();
     eingabefeld_absichern(textfeldWahrscheinlichkeit[zaehler]);
     g_autofree gchar *namew = g_strdup_printf("%sW", name);
     gtk_widget_set_name(textfeldWahrscheinlichkeit[zaehler], namew);
@@ -114,35 +114,35 @@ gboolean runter(GtkWidget *widget, gpointer data) {
          y[zaehler]) /
         2;
     gtk_layout_put(GTK_LAYOUT(data), textfeld[zaehler],
-                   FensterRandLinks + RandLinks + StufenBreite +
+                   FensterRandLinks + LayoutRandLinks + StufenBreite +
                        (StufenBreite + KnotenBreite) * Stufe,
-                   FensterRandOben + RandOben + y[zaehler]);
+                   FensterRandOben + LayoutRandOben + y[zaehler]);
     gtk_layout_put(GTK_LAYOUT(data), textfeldErgebnis[zaehlererg],
-                   FensterRandLinks + RandLinks +
+                   FensterRandLinks + LayoutRandLinks +
                        (maxStufe + 1) * StufenBreite +
                        (maxStufe + 1) * KnotenBreite + ErgebnisAbstand,
-                   FensterRandOben + RandOben + yerg[zaehlererg]);
+                   FensterRandOben + LayoutRandOben + yerg[zaehlererg]);
     gtk_layout_put(
         GTK_LAYOUT(data), textfeldErgebnisWahrscheinlichkeit[zaehlererg],
-        FensterRandLinks + RandLinks + (maxStufe + 1) * StufenBreite +
+        FensterRandLinks + LayoutRandLinks + (maxStufe + 1) * StufenBreite +
             (maxStufe + 1) * KnotenBreite + ErgebnisAbstand * 2 +
             ErgebnisBreite,
-        FensterRandOben + RandOben + yerg[zaehlererg]);
+        FensterRandOben + LayoutRandOben + yerg[zaehlererg]);
 
     gtk_layout_put(
         GTK_LAYOUT(data), textfeldWahrscheinlichkeit[zaehler],
-        ((FensterRandLinks + RandLinks + StufenBreite +
+        ((FensterRandLinks + LayoutRandLinks + StufenBreite +
           (StufenBreite + KnotenBreite) * (Stufe - 0)) +
-         (FensterRandLinks + RandLinks + StufenBreite +
+         (FensterRandLinks + LayoutRandLinks + StufenBreite +
           (StufenBreite + KnotenBreite) * (Stufe - 1) + KnotenBreite)) /
                 2 -
             WahrscheinlichkeitBreite / 2,
         (Stufe == 0)
             ? (((zaehler * KnotenHoehe + (zaehler - 1) * KnotenAbstand) / 2 +
-                RandOben + FensterRandOben) +
+                LayoutRandOben + FensterRandOben) +
                y[zaehler]) /
                   2
-            : ywsktemp + RandOben + FensterRandOben);
+            : ywsktemp + LayoutRandOben + FensterRandOben);
 
     /* Neue Widgets werden historisch zunächst mit einer horizontalen
      * Startposition angelegt. In der vertikalen Ansicht muss die Korrektur
@@ -167,25 +167,25 @@ gboolean runter(GtkWidget *widget, gpointer data) {
           int tempstufe =
               zeichenzaehlen(gtk_widget_get_name(textfeld[i]), '-') - 1;
           gtk_layout_move(GTK_LAYOUT(data), textfeld[i],
-                          FensterRandLinks + RandLinks + StufenBreite +
+                          FensterRandLinks + LayoutRandLinks + StufenBreite +
                               (StufenBreite + KnotenBreite) * tempstufe,
-                          FensterRandOben + RandOben + y[i]);
+                          FensterRandOben + LayoutRandOben + y[i]);
         }
       }
       for (i = 0; i <= maxzaehlererg; i++) {
         if (weiterunten(name, gtk_widget_get_name(textfeldErgebnis[i]))) {
           yerg[i] += KnotenAbstand + KnotenHoehe;
           gtk_layout_move(GTK_LAYOUT(data), textfeldErgebnis[i],
-                          FensterRandLinks + RandLinks +
+                          FensterRandLinks + LayoutRandLinks +
                               (maxStufe + 1) * StufenBreite +
                               (maxStufe + 1) * KnotenBreite + ErgebnisAbstand,
-                          FensterRandOben + RandOben + yerg[i]);
+                          FensterRandOben + LayoutRandOben + yerg[i]);
           gtk_layout_move(
               GTK_LAYOUT(data), textfeldErgebnisWahrscheinlichkeit[i],
-              FensterRandLinks + RandLinks + (maxStufe + 1) * StufenBreite +
+              FensterRandLinks + LayoutRandLinks + (maxStufe + 1) * StufenBreite +
                   (maxStufe + 1) * KnotenBreite + ErgebnisAbstand * 2 +
                   ErgebnisBreite,
-              FensterRandOben + RandOben + yerg[i]);
+              FensterRandOben + LayoutRandOben + yerg[i]);
         }
       }
 

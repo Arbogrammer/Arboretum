@@ -17,7 +17,7 @@ static int wsklayout_kollisionen;
 static GtkWidget *wsklayout_hinweis;
 
 static int wsk_stufe_y(int stage) {
-  return FensterRandOben + RandOben + MAX(1, StufenBreite) +
+  return FensterRandOben + LayoutRandOben + MAX(1, StufenBreite) +
          stage * (MAX(1, StufenBreite) +
                   MAX(KnotenHoehe, KnotenLabelHoehe + 2 * paddingk));
 }
@@ -65,18 +65,18 @@ static void wsk_zweige_berechnen(void) {
     double parent_y =
         p->parent < 0 ? (first + last) / 2 : wsklayout[p->parent].position;
     if (baum_vertikal) {
-      p->x1 = FensterRandLinks + RandLinks + parent_y + KnotenBreite / 2.;
-      p->x2 = FensterRandLinks + RandLinks + p->position + KnotenBreite / 2.;
+      p->x1 = FensterRandLinks + LayoutRandLinks + parent_y + KnotenBreite / 2.;
+      p->x2 = FensterRandLinks + LayoutRandLinks + p->position + KnotenBreite / 2.;
       p->y1 = p->parent < 0
-                  ? FensterRandOben + RandOben
+                  ? FensterRandOben + LayoutRandOben
                   : wsk_stufe_y(p->stage - 1) +
                         MAX(KnotenHoehe, KnotenLabelHoehe + 2 * paddingk);
       p->y2 = wsk_stufe_y(p->stage);
     } else {
-      p->x1 = FensterRandLinks + RandLinks + p->stage * (StufenBreite + klbmax);
+      p->x1 = FensterRandLinks + LayoutRandLinks + p->stage * (StufenBreite + klbmax);
       p->x2 = p->x1 + MAX(1, StufenBreite);
-      p->y1 = FensterRandOben + RandOben + parent_y + KnotenHoehe / 2.;
-      p->y2 = FensterRandOben + RandOben + p->position + KnotenHoehe / 2.;
+      p->y1 = FensterRandOben + LayoutRandOben + parent_y + KnotenHoehe / 2.;
+      p->y2 = FensterRandOben + LayoutRandOben + p->position + KnotenHoehe / 2.;
     }
   }
 }

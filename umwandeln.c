@@ -22,10 +22,10 @@ void umwandeln(GtkWidget *widget, gpointer data) {
 
       int tempStufe = zeichenzaehlen(name, '-') - 1;
       gtk_layout_put(GTK_LAYOUT(data), knotenlabel[i],
-                     FensterRandLinks + RandLinks + StufenBreite +
+                     FensterRandLinks + LayoutRandLinks + StufenBreite +
                          (StufenBreite + KnotenBreite) * tempStufe +
                          KnotenBreite / 2,
-                     FensterRandOben + RandOben + y[i] + KnotenHoehe / 4);
+                     FensterRandOben + LayoutRandOben + y[i] + KnotenHoehe / 4);
       gtk_widget_show(knotenlabel[i]);
     }
 
@@ -103,7 +103,7 @@ void umwandeln(GtkWidget *widget, gpointer data) {
           sprintf(unten, "-%i", anzahlknoteninstufe(0) - 1);
           gtk_layout_put(
               GTK_LAYOUT(data), wahrscheinlichkeitlabel[i], 0,
-              0); // FensterRandLinks+RandLinks+StufenBreite/2-WahrscheinlichkeitBreite/2,FensterRandOben+RandOben+(((y[0]+yunten+KnotenHoehe)/2)+(y[i]+KnotenHoehe/2))/2-WahrscheinlichkeitHoehe/2);
+              0); // FensterRandLinks+LayoutRandLinks+StufenBreite/2-WahrscheinlichkeitBreite/2,FensterRandOben+LayoutRandOben+(((y[0]+yunten+KnotenHoehe)/2)+(y[i]+KnotenHoehe/2))/2-WahrscheinlichkeitHoehe/2);
         } else {
           int Stufetemp = zeichenzaehlen(gtk_widget_get_name(GTK_WIDGET(
                                              textfeldWahrscheinlichkeit[i])),
@@ -114,14 +114,14 @@ void umwandeln(GtkWidget *widget, gpointer data) {
                           y[i]) /
                          2;
           gtk_layout_put(GTK_LAYOUT(data), wahrscheinlichkeitlabel[i],
-                         ((FensterRandLinks + RandLinks + StufenBreite +
+                         ((FensterRandLinks + LayoutRandLinks + StufenBreite +
                            (StufenBreite + KnotenBreite) * Stufetemp) +
-                          (FensterRandLinks + RandLinks + StufenBreite +
+                          (FensterRandLinks + LayoutRandLinks + StufenBreite +
                            (StufenBreite + KnotenBreite) * (Stufetemp - 1) +
                            KnotenBreite)) /
                                  2 -
                              WahrscheinlichkeitBreite / 2,
-                         FensterRandOben + RandOben + ywsktemp);
+                         FensterRandOben + LayoutRandOben + ywsktemp);
         }
       }
     }
@@ -155,10 +155,10 @@ void umwandeln(GtkWidget *widget, gpointer data) {
       arboretum_label_set_formatted(GTK_LABEL(ergebnislabel[i]), format, text);
 
       gtk_layout_put(GTK_LAYOUT(data), ergebnislabel[i],
-                     FensterRandLinks + RandLinks +
+                     FensterRandLinks + LayoutRandLinks +
                          (maxStufe + 1) * StufenBreite +
                          (maxStufe + 1) * KnotenLabelBreite + ErgebnisAbstand,
-                     FensterRandOben + RandOben + yerg[i] + KnotenHoehe / 4);
+                     FensterRandOben + LayoutRandOben + yerg[i] + KnotenHoehe / 4);
       gtk_widget_show(ergebnislabel[i]);
     }
     if (bruchou && bruch) {
@@ -205,10 +205,10 @@ void umwandeln(GtkWidget *widget, gpointer data) {
                                       formatn, nennertext);
         gtk_layout_put(
             GTK_LAYOUT(data), ergebniszaehlerlabel[i], 0,
-            0); // FensterRandLinks+RandLinks+StufenBreite/2-WahrscheinlichkeitBreite/2,FensterRandOben+RandOben+(((y[0]+yunten+KnotenHoehe)/2)+(y[i]+KnotenHoehe/2))/2-WahrscheinlichkeitHoehe/2);
+            0); // FensterRandLinks+LayoutRandLinks+StufenBreite/2-WahrscheinlichkeitBreite/2,FensterRandOben+LayoutRandOben+(((y[0]+yunten+KnotenHoehe)/2)+(y[i]+KnotenHoehe/2))/2-WahrscheinlichkeitHoehe/2);
         gtk_layout_put(
             GTK_LAYOUT(data), ergebnisnennerlabel[i], 0,
-            0); // FensterRandLinks+RandLinks+StufenBreite/2-WahrscheinlichkeitBreite/2,FensterRandOben+RandOben+(((y[0]+yunten+KnotenHoehe)/2)+(y[i]+KnotenHoehe/2))/2-WahrscheinlichkeitHoehe/2);
+            0); // FensterRandLinks+LayoutRandLinks+StufenBreite/2-WahrscheinlichkeitBreite/2,FensterRandOben+LayoutRandOben+(((y[0]+yunten+KnotenHoehe)/2)+(y[i]+KnotenHoehe/2))/2-WahrscheinlichkeitHoehe/2);
       }
     } else {
       for (i = 0; i <= maxzaehlererg; i++) {
@@ -232,11 +232,11 @@ void umwandeln(GtkWidget *widget, gpointer data) {
                                       text);
 
         gtk_layout_put(GTK_LAYOUT(data), ergebniswsklabel[i],
-                       FensterRandLinks + RandLinks +
+                       FensterRandLinks + LayoutRandLinks +
                            (maxStufe + 1) * StufenBreite +
                            (maxStufe + 1) * KnotenLabelBreite +
                            ErgebnisAbstand * 2 + ErgebnisLabelBreite,
-                       FensterRandOben + RandOben + yerg[i] + KnotenHoehe / 4);
+                       FensterRandOben + LayoutRandOben + yerg[i] + KnotenHoehe / 4);
         gtk_widget_show(ergebniswsklabel[i]);
       }
     }

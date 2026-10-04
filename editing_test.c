@@ -6,18 +6,23 @@
 /* Check the allocated text area, not just the alignment property. An entry
  * icon can shift that area even while xalign remains 0.5. */
 static void probability_entry_fits(GtkWidget *entry) {
-  GtkWidget *text = GTK_WIDGET(gtk_editable_get_delegate(GTK_EDITABLE(entry)));
-  graphene_rect_t bounds;
-  g_assert_true(gtk_widget_compute_bounds(text, entry, &bounds));
-  g_assert_cmpfloat_with_epsilon(bounds.origin.x + bounds.size.width / 2,
-                                gtk_widget_get_width(entry) / 2.0, 1.0);
-  g_assert_cmpfloat(gtk_editable_get_alignment(GTK_EDITABLE(entry)), ==, 0.5);
-  PangoLayout *layout = gtk_widget_create_pango_layout(text,
-      gtk_editable_get_text(GTK_EDITABLE(entry)));
-  int width;
-  pango_layout_get_pixel_size(layout, &width, NULL);
-  g_object_unref(layout);
-  g_assert_cmpint(gtk_widget_get_width(text), >, width);
+  ArboretumFractionEntry *fraction = bruchfeld(entry);
+  int count = fraction && fraction->vertical ? 2 : 1;
+  for (int i = 0; i < count; i++) {
+    GtkWidget *text = count == 2 ? (i ? fraction->denominator : fraction->numerator)
+        : GTK_WIDGET(gtk_editable_get_delegate(GTK_EDITABLE(entry)));
+    graphene_rect_t bounds;
+    g_assert_true(gtk_widget_compute_bounds(text, entry, &bounds));
+    g_assert_cmpfloat_with_epsilon(bounds.origin.x + bounds.size.width / 2,
+                                  gtk_widget_get_width(entry) / 2.0, 1.0);
+    g_assert_cmpfloat(gtk_editable_get_alignment(GTK_EDITABLE(text)), ==, 0.5);
+    PangoLayout *layout = gtk_widget_create_pango_layout(text,
+        gtk_editable_get_text(GTK_EDITABLE(text)));
+    int width;
+    pango_layout_get_pixel_size(layout, &width, NULL);
+    g_object_unref(layout);
+    g_assert_cmpint(gtk_widget_get_width(text), >, width);
+  }
 }
 
 static void probability_entry_layout_test(gpointer data, const char *path) {
@@ -84,9 +89,12 @@ static void urnen_ergebnis_layout_test(gpointer data) {
         if (vertical)
           g_assert_cmpfloat(probability.origin.y, >=,
                             result.origin.y + result.size.height);
-        else
+        else {
           g_assert_cmpfloat(probability.origin.x, >=,
                             result.origin.x + result.size.width + ErgebnisAbstand);
+          g_assert_cmpfloat_with_epsilon(probability.origin.y + probability.size.height / 2,
+                                         result.origin.y + result.size.height / 2, 1.0);
+        }
       }
       for (int stacked = 0; stacked < 2; stacked++) {
         bruchou = stacked;
@@ -132,6 +140,161 @@ static void urnen_ergebnis_layout_test(gpointer data) {
   for (int i = 0; i < 4; i++)
     g_object_unref(felder[i]);
   g_printerr("Urnenmodell: Ergebnisbreiten, Abstand und fixierte Bruchdarstellung in allen Modi OK\n");
+}
+
+static void ueberschriften_test(gpointer data) {
+  g_autofree char *dir = g_dir_make_tmp("Arboretum-Ueberschriften-XXXXXX", NULL);
+  g_autofree char *path = g_build_filename(dir, "baum.bdg", NULL);
+  g_autofree char *legacy = g_build_filename(dir, "alt.bdg", NULL);
+  if (labelein) umwandeln(NULL, data);
+  ueberschrift_modus = 0;
+  ueberschrift_eigen[0][0] = ueberschrift_eigen[1][0] = 0;
+  g_assert_true(speichern(legacy));
+  g_strlcpy(ueberschrift_eigen[0], "Ergebnis <ω> & Ä", sizeof(ueberschrift_eigen[0]));
+  g_strlcpy(ueberschrift_eigen[1], "Wahrscheinlichkeit P({ω})", sizeof(ueberschrift_eigen[1]));
+  for (int vertical = 0; vertical < 2; vertical++) {
+    baum_vertikal = vertical;
+    for (int mode = 0; mode <= 4; mode++) {
+      ueberschrift_modus = mode;
+      for (int fixed = 0; fixed < 2; fixed++) {
+        if (!!labelein != fixed) umwandeln(NULL, data);
+        baumrichtung_aktualisieren(data);
+        io_test_drain();
+        for (int k = 0; k < 2; k++) {
+          g_assert_cmpint(gtk_widget_get_visible(ueberschrift_label[k]), ==, mode != 0);
+          if (!mode) continue;
+          double *hp = g_object_get_data(G_OBJECT(ueberschrift_label[k]), "arboretum-layout-position");
+          GtkWidget *value = fixed ? (k ? ergebniszaehlerlabel[0] : ergebnislabel[0])
+                                   : (k ? textfeldErgebnisWahrscheinlichkeit[0] : textfeldErgebnis[0]);
+          double *vp = g_object_get_data(G_OBJECT(value), "arboretum-layout-position");
+          g_assert_nonnull(hp);
+          g_assert_nonnull(vp);
+          if (vertical)
+            g_assert_cmpfloat(hp[0] + ueberschrift_breite[k], <, vp[0]);
+          else
+            g_assert_cmpfloat(hp[1] + ueberschrift_hoehe[k], <, vp[1]);
+        }
+      }
+      g_assert_true(speichern(path));
+      ueberschrift_modus = 0;
+      laden(data, path);
+      g_assert_cmpint(ueberschrift_modus, ==, mode);
+      g_assert_cmpstr(ueberschrift_eigen[0], ==, "Ergebnis <ω> & Ä");
+    }
+    if (!labelein) umwandeln(NULL, data);
+    baumrichtung_aktualisieren(data);
+    io_test_drain();
+    const char *exts[] = {"png", "svg", "pdf", "jpg", "bmp", "tex", "odt", "docx"};
+    gboolean (*exporters[])(char *) = {exportpng, exportsvg, exportpdf, exportjpg, exportbmp, exporttex, exportodt, exportdocx};
+    for (int e = 0; e < 8; e++) {
+      g_autofree char *out = g_strdup_printf("%s/%s.%s", dir, vertical ? "vertikal" : "horizontal", exts[e]);
+      g_assert_true(exporters[e](out));
+    }
+    ergebnisspalteanzeigen(data);
+    baumrichtung_aktualisieren(data);
+    g_assert_false(gtk_widget_get_visible(ueberschrift_label[0]));
+    g_assert_true(gtk_widget_get_visible(ueberschrift_label[1]));
+    ergebnisspalteanzeigen(data);
+    ergebnissewskanzeigen = FALSE;
+    baumrichtung_aktualisieren(data);
+    g_assert_false(gtk_widget_get_visible(ueberschrift_label[1]));
+    ergebnissewskanzeigen = TRUE;
+    if (labelein) umwandeln(NULL, data);
+  }
+  tempspeichern();
+  ueberschrift_modus = 1;
+  rueckgaengig(NULL, data);
+  g_assert_cmpint(ueberschrift_modus, ==, 4);
+  wiederherstellen(NULL, data);
+  g_assert_cmpint(ueberschrift_modus, ==, 1);
+  laden(data, legacy);
+  g_assert_cmpint(ueberschrift_modus, ==, 0);
+  g_assert_cmpstr(ueberschrift_eigen[0], ==, "");
+  g_printerr("Ergebnisüberschriften: Varianten, beide Richtungen, Ausblenden, Datei/Undo und alle Exporte OK: %s\n", dir);
+}
+
+static void fraction_editor_test(gpointer data) {
+  letzte_wahrscheinlichkeit_automatisch = FALSE;
+  bruchou = TRUE;
+  if (labelein) umwandeln(NULL, data);
+  GtkWidget *entry = textfeldWahrscheinlichkeit[0];
+  ArboretumFractionEntry *f = bruchfeld(entry);
+  g_assert_nonnull(f);
+  gtk_entry_set_text(GTK_ENTRY(entry), "0,5");
+  baumrichtung_aktualisieren(data);
+  io_test_drain();
+  int plain_height = gtk_widget_get_height(entry);
+  g_assert_false(f->vertical);
+  gtk_entry_set_text(GTK_ENTRY(entry), "1");
+  gtk_entry_grab_focus_without_selecting(GTK_ENTRY(entry));
+  int position = 1;
+  gtk_editable_insert_text(GTK_EDITABLE(entry), "/", 1, &position);
+  io_test_drain();
+  g_assert_true(f->vertical);
+  g_assert_cmpint(gtk_widget_get_height(entry), >, plain_height);
+  g_assert_true(bruchfeld_teil(f) == f->denominator);
+  position = 0;
+  gtk_editable_insert_text(GTK_EDITABLE(f->denominator), "2", 1, &position);
+  g_assert_cmpstr(gtk_entry_get_text(GTK_ENTRY(entry)), ==, "1/2");
+  g_assert_true(bruchfeld_taste(GDK_KEY_Up, 0));
+  g_assert_true(bruchfeld_teil(f) == f->numerator);
+  g_assert_true(bruchfeld_taste(GDK_KEY_slash, 0));
+  g_assert_true(bruchfeld_teil(f) == f->denominator);
+  gtk_editable_set_text(GTK_EDITABLE(f->denominator), "");
+  g_assert_true(bruchfeld_taste(GDK_KEY_BackSpace, 0));
+  g_assert_false(f->vertical);
+  g_assert_cmpstr(gtk_entry_get_text(GTK_ENTRY(entry)), ==, "1");
+  gtk_entry_set_text(GTK_ENTRY(entry), "1/2");
+  gtk_entry_grab_focus_without_selecting(GTK_ENTRY(entry));
+  g_assert_true(bruchfeld_taste(GDK_KEY_a, GDK_CONTROL_MASK));
+  g_assert_false(bruchfeld_taste(GDK_KEY_Delete, GDK_CONTROL_MASK));
+  g_assert_cmpstr(gtk_entry_get_text(GTK_ENTRY(entry)), ==, "1/2");
+  g_assert_true(bruchfeld_taste(GDK_KEY_0, 0));
+  g_assert_false(f->vertical);
+  g_assert_cmpstr(gtk_entry_get_text(GTK_ENTRY(entry)), ==, "0");
+  gtk_entry_set_text(GTK_ENTRY(entry), "0,5");
+  io_test_drain();
+  g_assert_cmpint(gtk_widget_get_height(entry), ==, plain_height);
+  gtk_entry_set_text(GTK_ENTRY(entry), "1/1234567");
+  bruchou = FALSE;
+  baumrichtung_aktualisieren(data);
+  io_test_drain();
+  g_assert_false(f->vertical);
+  g_assert_cmpstr(gtk_entry_get_text(GTK_ENTRY(entry)), ==, "1/1234567");
+  g_assert_cmpint(gtk_widget_get_height(entry), ==, plain_height);
+  bruchou = TRUE;
+  baumrichtung_aktualisieren(data);
+  io_test_drain();
+  g_assert_true(f->vertical);
+  probability_entry_fits(entry);
+  /* Native clipboard actions must operate on the entire selected fraction. */
+  gtk_entry_grab_focus_without_selecting(GTK_ENTRY(entry));
+  g_assert_true(bruchfeld_taste(GDK_KEY_a, GDK_CONTROL_MASK));
+  GtkWidget *part = bruchfeld_teil(f);
+  g_signal_emit_by_name(part, "copy-clipboard");
+  g_signal_emit_by_name(part, "cut-clipboard");
+  g_assert_cmpstr(gtk_entry_get_text(GTK_ENTRY(entry)), ==, "");
+  g_signal_emit_by_name(f->plain, "paste-clipboard");
+  io_test_drain();
+  g_assert_cmpstr(gtk_entry_get_text(GTK_ENTRY(entry)), ==, "1/1234567");
+  g_assert_true(f->vertical);
+  g_assert_true(bruchfeld_taste(GDK_KEY_a, GDK_CONTROL_MASK));
+  gdk_clipboard_set_text(gtk_widget_get_clipboard(entry), "0,25");
+  g_signal_emit_by_name(bruchfeld_teil(f), "paste-clipboard");
+  io_test_drain();
+  g_assert_false(f->vertical);
+  g_assert_cmpstr(gtk_entry_get_text(GTK_ENTRY(entry)), ==, "0,25");
+  gtk_entry_set_text(GTK_ENTRY(entry), "1/1234567");
+  io_test_drain();
+  undo_leeren();
+  gtk_editable_set_text(GTK_EDITABLE(f->denominator), "7654321");
+  rueckgaengig(NULL, data);
+  io_test_drain();
+  g_assert_cmpstr(gtk_entry_get_text(GTK_ENTRY(textfeldWahrscheinlichkeit[0])), ==, "1/1234567");
+  wiederherstellen(NULL, data);
+  io_test_drain();
+  g_assert_cmpstr(gtk_entry_get_text(GTK_ENTRY(textfeldWahrscheinlichkeit[0])), ==, "1/7654321");
+  g_printerr("Fraction editor: slash, focus, backspace, select-all, decimal height, mode switch and undo/redo OK\n");
 }
 
 static gboolean layout_test(gpointer data) {
@@ -280,11 +443,18 @@ static gboolean layout_test(gpointer data) {
   g_assert_true(baum_vertikal);
   g_printerr("Editing regression: mixed values, invalid input, grouped undo/redo, delete, direction and legacy files OK\n");
   urnen_ergebnis_layout_test(data);
+  ueberschriften_test(data);
+  fraction_editor_test(data);
   g_main_loop_quit(arboretum_main_loop);
   return G_SOURCE_REMOVE;
 }
 
 static gboolean editing_test_start(gpointer unused) {
+  if (g_getenv("ARBORETUM_FRACTION_TEST_ONLY")) {
+    fraction_editor_test(gtk_widget_get_parent(textfeld[0]));
+    g_main_loop_quit(arboretum_main_loop);
+    return G_SOURCE_REMOVE;
+  }
   return layout_test(gtk_widget_get_parent(textfeld[0]));
 }
 int main(int argc, char **argv) {

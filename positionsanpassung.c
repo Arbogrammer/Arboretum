@@ -20,11 +20,11 @@ gboolean positionsanpassung(GtkWidget *widget, gpointer data) {
   int mw = 0, nw = 0;
   gtk_widget_get_preferred_width(widget, &mw, &nw);
   int versatz = (KnotenBreite - nw) / 2;
-  int x = baum_vertikal ? FensterRandLinks + RandLinks + y[tempzaehler] + versatz
-                        : FensterRandLinks + RandLinks + StufenBreite +
+  int x = baum_vertikal ? FensterRandLinks + LayoutRandLinks + y[tempzaehler] + versatz
+                        : FensterRandLinks + LayoutRandLinks + StufenBreite +
                               (StufenBreite + KnotenBreite) * tempstufe + versatz;
   int yposition = baum_vertikal ? vertikale_stufe_y(tempstufe)
-                                : FensterRandOben + RandOben + y[tempzaehler];
+                                : FensterRandOben + LayoutRandOben + eingabe_y_position(y[tempzaehler]);
   gtk_layout_move(GTK_LAYOUT(data), widget, x, yposition);
   return TRUE;
 }
