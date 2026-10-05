@@ -260,7 +260,8 @@ static gboolean urnen_generieren(GtkWidget *dialog, gpointer daten) {
       g_string_append(baum.wsk, g_ptr_array_index(baum.wsk_zeilen, i));
     gchar *tmpname = NULL;
     int fd = g_file_open_tmp("arboretum-urne-XXXXXX.bdg", &tmpname, NULL);
-    if (fd < 0 || !speichern(tmpname))
+    /* Vor dem atomaren Ersetzen schließen: Windows sperrt offene Dateien. */
+    if (fd < 0 || !g_close(fd, NULL) || !speichern(tmpname))
       urnen_fehler("Der Urnenbaum konnte nicht vorbereitet werden.");
     else {
       gchar *alt = NULL;
@@ -311,7 +312,6 @@ static gboolean urnen_generieren(GtkWidget *dialog, gpointer daten) {
       }
     }
     if (fd >= 0) {
-      close(fd);
       g_unlink(tmpname);
     }
     g_free(tmpname);

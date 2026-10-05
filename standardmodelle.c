@@ -390,30 +390,39 @@ static void modell_dialog(GtkWidget *w, gpointer data, gboolean bin) {
       else {
         gchar *tmp = NULL;
         int fd = g_file_open_tmp("arboretum-modell-XXXXXX.bdg", &tmp, NULL);
-        if (fd >= 0) {
-          speichern(tmp);
+        /* Vor dem atomaren Ersetzen schließen: Windows sperrt offene Dateien. */
+        if (fd < 0 || !g_close(fd, NULL))
+          urnen_fehler("Das Modell konnte nicht vorbereitet werden.");
+        else if (speichern(tmp)) {
           gchar *old = NULL;
           gsize l;
           if (g_file_get_contents(tmp, &old, &l, NULL)) {
             char *cut = strchr(old, 30);
-            GString *out = g_string_new_len(old, cut - old + 2);
-            for (guint i = 0; i < m.nodes->len; i++)
-              g_string_append(out, g_ptr_array_index(m.nodes, i));
-            g_string_append_printf(out, "%c\n%s%c\n", 30, m.es->str, 30);
-            for (guint i = 0; i < m.ws->len; i++)
-              g_string_append(out, g_ptr_array_index(m.ws, i));
-            g_string_append_printf(out, "%c\n%s", 30, m.ews->str);
-            g_file_set_contents(tmp, out->str, out->len, NULL);
-            tempspeichern();
-            laden(data, tmp);
-            modell_feldgroessen_anpassen(data);
-            g_string_free(out, TRUE);
+            if (cut) {
+              GString *out = g_string_new_len(old, cut - old + 2);
+              for (guint i = 0; i < m.nodes->len; i++)
+                g_string_append(out, g_ptr_array_index(m.nodes, i));
+              g_string_append_printf(out, "%c\n%s%c\n", 30, m.es->str, 30);
+              for (guint i = 0; i < m.ws->len; i++)
+                g_string_append(out, g_ptr_array_index(m.ws, i));
+              g_string_append_printf(out, "%c\n%s", 30, m.ews->str);
+              if (!g_file_set_contents(tmp, out->str, out->len, NULL))
+                urnen_fehler("Das Modell konnte nicht gespeichert werden.");
+              else {
+                tempspeichern();
+                laden(data, tmp);
+                modell_feldgroessen_anpassen(data);
+              }
+              g_string_free(out, TRUE);
+            } else
+              urnen_fehler("Das Modell konnte nicht vorbereitet werden.");
             g_free(old);
-          }
-          close(fd);
-          g_unlink(tmp);
-          g_free(tmp);
+          } else
+            urnen_fehler("Das Modell konnte nicht gelesen werden.");
         }
+        if (fd >= 0)
+          g_unlink(tmp);
+        g_free(tmp);
       }
       g_ptr_array_free(m.nodes, TRUE);
       g_ptr_array_free(m.ws, TRUE);
