@@ -6,12 +6,12 @@ Baumdiagrammen.
 ## Releases
 
 `VERSION` enthält die Paketversion. Release-Pakete werden aus dem passenden
-Tag (z. B. `v4.0.0`) neu gebaut, nicht aus älteren Downloads zusammengesetzt.
+Tag (z. B. `v4.0.1`) neu gebaut, nicht aus älteren Downloads zusammengesetzt.
 Alle Plattformen enthalten `BUILD-INFO.txt` mit dem vollständigen Quell-Commit;
 macOS verwendet dieselbe Version auch in den App-Metadaten.
 Die Linux-, Windows- und macOS-Workflows bauen nach Änderungen auf `main` sowie bei einem neuen Versionstag
 und prüfen die fertigen Pakete. Änderungsnotizen liegen unter
-`packaging/RELEASE-4.0.0.md`.
+`packaging/RELEASE-4.0.1.md`.
 
 ## Bauen unter Linux
 
