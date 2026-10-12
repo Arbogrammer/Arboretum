@@ -3,6 +3,20 @@
 Arboretum ist eine GTK-4-Anwendung zum Erstellen und Exportieren von
 Baumdiagrammen.
 
+## Arboretum in zwei Minuten
+
+Das Tutorial zeigt an zwei Würfen einer fairen Münze, wie du Knoten anlegst,
+Wahrscheinlichkeiten eingibst, Ergebnisse anzeigst und deinen Baum speicherst
+oder exportierst. **1:46 Minuten, ohne Ton**, mit Texteinblendungen und
+markierten Eingabefeldern.
+
+https://github.com/user-attachments/assets/03a669cf-da44-4a7f-b1c5-dc3fc489fe21
+
+[Beispielbaum herunterladen: Muenzwurf.bdg](https://github.com/Arbogrammer/Arboretum/releases/download/v4.0.2/Muenzwurf.bdg)
+
+Öffne die heruntergeladene Datei in Arboretum über **Datei → Öffnen**.
+Mit **Strg+U** wechselst du von der fixierten Ansicht zur Bearbeitung.
+
 ## Releases
 
 `VERSION` enthält die Paketversion. Release-Pakete werden aus dem passenden
