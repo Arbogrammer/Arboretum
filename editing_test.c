@@ -544,8 +544,6 @@ static gboolean layout_test(gpointer data) {
   wiederherstellen(NULL, data);
   g_assert_true(baum_vertikal);
   g_printerr("Editing regression: mixed values, invalid input, grouped undo/redo, delete, direction and legacy files OK\n");
-  urnen_undo_test(data);
-  standardmodelle_undo_test(data);
   urnen_ergebnis_layout_test(data);
   ueberschriften_test(data);
   fraction_editor_test(data);

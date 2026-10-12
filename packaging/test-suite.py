@@ -72,6 +72,10 @@ def main():
     for name, binary in (("EDITING", "editing-test"), ("LAYOUT", "layout-test"),
                          ("PARSER", "security-parser-test-bin")):
         results.append((name, run(name, [f"./{binary}"])))
+    # Model dialogs change window focus; keep their history tests isolated from
+    # the fraction editor's keyboard-focus checks.
+    results.append(("MODEL-UNDO", run("MODEL-UNDO", ["./editing-test"],
+                    {"ARBORETUM_MODEL_UNDO_TEST_ONLY": "1"})))
     with tempfile.TemporaryDirectory(prefix="arboretum-deep-suite-") as directory:
         fixture = str(Path(directory) / "deep.bdg")
         generated = run("DEEP-FIXTURE", ["./deep-tree-generator", fixture, "5000"])
