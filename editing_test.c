@@ -58,6 +58,108 @@ static void probability_entry_layout_test(gpointer data, const char *path) {
   io_test_drain();
 }
 
+/* Compare every editable value, including generated results, across history. */
+static char *urnen_test_inhalt(void) {
+  GString *inhalt = g_string_new(NULL);
+  GtkWidget **spalten[] = {textfeld, textfeldWahrscheinlichkeit,
+      textfeldErgebnis, textfeldErgebnisWahrscheinlichkeit};
+  for (int spalte = 0; spalte < 4; spalte++) {
+    int maximum = spalte < 2 ? maxzaehler : maxzaehlererg;
+    g_string_append_printf(inhalt, "%d\n", maximum);
+    for (int i = 0; i <= maximum; i++)
+      g_string_append_printf(inhalt, "%s\037%s\n",
+          gtk_widget_get_name(spalten[spalte][i]),
+          gtk_entry_get_text(GTK_ENTRY(spalten[spalte][i])));
+  }
+  return g_string_free(inhalt, FALSE);
+}
+
+static void urnen_undo_test(gpointer data) {
+  const char *modi[] = {"ohne", "mit", "dazulegen", NULL};
+  GtkWidget *felder[] = {gtk_entry_new(), gtk_entry_new(),
+      gtk_spin_button_new_with_range(1, 100, 1),
+      gtk_drop_down_new_from_strings(modi), data};
+  for (int i = 0; i < 4; i++) g_object_ref_sink(felder[i]);
+  gtk_entry_set_text(GTK_ENTRY(felder[0]), "B, G, W");
+  gtk_entry_set_text(GTK_ENTRY(felder[1]), "2, 3, 1");
+  gtk_spin_button_set_value(GTK_SPIN_BUTTON(felder[2]), 2);
+  for (int fixiert = 0; fixiert < 2; fixiert++) {
+    if (labelein != fixiert) umwandeln(NULL, data);
+    for (int modus = 0; modus < 3; modus++) {
+      gtk_drop_down_set_selected(GTK_DROP_DOWN(felder[3]), modus);
+      io_test_drain();
+      undo_leeren();
+      g_autofree char *vorher = urnen_test_inhalt();
+      g_assert_true(urnen_generieren(gtk_dialog_new(), felder));
+      io_test_drain();
+      g_assert_cmpuint(undo_schritte->len, ==, 1);
+      g_assert_cmpint(labelein, ==, fixiert);
+      g_autofree char *nachher = urnen_test_inhalt();
+      for (int wiederholung = 0; wiederholung < 2; wiederholung++) {
+        rueckgaengig(NULL, data);
+        io_test_drain();
+        g_autofree char *zurueckgesetzt = urnen_test_inhalt();
+        g_assert_cmpstr(zurueckgesetzt, ==, vorher);
+        g_assert_cmpuint(undo_schritte->len, ==, 0);
+        g_assert_cmpint(labelein, ==, fixiert);
+        wiederherstellen(NULL, data);
+        io_test_drain();
+        g_autofree char *wiederhergestellt = urnen_test_inhalt();
+        g_assert_cmpstr(wiederhergestellt, ==, nachher);
+        g_assert_cmpuint(undo_schritte->len, ==, 1);
+        g_assert_cmpint(labelein, ==, fixiert);
+      }
+      rueckgaengig(NULL, data);
+    }
+  }
+  for (int i = 0; i < 4; i++) g_object_unref(felder[i]);
+  g_printerr("Urn model: single-step undo/redo with all values restored OK\n");
+}
+
+static gboolean standardmodell_bestaetigen(gpointer titel) {
+  GListModel *fenster = gtk_window_get_toplevels();
+  for (guint i = 0; i < g_list_model_get_n_items(fenster); i++) {
+    g_autoptr(GtkWindow) dialog = g_list_model_get_item(fenster, i);
+    if (GTK_IS_DIALOG(dialog) &&
+        g_strcmp0(gtk_window_get_title(dialog), titel) == 0) {
+      gtk_dialog_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
+      return G_SOURCE_REMOVE;
+    }
+  }
+  g_assert_not_reached();
+}
+
+static void standardmodelle_undo_test(gpointer data) {
+  for (int fixiert = 0; fixiert < 2; fixiert++) {
+    if (labelein != fixiert) umwandeln(NULL, data);
+    for (int bin = 0; bin < 2; bin++) {
+      io_test_drain();
+      undo_leeren();
+      g_autofree char *vorher = urnen_test_inhalt();
+      g_idle_add(standardmodell_bestaetigen,
+                 bin ? "Binomialmodell" : "Pfadvorlage");
+      modell_dialog(NULL, data, bin);
+      io_test_drain();
+      g_assert_nonnull(undo_schritte);
+      g_assert_cmpuint(undo_schritte->len, ==, 1);
+      g_assert_cmpint(labelein, ==, fixiert);
+      g_autofree char *nachher = urnen_test_inhalt();
+      rueckgaengig(NULL, data);
+      io_test_drain();
+      g_autofree char *zurueckgesetzt = urnen_test_inhalt();
+      g_assert_cmpstr(zurueckgesetzt, ==, vorher);
+      g_assert_cmpuint(undo_schritte->len, ==, 0);
+      wiederherstellen(NULL, data);
+      io_test_drain();
+      g_autofree char *wiederhergestellt = urnen_test_inhalt();
+      g_assert_cmpstr(wiederhergestellt, ==, nachher);
+      g_assert_cmpint(labelein, ==, fixiert);
+      rueckgaengig(NULL, data);
+    }
+  }
+  g_printerr("Standard models: single-step undo/redo OK\n");
+}
+
 static void urnen_ergebnis_layout_test(gpointer data) {
   const char *modi[] = {"ohne", "mit", "dazulegen", NULL};
   GtkWidget *felder[] = {gtk_entry_new(), gtk_entry_new(),
@@ -442,6 +544,8 @@ static gboolean layout_test(gpointer data) {
   wiederherstellen(NULL, data);
   g_assert_true(baum_vertikal);
   g_printerr("Editing regression: mixed values, invalid input, grouped undo/redo, delete, direction and legacy files OK\n");
+  urnen_undo_test(data);
+  standardmodelle_undo_test(data);
   urnen_ergebnis_layout_test(data);
   ueberschriften_test(data);
   fraction_editor_test(data);
@@ -450,6 +554,13 @@ static gboolean layout_test(gpointer data) {
 }
 
 static gboolean editing_test_start(gpointer unused) {
+  if (g_getenv("ARBORETUM_MODEL_UNDO_TEST_ONLY")) {
+    gpointer data = gtk_widget_get_parent(textfeld[0]);
+    urnen_undo_test(data);
+    standardmodelle_undo_test(data);
+    g_main_loop_quit(arboretum_main_loop);
+    return G_SOURCE_REMOVE;
+  }
   if (g_getenv("ARBORETUM_FRACTION_TEST_ONLY")) {
     fraction_editor_test(gtk_widget_get_parent(textfeld[0]));
     g_main_loop_quit(arboretum_main_loop);

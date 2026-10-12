@@ -287,6 +287,11 @@ static gboolean urnen_generieren(GtkWidget *dialog, gpointer daten) {
              * bisherige Zustand vorher als genau ein Undo-Schritt gesichert
              * werden, wie bei jeder anderen strukturellen Änderung. */
             tempspeichern();
+            /* Auch insert/delete-text lösen Undo aus, obwohl changed beim
+             * Eintragen der Wahrscheinlichkeiten gesperrt ist. Der gesamte
+             * Aufbau muss deshalb eine einzige History-Änderung bleiben. */
+            gboolean vorher_undo_intern = undo_intern;
+            undo_intern = TRUE;
             laden(felder[4], tmpname);
             gboolean war_fixiert = labelein;
             if (war_fixiert)
@@ -303,6 +308,7 @@ static gboolean urnen_generieren(GtkWidget *dialog, gpointer daten) {
               umwandeln(NULL, felder[4]);
             else
               eingabe_neuaufbau_planen(felder[4]);
+            undo_intern = vorher_undo_intern;
             dateiveraendert++;
             gtk_window_destroy(GTK_WINDOW(dialog));
           }

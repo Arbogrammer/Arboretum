@@ -410,8 +410,13 @@ static void modell_dialog(GtkWidget *w, gpointer data, gboolean bin) {
                 urnen_fehler("Das Modell konnte nicht gespeichert werden.");
               else {
                 tempspeichern();
+                /* Laden und Größenanpassung gehören zum selben Undo-Schritt,
+                 * auch wenn dabei interne Eingabesignale ausgelöst werden. */
+                gboolean vorher_undo_intern = undo_intern;
+                undo_intern = TRUE;
                 laden(data, tmp);
                 modell_feldgroessen_anpassen(data);
+                undo_intern = vorher_undo_intern;
               }
               g_string_free(out, TRUE);
             } else

@@ -905,6 +905,10 @@ void laden(gpointer data, char *dateiname) {
     }
   }
 
+  /* Die Labels werden erst unten neu erzeugt. Bis dahin darf das Layout
+   * nicht auf die bereits entfernten Labels des alten Baums zugreifen. */
+  gboolean wieder_fixieren = labelein;
+  labelein = 0;
   wahrscheinlichkeit_alle_pruefen();
   for (i = 0; i <= maxzaehlererg; i++)
     wskergebnisneuschreiben(textfeldErgebnisWahrscheinlichkeit[i]);
@@ -924,8 +928,7 @@ void laden(gpointer data, char *dateiname) {
     gtk_editable_set_position(
         GTK_EDITABLE(textfeldErgebnisWahrscheinlichkeit[i]), -1);
   }
-  if (labelein) {
-    labelein = 0;
+  if (wieder_fixieren) {
     umwandeln(NULL, data);
   } else
     gtk_entry_grab_focus_without_selecting(GTK_ENTRY(textfeld[0]));
